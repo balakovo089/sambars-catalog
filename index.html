@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог прицепов — Самбарс</title>
+<style>
+* { margin:0;padding:0;box-sizing:border-box; }
+body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#1a1d23; color:#e0e0e0; min-height:100vh; }
+.header { background:linear-gradient(135deg,#2c3e50,#1a1d23); padding:24px 32px; border-bottom:3px solid #f39c12; position:sticky; top:0; z-index:100; }
+.header h1 { font-size:28px; color:#f39c12; margin-bottom:6px; }
+.header p { color:#888; font-size:14px; }
+.filters { display:flex; flex-wrap:wrap; gap:12px; padding:16px 32px; background:#22252b; border-bottom:1px solid #333; align-items:center; }
+.filter-group { display:flex; gap:6px; align-items:center; }
+.filter-group label { font-size:13px; color:#999; white-space:nowrap; }
+.filter-btn { padding:6px 14px; border:1px solid #444; border-radius:6px; background:#2a2d35; color:#aaa; cursor:pointer; font-size:13px; transition:all .2s; white-space:nowrap; }
+.filter-btn:hover { border-color:#f39c12; color:#f39c12; }
+.filter-btn.active { background:#f39c12; color:#1a1d23; border-color:#f39c12; font-weight:600; }
+.filter-sep { width:1px; height:24px; background:#444; margin:0 8px; }
+.view-toggle { display:flex; gap:4px; margin-left:auto; background:#2a2d35; border-radius:8px; padding:3px; }
+.view-toggle button { padding:6px 14px; border:none; border-radius:6px; background:transparent; color:#aaa; cursor:pointer; font-size:13px; }
+.view-toggle button.active { background:#f39c12; color:#1a1d23; font-weight:600; }
+.container { padding:24px; max-width:1400px; margin:0 auto; }
+.cards-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(400px,1fr)); gap:20px; }
+.cards-grid.hidden { display:none; }
+
+.card { background:#22252b; border-radius:12px; border:1px solid #333; overflow:hidden; transition:transform .2s; }
+.card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.4); border-color:#555; }
+.card-header { padding:16px 20px; border-bottom:1px solid #333; display:flex; justify-content:space-between; align-items:flex-start; }
+.card-brand { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:3px 10px; border-radius:4px; color:#fff; }
+.card-model { font-size:18px; font-weight:700; color:#fff; margin:8px 0 4px; }
+.card-specs { font-size:13px; color:#888; }
+.card-specs span { margin-right:12px; }
+
+.card-photos { position:relative; background:#1a1d23; overflow:hidden; }
+.photo-slider { display:flex; transition:transform .3s; }
+.photo-slide { min-width:100%; }
+.photo-slide img { width:100%; height:220px; object-fit:cover; display:block; }
+.photo-nav { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); display:flex; gap:6px; }
+.photo-dot { width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,.4); cursor:pointer; transition:background .2s; }
+.photo-dot.active { background:#f39c12; }
+.photo-arrow { position:absolute; top:50%; transform:translateY(-50%); background:rgba(0,0,0,.5); color:#fff; border:none; width:32px; height:48px; cursor:pointer; font-size:18px; }
+.photo-arrow:hover { background:rgba(0,0,0,.8); }
+.photo-arrow.prev { left:0; border-radius:0 4px 4px 0; }
+.photo-arrow.next { right:0; border-radius:4px 0 0 4px; }
+
+.card-dims { padding:12px 20px; display:flex; align-items:center; gap:12px; border-bottom:1px solid #2a2d35; }
+.dim-visual { position:relative; border:2px solid #f39c12; border-radius:4px; background:rgba(243,156,18,.08); display:flex; align-items:center; justify-content:center; min-width:60px; min-height:40px; }
+.dim-label { font-size:11px; color:#f39c12; font-weight:600; }
+.dim-info { font-size:12px; color:#777; line-height:1.6; }
+.dim-info strong { color:#ccc; }
+
+.card-specs-details { border-bottom:1px solid #2a2d35; }
+.card-specs-details summary { padding:10px 20px; cursor:pointer; color:#f39c12; font-size:13px; font-weight:600; }
+.card-specs-details summary:hover { color:#e67e22; }
+.specs-grid { display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; padding:4px 20px 12px; font-size:12px; }
+.specs-grid dt { color:#888; }
+.specs-grid dd { color:#ccc; margin:0; padding-bottom:4px; }
+
+.price-matrix { padding:12px 20px 16px; }
+.matrix-table { width:100%; border-collapse:collapse; font-size:13px; }
+.matrix-table th { text-align:center; padding:6px 8px; color:#888; font-weight:500; font-size:11px; border-bottom:1px solid #333; }
+.matrix-table td { text-align:center; padding:8px; border-bottom:1px solid #2a2d35; font-weight:600; }
+.matrix-table .body-label { text-align:left; color:#aaa; font-weight:500; font-size:12px; }
+.matrix-table .price-cell { color:#2ecc71; font-size:15px; font-weight:700; }
+.matrix-table .price-na { color:#555; font-size:12px; }
+.matrix-table tr:last-child td { border-bottom:none; }
+
+.table-view { display:none; overflow-x:auto; }
+.table-view.active { display:block; }
+.data-table { width:100%; border-collapse:collapse; font-size:13px; background:#22252b; border-radius:12px; overflow:hidden; }
+.data-table th { background:#2a2d35; padding:12px 14px; text-align:left; color:#f39c12; font-weight:600; font-size:12px; white-space:nowrap; position:sticky; top:108px; z-index:5; }
+.data-table td { padding:10px 14px; border-bottom:1px solid #2a2d35; white-space:nowrap; }
+.data-table tr:hover td { background:rgba(243,156,18,.04); }
+.data-table .price { color:#2ecc71; font-weight:700; }
+.brand-tag { display:inline-block; padding:2px 8px; border-radius:3px; font-size:11px; font-weight:700; color:#fff; }
+
+.axle-badge { display:inline-block; font-size:11px; padding:2px 6px; border-radius:3px; background:#2a2d35; color:#f39c12; margin-top:4px; }
+.card-price-summary { text-align:right; }
+.price-from { font-size:11px; color:#777; }
+.price-min { font-size:20px; font-weight:700; color:#2ecc71; }
+.price-max { font-size:11px; color:#555; }
+.counter { font-size:13px; color:#666; padding:0 0 16px; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+.card { animation:fadeIn .3s ease; }
+
+@media (max-width:768px) {
+  .cards-grid { grid-template-columns:1fr; }
+  .filters { padding:12px 16px; }
+  .header { padding:16px; }
+  .container { padding:12px; }
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>🔧 Каталог прицепов</h1>
+  <p>Барсук · Самбарс · Бизон — выбери свою комплектацию</p>
+</div>
+<div class="filters">
+  <div class="filter-group">
+    <label>Бренд:</label>
+    <button class="filter-btn active" data-filter="brand" data-val="all">Все</button>
+    <button class="filter-btn" data-filter="brand" data-val="Барсук">🦡 Барсук</button>
+    <button class="filter-btn" data-filter="brand" data-val="Самбарс">🦌 Самбарс</button>
+    <button class="filter-btn" data-filter="brand" data-val="Бизон">🦬 Бизон</button>
+  </div>
+  <span class="filter-sep"></span>
+  <div class="filter-group">
+    <label>Ось:</label>
+    <button class="filter-btn active" data-filter="axle" data-val="all">Все</button>
+    <button class="filter-btn" data-filter="axle" data-val="1">1 ось</button>
+    <button class="filter-btn" data-filter="axle" data-val="2">2 оси</button>
+    <button class="filter-btn" data-filter="axle" data-val="both">1+2 оси</button>
+  </div>
+  <span class="filter-sep"></span>
+  <div class="filter-group">
+    <label>Ширина:</label>
+    <button class="filter-btn active" data-filter="width" data-val="all">Все</button>
+    <button class="filter-btn" data-filter="width" data-val="1.25">1.25 м</button>
+    <button class="filter-btn" data-filter="width" data-val="1.5">1.5 м</button>
+    <button class="filter-btn" data-filter="width" data-val="1.7">1.7 м</button>
+    <button class="filter-btn" data-filter="width" data-val="1.93">1.93 м</button>
+    <button class="filter-btn" data-filter="width" data-val="2.0">2.0 м</button>
+  </div>
+  <div class="view-toggle">
+    <button id="view-cards" class="active">📋 Карточки</button>
+    <button id="view-table">📊 Таблица</button>
+  </div>
+</div>
+<div class="container">
+  <div class="counter" id="counter">Показано: 20 моделей</div>
+  <div class="cards-grid" id="cardsGrid"></div>
+  <div class="table-view" id="tableView"></div>
+</div>
+
+<script>
+const MODELS = [{"num": 1, "brand": "Барсук", "model": "Барсук 1.25×2.0 борт 30 см тент 50 см", "width": 1.25, "length": 2.0, "tent_height": "50", "tent_color": "серый", "extra_colors": null, "axle_options": [1], "photo_ref": "см. лист «Фото» — Барсук", "variants": [{"body_type": "рама", "axles": 1, "price": 54600}, {"body_type": "рама с полом", "axles": 1, "price": 59600}, {"body_type": "бортовой", "axles": 1, "price": 70600}, {"body_type": "бортовой с тентом", "axles": 1, "price": 81400}], "photos": [], "specs": {"Грузоподъёмность": "500 кг (1 ось) / 1 000 кг (2 оси)", "Подвеска": "Рессорная Al-ko, 3 листа", "Колёса": "R13, 4×98 (Жигули), серебристые", "Дышло": "Съёмное самосвальное, 3-лучевое", "Рама": "60×40×2 ТУ, горячее цинкование", "Борта": "Съёмные 30 см, задний открывной", "Тент": "ПВХ 500 г/м², серый, ~2 года", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 2, "brand": "Барсук", "model": "Барсук 1.25×2.5  борт 30 см тент 70см", "width": 1.25, "length": 2.5, "tent_height": "70", "tent_color": "серый", "extra_colors": null, "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Барсук", "variants": [{"body_type": "рама", "axles": 1, "price": 56800}, {"body_type": "рама", "axles": 2, "price": 86400}, {"body_type": "рама с полом", "axles": 1, "price": 62400}, {"body_type": "рама с полом", "axles": 2, "price": 92000}, {"body_type": "бортовой", "axles": 1, "price": 76000}, {"body_type": "бортовой", "axles": 2, "price": 105600}, {"body_type": "бортовой с тентом", "axles": 1, "price": 88400}, {"body_type": "бортовой с тентом", "axles": 2, "price": 118000}], "photos": [], "specs": {"Грузоподъёмность": "500 кг (1 ось) / 1 000 кг (2 оси)", "Подвеска": "Рессорная Al-ko, 3 листа", "Колёса": "R13, 4×98 (Жигули), серебристые", "Дышло": "Съёмное самосвальное, 3-лучевое", "Рама": "60×40×2 ТУ, горячее цинкование", "Борта": "Съёмные 30 см, задний открывной", "Тент": "ПВХ 500 г/м², серый, ~2 года", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 3, "brand": "Барсук", "model": "Барсук 1.25×3.0  борт 30 см тент 120см", "width": 1.25, "length": 3.0, "tent_height": "120", "tent_color": "серый", "extra_colors": null, "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Барсук", "variants": [{"body_type": "рама", "axles": 1, "price": 59000}, {"body_type": "рама", "axles": 2, "price": 88600}, {"body_type": "рама с полом", "axles": 1, "price": 65200}, {"body_type": "рама с полом", "axles": 2, "price": 94800}, {"body_type": "бортовой", "axles": 1, "price": 81400}, {"body_type": "бортовой", "axles": 2, "price": 111000}, {"body_type": "бортовой с тентом", "axles": 1, "price": 102800}, {"body_type": "бортовой с тентом", "axles": 2, "price": 132400}], "photos": [], "specs": {"Грузоподъёмность": "500 кг (1 ось) / 1 000 кг (2 оси)", "Подвеска": "Рессорная Al-ko, 3 листа", "Колёса": "R13, 4×98 (Жигули), серебристые", "Дышло": "Съёмное самосвальное, 3-лучевое", "Рама": "60×40×2 ТУ, горячее цинкование", "Борта": "Съёмные 30 см, задний открывной", "Тент": "ПВХ 500 г/м², серый, ~2 года", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 4, "brand": "Барсук", "model": "Барсук 1.5×2.5  борт 30 см тент 70см", "width": 1.5, "length": 2.5, "tent_height": "70", "tent_color": "серый", "extra_colors": null, "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Барсук", "variants": [{"body_type": "рама", "axles": 1, "price": 62100}, {"body_type": "рама", "axles": 2, "price": 91700}, {"body_type": "рама с полом", "axles": 1, "price": 69600}, {"body_type": "рама с полом", "axles": 2, "price": 99200}, {"body_type": "бортовой", "axles": 1, "price": 84900}, {"body_type": "бортовой", "axles": 2, "price": 114500}, {"body_type": "бортовой с тентом", "axles": 1, "price": 98500}, {"body_type": "бортовой с тентом", "axles": 2, "price": 128000}], "photos": [], "specs": {"Грузоподъёмность": "500 кг (1 ось) / 1 000 кг (2 оси)", "Подвеска": "Рессорная Al-ko, 3 листа", "Колёса": "R13, 4×98 (Жигули), серебристые", "Дышло": "Съёмное самосвальное, 3-лучевое", "Рама": "60×40×2 ТУ, горячее цинкование", "Борта": "Съёмные 30 см, задний открывной", "Тент": "ПВХ 500 г/м², серый, ~2 года", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 5, "brand": "Барсук", "model": "Барсук 1.5×3.0  борт 30 см тент 120см", "width": 1.5, "length": 3.0, "tent_height": "120", "tent_color": "серый", "extra_colors": null, "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Барсук", "variants": [{"body_type": "рама", "axles": 1, "price": 64700}, {"body_type": "рама", "axles": 2, "price": 94300}, {"body_type": "рама с полом", "axles": 1, "price": 72800}, {"body_type": "рама с полом", "axles": 2, "price": 102400}, {"body_type": "бортовой", "axles": 1, "price": 91100}, {"body_type": "бортовой", "axles": 2, "price": 120700}, {"body_type": "бортовой с тентом", "axles": 1, "price": 114100}, {"body_type": "бортовой с тентом", "axles": 2, "price": 143700}], "photos": [], "specs": {"Грузоподъёмность": "500 кг (1 ось) / 1 000 кг (2 оси)", "Подвеска": "Рессорная Al-ko, 3 листа", "Колёса": "R13, 4×98 (Жигули), серебристые", "Дышло": "Съёмное самосвальное, 3-лучевое", "Рама": "60×40×2 ТУ, горячее цинкование", "Борта": "Съёмные 30 см, задний открывной", "Тент": "ПВХ 500 г/м², серый, ~2 года", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 6, "brand": "Барсук", "model": "Барсук 1.5×3.5  борт 30 см тент 120см", "width": 1.5, "length": 3.5, "tent_height": "120", "tent_color": "серый", "extra_colors": null, "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Барсук", "variants": [{"body_type": "рама", "axles": 1, "price": 67300}, {"body_type": "рама", "axles": 2, "price": 96900}, {"body_type": "рама с полом", "axles": 1, "price": 76000}, {"body_type": "рама с полом", "axles": 2, "price": 105600}, {"body_type": "бортовой", "axles": 1, "price": 97400}, {"body_type": "бортовой", "axles": 2, "price": 127000}, {"body_type": "бортовой с тентом", "axles": 1, "price": 122800}, {"body_type": "бортовой с тентом", "axles": 2, "price": 152400}], "photos": [], "specs": {"Грузоподъёмность": "500 кг (1 ось) / 1 000 кг (2 оси)", "Подвеска": "Рессорная Al-ko, 3 листа", "Колёса": "R13, 4×98 (Жигули), серебристые", "Дышло": "Съёмное самосвальное, 3-лучевое", "Рама": "60×40×2 ТУ, горячее цинкование", "Борта": "Съёмные 30 см, задний открывной", "Тент": "ПВХ 500 г/м², серый, ~2 года", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 7, "brand": "Самбарс", "model": "Самбарс 1.25×2.0  борт 30 см тент 70см", "width": 1.25, "length": 2.0, "tent_height": "70", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 61400}, {"body_type": "рама с полом", "axles": 1, "price": 67000}, {"body_type": "бортовой", "axles": 1, "price": 79400}, {"body_type": "бортовой с тентом", "axles": 1, "price": 91600}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 8, "brand": "Самбарс", "model": "Самбарс 1.25×2.5  борт 30 см тент 120см", "width": 1.25, "length": 2.5, "tent_height": "120", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 63900}, {"body_type": "рама", "axles": 2, "price": 97200}, {"body_type": "рама с полом", "axles": 1, "price": 70200}, {"body_type": "рама с полом", "axles": 2, "price": 103500}, {"body_type": "бортовой", "axles": 1, "price": 85500}, {"body_type": "бортовой", "axles": 2, "price": 118800}, {"body_type": "бортовой с тентом", "axles": 1, "price": 107100}, {"body_type": "бортовой с тентом", "axles": 2, "price": 140400}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 9, "brand": "Самбарс", "model": "Самбарс 1.25×3.0  борт 30 см тент 120см", "width": 1.25, "length": 3.0, "tent_height": "120", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 66400}, {"body_type": "рама", "axles": 2, "price": 99700}, {"body_type": "рама с полом", "axles": 1, "price": 73400}, {"body_type": "рама с полом", "axles": 2, "price": 106700}, {"body_type": "бортовой", "axles": 1, "price": 91600}, {"body_type": "бортовой", "axles": 2, "price": 125000}, {"body_type": "бортовой с тентом", "axles": 1, "price": 115700}, {"body_type": "бортовой с тентом", "axles": 2, "price": 149000}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 10, "brand": "Самбарс", "model": "Самбарс 1.5×2.5  борт 30 см тент 120см", "width": 1.5, "length": 2.5, "tent_height": "120", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 69900}, {"body_type": "рама", "axles": 2, "price": 78300}, {"body_type": "рама с полом", "axles": 1, "price": 78300}, {"body_type": "рама с полом", "axles": 2, "price": 111600}, {"body_type": "бортовой", "axles": 1, "price": 95500}, {"body_type": "бортовой", "axles": 2, "price": 128800}, {"body_type": "бортовой с тентом", "axles": 1, "price": 118500}, {"body_type": "бортовой с тентом", "axles": 2, "price": 151800}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 11, "brand": "Самбарс", "model": "Самбарс 1.5×3.0  борт 30 см тент 120см", "width": 1.5, "length": 3.0, "tent_height": "120", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 72800}, {"body_type": "рама", "axles": 2, "price": 106100}, {"body_type": "рама с полом", "axles": 1, "price": 81900}, {"body_type": "рама с полом", "axles": 2, "price": 115200}, {"body_type": "бортовой", "axles": 1, "price": 102500}, {"body_type": "бортовой", "axles": 2, "price": 135800}, {"body_type": "бортовой с тентом", "axles": 1, "price": 128300}, {"body_type": "бортовой с тентом", "axles": 2, "price": 161600}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 12, "brand": "Самбарс", "model": "Самбарс 1.5×3.5  борт 30 см тент 120см", "width": 1.5, "length": 3.5, "tent_height": "120", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 75700}, {"body_type": "рама", "axles": 2, "price": 109000}, {"body_type": "рама с полом", "axles": 1, "price": 85500}, {"body_type": "рама с полом", "axles": 2, "price": 118800}, {"body_type": "бортовой", "axles": 1, "price": 109500}, {"body_type": "бортовой", "axles": 2, "price": 142800}, {"body_type": "бортовой с тентом", "axles": 1, "price": 138100}, {"body_type": "бортовой с тентом", "axles": 2, "price": 171500}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 13, "brand": "Самбарс", "model": "Самбарс 1.7×3.0  борт 30 см тент 140см", "width": 1.7, "length": 3.0, "tent_height": "140", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 72300}, {"body_type": "рама", "axles": 2, "price": 103900}, {"body_type": "рама с полом", "axles": 1, "price": 82500}, {"body_type": "рама с полом", "axles": 2, "price": 114100}, {"body_type": "бортовой", "axles": 1, "price": 105200}, {"body_type": "бортовой", "axles": 2, "price": 136800}, {"body_type": "бортовой с тентом", "axles": 1, "price": 137600}, {"body_type": "бортовой с тентом", "axles": 2, "price": 169200}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 14, "brand": "Самбарс", "model": "Самбарс 1.7×3.5  борт 30 см тент 140см", "width": 1.7, "length": 3.5, "tent_height": "140", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 75200}, {"body_type": "рама", "axles": 2, "price": 106900}, {"body_type": "рама с полом", "axles": 1, "price": 86200}, {"body_type": "рама с полом", "axles": 2, "price": 117900}, {"body_type": "бортовой", "axles": 1, "price": 112100}, {"body_type": "бортовой", "axles": 2, "price": 143800}, {"body_type": "бортовой с тентом", "axles": 1, "price": 148600}, {"body_type": "бортовой с тентом", "axles": 2, "price": 180200}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 15, "brand": "Самбарс", "model": "Самбарс 1.7×4.0  борт 30 см тент 140см", "width": 1.7, "length": 4.0, "tent_height": "140", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 78200}, {"body_type": "рама", "axles": 2, "price": 109700}, {"body_type": "рама с полом", "axles": 1, "price": 90100}, {"body_type": "рама с полом", "axles": 2, "price": 121700}, {"body_type": "бортовой", "axles": 1, "price": 144900}, {"body_type": "бортовой", "axles": 2, "price": 150900}, {"body_type": "бортовой с тентом", "axles": 1, "price": 159600}, {"body_type": "бортовой с тентом", "axles": 2, "price": 191200}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 16, "brand": "Самбарс", "model": "Самбарс 1.93×3.5 борт 30 см  тент 140см", "width": 1.93, "length": 3.5, "tent_height": "140", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 79200}, {"body_type": "рама", "axles": 2, "price": 112500}, {"body_type": "рама с полом", "axles": 1, "price": 90800}, {"body_type": "рама с полом", "axles": 2, "price": 124100}, {"body_type": "бортовой", "axles": 1, "price": 118000}, {"body_type": "бортовой", "axles": 2, "price": 151400}, {"body_type": "бортовой с тентом", "axles": 1, "price": 156400}, {"body_type": "бортовой с тентом", "axles": 2, "price": 189700}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 17, "brand": "Самбарс", "model": "Самбарс 1.93×4.0  борт 30 см тент 140см", "width": 1.93, "length": 4.0, "tent_height": "140", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 82300}, {"body_type": "рама", "axles": 2, "price": 115500}, {"body_type": "рама с полом", "axles": 1, "price": 94800}, {"body_type": "рама с полом", "axles": 2, "price": 128100}, {"body_type": "бортовой", "axles": 1, "price": 152500}, {"body_type": "бортовой", "axles": 2, "price": 158800}, {"body_type": "бортовой с тентом", "axles": 1, "price": 168000}, {"body_type": "бортовой с тентом", "axles": 2, "price": 201300}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 18, "brand": "Самбарс", "model": "Самбарс 1.93×4.5 борт 30 см  тент 140см", "width": 1.93, "length": 4.5, "tent_height": "140", "tent_color": "графит", "extra_colors": "камуфляж, чёрный", "axle_options": [1, 2], "photo_ref": "см. лист «Фото» — Самбарс", "variants": [{"body_type": "рама", "axles": 1, "price": 85300}, {"body_type": "рама", "axles": 2, "price": 118600}, {"body_type": "рама с полом", "axles": 1, "price": 98700}, {"body_type": "рама с полом", "axles": 2, "price": 132000}, {"body_type": "бортовой", "axles": 1, "price": 132800}, {"body_type": "бортовой", "axles": 2, "price": 166100}, {"body_type": "бортовой с тентом", "axles": 1, "price": 179600}, {"body_type": "бортовой с тентом", "axles": 2, "price": 212900}], "photos": [], "specs": {"Грузоподъёмность": "750 кг (1 ось) / 1 500 кг (2 оси)", "Усиленная ось": "1 000 кг (1 ось) / 2 000 кг (2 оси) — опция", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Съёмное самосвальное, 3-лучевое, 80×40×3 ГОСТ", "Рама": "60×60×2 ТУ + центр. балка, горячее цинкование", "Борта": "Съёмные 30 см, оба открывные, влагостойкая фанера", "Тент": "ПВХ 650 г/м², графит (+камуфляж, чёрный), ~7 лет", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Самосвал 2 оси": "Опция (домкрат + замки)", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 19, "brand": "Бизон", "model": "Бизон 2.0×3.5", "width": 2.0, "length": 3.5, "tent_height": "—", "tent_color": "—", "extra_colors": null, "axle_options": [2], "photo_ref": "см. лист «Фото» — Бизон", "variants": [{"body_type": "рама (без пола)", "axles": 2, "price": 137000}], "photos": [], "specs": {"Грузоподъёмность": "1 500 кг (2 оси) / 2 000 кг (усиленная)", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Вварное, 4-лучевое, 80×40×3 ГОСТ", "Рама": "Подрамник 80×40×3 ГОСТ + рама 60×60×2 ТУ, цинкование", "Борта": "Опционально", "Тент": "Опционально (при заказе бортов)", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}, {"num": 20, "brand": "Бизон", "model": "Бизон 2.0×4.0", "width": 2.0, "length": 4.0, "tent_height": "—", "tent_color": "—", "extra_colors": null, "axle_options": [2], "photo_ref": "см. лист «Фото» — Бизон", "variants": [{"body_type": "рама (без пола)", "axles": 2, "price": 143000}], "photos": [], "specs": {"Грузоподъёмность": "1 500 кг (2 оси) / 2 000 кг (усиленная)", "Подвеска": "Рессорная Al-ko, 5 листов (7 — усиленная)", "Колёса": "R14, 4×98 (Жигули), графит", "Усил. колёса": "R16c, 139,7×5 (Нива/УАЗ) — опция", "Дышло": "Вварное, 4-лучевое, 80×40×3 ГОСТ", "Рама": "Подрамник 80×40×3 ГОСТ + рама 60×60×2 ТУ, цинкование", "Борта": "Опционально", "Тент": "Опционально (при заказе бортов)", "Тормоза": "Отсутствуют", "Сцепное": "Шар 50 мм", "Гарантия": "1 год", "Полная масса": "749 кг (кат. B)"}}];
+const BODY_ORDER = ["\u0440\u0430\u043c\u0430", "\u0440\u0430\u043c\u0430 \u0441 \u043f\u043e\u043b\u043e\u043c", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439 \u0441 \u0442\u0435\u043d\u0442\u043e\u043c"];
+const BODY_LABELS = {"\u0440\u0430\u043c\u0430": "\u0420\u0430\u043c\u0430", "\u0440\u0430\u043c\u0430 \u0441 \u043f\u043e\u043b\u043e\u043c": "\u0420\u0430\u043c\u0430 \u0441 \u043f\u043e\u043b\u043e\u043c", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439": "\u0411\u043e\u0440\u0442\u043e\u0432\u043e\u0439", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439 \u0441 \u0442\u0435\u043d\u0442\u043e\u043c": "\u0411\u043e\u0440\u0442 + \u0442\u0435\u043d\u0442"};
+const BODY_ICONS = {"\u0440\u0430\u043c\u0430": "\ud83d\udd29", "\u0440\u0430\u043c\u0430 \u0441 \u043f\u043e\u043b\u043e\u043c": "\ud83e\udeb5", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439": "\ud83d\udce6", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439 \u0441 \u0442\u0435\u043d\u0442\u043e\u043c": "\ud83c\udfd5\ufe0f"};
+const BRAND_COLORS = {"\u0411\u0430\u0440\u0441\u0443\u043a": "#f39c12", "\u0421\u0430\u043c\u0431\u0430\u0440\u0441": "#e74c3c", "\u0411\u0438\u0437\u043e\u043d": "#2ecc71"};
+const BRAND_PHOTOS = {"Барсук":["photos/barsuk_1.jpg","photos/barsuk_2.jpg"],"Самбарс":["photos/sambars_1.jpg","photos/sambars_2.jpg"],"Бизон":["photos/bizon_1.jpg","photos/bizon_2.jpg"]};
+
+let filters = { brand:'all', axle:'all', width:'all' };
+let viewMode = 'cards';
+
+function fmtPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' '); }
+function getPrice(model,bt,ax) { var v=model.variants.find(function(v){return v.body_type===bt&&v.axles===ax}); return v?v.price:null; }
+function matchesFilters(model) {
+  if (filters.brand!=='all' && model.brand!==filters.brand) return false;
+  if (filters.axle!=='all') {
+    if (filters.axle==='both') { if (model.axle_options.length<2) return false; }
+    else { if (!model.axle_options.includes(parseInt(filters.axle))) return false; }
+  }
+  if (filters.width!=='all' && model.width!==parseFloat(filters.width)) return false;
+  return true;
+}
+
+function renderCard(model, idx) {
+  var color = BRAND_COLORS[model.brand] || '#888';
+  var dw=model.width||1, dl=model.length||2;
+  var scale=80/Math.max(dw,dl);
+  var vw=Math.max(50, dw*scale), vh=Math.max(30, dl*scale);
+  var prices=model.variants.map(function(v){return v.price});
+  var minP=Math.min.apply(null,prices), maxP=Math.max.apply(null,prices);
+  
+  var photos=BRAND_PHOTOS[model.brand]||[];
+  var ph='';
+  if (photos.length===1) {
+    ph='<div class="card-photos"><div class="photo-slide"><img src="'+photos[0]+'" alt="'+model.brand+'" loading="lazy"></div></div>';
+  } else if (photos.length>1) {
+    var uid='p'+idx, slides='', dots='';
+    for (var i=0;i<photos.length;i++) {
+      slides+='<div class="photo-slide" id="'+uid+'_'+i+'"><img src="'+photos[i]+'" alt="'+model.brand+' #'+(i+1)+'" loading="lazy"></div>';
+      dots+='<span class="photo-dot'+(i===0?' active':'')+'" onclick="goSlide(''+uid+'','+i+')"></span>';
+    }
+    ph='<div class="card-photos" id="'+uid+'"><div class="photo-slider" id="'+uid+'_slider">'+slides+'</div><button class="photo-arrow prev" onclick="prevSlide(''+uid+'')">‹</button><button class="photo-arrow next" onclick="nextSlide(''+uid+'')">›</button><div class="photo-nav">'+dots+'</div></div>';
+  }
+  
+  var mr='';
+  for (var b=0;b<BODY_ORDER.length;b++) {
+    var bt=BODY_ORDER[b], p1=getPrice(model,bt,1), p2=getPrice(model,bt,2);
+    if (p1===null&&p2===null) continue;
+    var h1=model.axle_options.includes(1), h2=model.axle_options.includes(2);
+    var c1=p1!==null?'<span class="price-cell">'+fmtPrice(p1)+' ₽</span>':'<span class="price-na">—</span>';
+    var c2=p2!==null?'<span class="price-cell">'+fmtPrice(p2)+' ₽</span>':'<span class="price-na">—</span>';
+    mr+='<tr><td class="body-label">'+(BODY_ICONS[bt]||'')+' '+(BODY_LABELS[bt]||bt)+'</td><td>'+(h1?c1:'<span class="price-na">—</span>')+'</td><td>'+(h2?c2:'<span class="price-na">—</span>')+'</td></tr>';
+  }
+  
+  var as=model.axle_options.length===2?'одноосный / двухосный':(model.axle_options[0]===1?'одноосный':'двухосный');
+  var ti=model.tent_height&&model.tent_height!=='—'?'<span>⛺ Тент: '+model.tent_height+' см</span>':'';
+  var ci=model.tent_color&&model.tent_color!=='—'?'<span>🎨 '+model.tent_color+(model.extra_colors?' (+'+model.extra_colors+')':'')+'</span>':'';
+  var du=model.brand==='Бизон'?'вварное 4-лучевое':'съёмное самосвальное';
+  var td=model.tent_height&&model.tent_height!=='—'?'<div>⛺ Высота тента: <strong>'+model.tent_height+' см</strong></div>':'';
+  
+  var specsHtml='';
+  if (model.specs) {
+    var rows='';
+    for (var k in model.specs) rows+='<dt>'+k+'</dt><dd>'+model.specs[k]+'</dd>';
+    specsHtml='<div class="card-specs-details"><details><summary>📋 Характеристики</summary><dl class="specs-grid">'+rows+'</dl></details></div>';
+  }
+  
+  return '<div class="card"><div class="card-header"><div><span class="card-brand" style="background:'+color+'">'+model.brand+'</span><div class="card-model">'+model.model+'</div><div class="card-specs">'+ti+ci+'</div></div><div class="card-price-summary"><div class="price-from">от</div><div class="price-min">'+fmtPrice(minP)+' ₽</div><div class="price-max">до '+fmtPrice(maxP)+' ₽</div><div class="axle-badge">'+as+'</div></div></div>'+ph+specsHtml+'<div class="card-dims"><div class="dim-visual" style="width:'+vw+'px;height:'+vh+'px"><span class="dim-label">'+model.width+'×'+model.length+'</span></div><div class="dim-info"><div>📐 Габариты: <strong>'+model.width+' × '+model.length+' м</strong></div>'+td+'<div>🔧 Дышло: <strong>'+du+'</strong></div></div></div><div class="price-matrix"><table class="matrix-table"><thead><tr><th style="text-align:left">Комплектация</th><th>1 ось</th><th>2 оси</th></tr></thead><tbody>'+mr+'</tbody></table></div></div>';
+}
+
+function goSlide(uid,n) {
+  var s=document.getElementById(uid+'_slider');
+  if(s) s.style.transform='translateX(-'+(n*100)+'%)';
+  var ds=document.querySelectorAll('#'+uid+' .photo-dot');
+  for(var i=0;i<ds.length;i++) ds[i].classList.toggle('active',i===n);
+}
+function nxt(uid) { var s=document.getElementById(uid+'_slider'); var c=Math.round(Math.abs(parseFloat(s.style.transform.replace('translateX(','').replace('%)',''))||0)/100); goSlide(uid,(c+1)%s.children.length); }
+function prv(uid) { var s=document.getElementById(uid+'_slider'); var c=Math.round(Math.abs(parseFloat(s.style.transform.replace('translateX(','').replace('%)',''))||0)/100); goSlide(uid,(c-1+s.children.length)%s.children.length); }
+
+function renderTable() {
+  var fl=MODELS.filter(matchesFilters), rows='';
+  for (var i=0;i<fl.length;i++) {
+    var m=fl[i], cl=BRAND_COLORS[m.brand]||'#888';
+    var ax=m.axle_options.length===2?'1+2 оси':(m.axle_options[0]===1?'1 ось':'2 оси');
+    var tn=(m.tent_height&&m.tent_height!=='—')?m.tent_height+' см':'—';
+    rows+='<tr><td><span class="brand-tag" style="background:'+cl+'">'+m.brand+'</span></td><td><strong>'+m.model+'</strong></td><td>'+m.width+'×'+m.length+' м</td><td>'+tn+'</td><td>'+ax+'</td>';
+    for (var b=0;b<BODY_ORDER.length;b++) {
+      var bt=BODY_ORDER[b], p1=getPrice(m,bt,1), p2=getPrice(m,bt,2);
+      rows+='<td'+(m.axle_options.includes(1)&&p1?' class="price"':'')+'>'+(m.axle_options.includes(1)&&p1?fmtPrice(p1)+' ₽':(m.axle_options.includes(1)?'—':'<span style="color:#444">—</span>'))+'</td>';
+      rows+='<td'+(m.axle_options.includes(2)&&p2?' class="price"':'')+'>'+(m.axle_options.includes(2)&&p2?fmtPrice(p2)+' ₽':(m.axle_options.includes(2)?'—':'<span style="color:#444">—</span>'))+'</td>';
+    }
+    rows+='</tr>';
+  }
+  return '<table class="data-table"><thead><tr><th>Бренд</th><th>Модель</th><th>Габариты</th><th>Тент</th><th>Оси</th><th>Рама 1 ось</th><th>Рама 2 оси</th><th>Рама+пол 1 ось</th><th>Рама+пол 2 оси</th><th>Борт 1 ось</th><th>Борт 2 оси</th><th>Борт+тент 1 ось</th><th>Борт+тент 2 оси</th></tr></thead><tbody>'+rows+'</tbody></table>';
+}
+
+function refresh() {
+  var fl=MODELS.filter(matchesFilters);
+  document.getElementById('counter').textContent='Показано: '+fl.length+' моделей';
+  if (viewMode==='cards') {
+    var html='';
+    for (var i=0;i<fl.length;i++) html+=renderCard(fl[i],i);
+    document.getElementById('cardsGrid').innerHTML=html;
+  } else document.getElementById('tableView').innerHTML=renderTable();
+}
+
+var btns=document.querySelectorAll('.filter-btn');
+for (var i=0;i<btns.length;i++) {
+  btns[i].addEventListener('click', function() {
+    var ft=this.dataset.filter, fv=this.dataset.val;
+    var pg=this.parentElement;
+    var pbtns=pg.querySelectorAll('.filter-btn');
+    for (var j=0;j<pbtns.length;j++) pbtns[j].classList.remove('active');
+    this.classList.add('active');
+    filters[ft]=fv;
+    refresh();
+  });
+}
+
+document.getElementById('view-cards').addEventListener('click', function() {
+  viewMode='cards';
+  this.classList.add('active');
+  document.getElementById('view-table').classList.remove('active');
+  document.getElementById('cardsGrid').classList.remove('hidden');
+  document.getElementById('tableView').classList.remove('active');
+  refresh();
+});
+document.getElementById('view-table').addEventListener('click', function() {
+  viewMode='table';
+  this.classList.add('active');
+  document.getElementById('view-cards').classList.remove('active');
+  document.getElementById('cardsGrid').classList.add('hidden');
+  document.getElementById('tableView').classList.add('active');
+  refresh();
+});
+
+refresh();
+</script>
+</body>
+</html>

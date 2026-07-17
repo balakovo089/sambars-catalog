@@ -302,10 +302,17 @@ function drawFrame(L, W) {
 
   ctx.strokeStyle = TUBES.drawbar.color;
   ctx.lineWidth = 7;
+  // Side tubes
   ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(dbx + dbBase*scale, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
+  // Cross bar
   ctx.lineWidth = 5;
   ctx.beginPath(); ctx.moveTo(dbx, dby + 150*scale); ctx.lineTo(dbx + dbBase*scale, dby + 150*scale); ctx.stroke();
+  // Center beam (from hitch to middle of cross bar)
+  ctx.lineWidth = 5;
+  ctx.setLineDash([8,4]);
+  ctx.beginPath(); ctx.moveTo(apexX, apexY); ctx.lineTo(dbx + dbBase*scale/2, dby + 150*scale); ctx.stroke();
+  ctx.setLineDash([]);
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath(); ctx.arc(apexX, apexY, 10, 0, Math.PI*2); ctx.fill();
 
@@ -443,6 +450,7 @@ function redraw() {
 
   const dbSides = Math.sqrt((W*0.9/2)*(W*0.9/2) + fd.dbLen*fd.dbLen) * 2 / 1000;
   const dbCrossBar = W * 0.9 / 1000;
+  const dbCenter = Math.sqrt((W*0.9/2)*(W*0.9/2) + (fd.dbLen-150)*(fd.dbLen-150)) / 1000;  // center beam
 
   // Side boards: 4 sides (2 long + 2 short)
   // Long sides: nVert posts per side × sideH + nHSide rails × L
@@ -461,7 +469,7 @@ function redraw() {
   const items = [
     {name:'Рама', tube:getFrameTube().name, meters: frameMain + frameCenter + frameCross, mass:0,
      desc:`${frameMain.toFixed(1)}м периметр${frameCenter>0?' + '+frameCenter.toFixed(1)+'м центр':''} + ${frameCross.toFixed(1)}м поперечин (${nCross} шт)`},
-    {name:'Дышло', tube:'80×40×3', meters: dbSides + dbCrossBar, mass:0,
+    {name:'Дышло', tube:'80×40×3', meters: dbSides + dbCrossBar + dbCenter, mass:0,
      desc:`${dbSides.toFixed(1)}м стороны + ${dbCrossBar.toFixed(1)}м перемычка`},
     {name:'Борта', tube:'25×25×1,5', meters: sideMeters, mass:0,
      desc:`${nVert} стоек + ${nHSide} реек ×4 стороны, ${sideH}мм`},

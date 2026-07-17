@@ -2,443 +2,493 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Карта раскроя прицепа — инженерный калькулятор</title>
+<title>Карта раскроя прицепа — редактор</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: 'DejaVu Sans', Arial, sans-serif; background:#f5f5f5; display:flex; }
-.sidebar { width:320px; background:#fff; padding:20px; height:100vh; overflow-y:auto; box-shadow:2px 0 8px rgba(0,0,0,.1); z-index:2; }
-.sidebar h2 { font-size:16px; color:#2c3e50; margin-bottom:16px; }
-.sidebar h3 { font-size:13px; color:#555; margin:16px 0 8px; border-top:1px solid #eee; padding-top:12px; }
-label { display:block; font-size:11px; color:#777; margin-bottom:2px; }
-input, select { width:100%; padding:6px 8px; border:1px solid #ddd; border-radius:4px; font-size:13px; margin-bottom:10px; font-family:inherit; }
-input:focus, select:focus { outline:none; border-color:#3498db; }
-.result { background:#f0f4ff; padding:12px; border-radius:6px; margin-top:8px; }
-.result table { width:100%; font-size:11px; border-collapse:collapse; }
-.result th { text-align:left; color:#555; font-weight:600; padding:3px 0; }
-.result td { padding:2px 0; color:#222; }
-.result .total { border-top:2px solid #2c3e50; font-weight:bold; font-size:13px; }
-canvas { display:block; }
-.main { flex:1; overflow:auto; padding:20px; }
-.canvas-wrap { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); overflow:hidden; display:inline-block; }
-.legend { font-size:11px; color:#888; margin-top:10px; }
-.legend span { display:inline-block; width:14px; height:14px; margin-right:6px; vertical-align:middle; border-radius:2px; }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DejaVu Sans',Arial,sans-serif;background:#f5f5f5;display:flex;height:100vh}
+.sidebar{width:340px;background:#fff;padding:16px;overflow-y:auto;box-shadow:2px 0 8px rgba(0,0,0,.1);z-index:2}
+.sidebar h2{font-size:15px;color:#2c3e50;margin-bottom:12px}
+.sidebar h3{font-size:12px;color:#555;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px}
+label{display:block;font-size:11px;color:#777;margin-bottom:1px}
+input,select{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-bottom:8px}
+input:focus,select:focus{outline:none;border-color:#3498db}
+.btn{display:inline-block;padding:6px 14px;border-radius:4px;font-size:12px;cursor:pointer;border:none;margin:2px}
+.btn-blue{background:#3498db;color:#fff}
+.btn-red{background:#e74c3c;color:#fff}
+.btn-gray{background:#eee;color:#555}
+.result{background:#f0f4ff;padding:10px;border-radius:6px;margin-top:6px;font-size:11px}
+.result table{width:100%;border-collapse:collapse}
+.result th{text-align:left;color:#555;font-weight:600;padding:2px 0}
+.result td{padding:1px 0}
+.result .total{border-top:2px solid #2c3e50;font-weight:bold}
+.tip{font-size:10px;color:#aaa;margin-top:4px}
+.main{flex:1;overflow:auto;background:#e8ecf0}
+canvas{cursor:crosshair;display:block}
+.toolbar{position:fixed;bottom:20px;left:360px;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;gap:8px;align-items:center;font-size:12px}
+.toolbar button{padding:6px 16px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;white-space:nowrap}
+.toolbar button.active{background:#3498db;color:#fff;border-color:#3498db}
+.toolbar button:hover{opacity:.85}
+.toolbar .sep{width:1px;height:20px;background:#ddd}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
   <h2>🔧 Карта раскроя прицепа</h2>
-  
+
   <label>Модель</label>
-  <select id="brand" onchange="update()">
-    <option value="barsuk">Барсук</option>
-    <option value="sambars">Самбарс</option>
-    <option value="bizon">Бизон</option>
+  <select id="brand" onchange="redraw()">
+    <option>Барсук</option><option>Самбарс</option><option>Бизон</option>
   </select>
-  
   <label>Длина рамы, мм</label>
-  <input type="number" id="length" value="2000" min="1500" max="6000" step="50" onchange="update()">
-  
+  <input type="number" id="L" value="2000" min="1500" max="6000" step="50" onchange="redraw()">
   <label>Ширина рамы, мм</label>
-  <select id="width" onchange="update()">
-    <option value="1250">1250</option>
-    <option value="1500" selected>1500</option>
-    <option value="1800">1800</option>
-    <option value="2000">2000</option>
+  <select id="W" onchange="redraw()">
+    <option value="1250">1250</option><option value="1500" selected>1500</option>
+    <option value="1800">1800</option><option value="2000">2000</option>
   </select>
-  
   <label>Высота борта, мм</label>
-  <select id="sideH" onchange="update()">
-    <option value="300" selected>300</option>
-    <option value="500">500</option>
+  <select id="sideH" onchange="redraw()">
+    <option value="300" selected>300</option><option value="500">500</option>
   </select>
-
   <label>Высота тента, мм</label>
-  <select id="tentH" onchange="update()">
-    <option value="0">Без тента</option>
-    <option value="500">500</option>
-    <option value="1200" selected>1200</option>
+  <select id="tentH" onchange="redraw()">
+    <option value="0">Без тента</option><option value="500">500</option><option value="1200" selected>1200</option>
   </select>
 
-  <label>Количество осей</label>
-  <select id="axles" onchange="update()">
-    <option value="1" selected>1 ось</option>
-    <option value="2">2 оси</option>
-  </select>
-
-  <h3>📊 СПЕЦИФИКАЦИЯ МЕТАЛЛА</h3>
+  <h3>📊 СПЕЦИФИКАЦИЯ</h3>
   <div class="result" id="spec"></div>
-  
   <h3>⚖️ ИТОГО</h3>
   <div class="result" id="total"></div>
-
-  <div class="legend" style="margin-top:16px;">
-    <div><span style="background:#2c3e50"></span> Рама 60×60×2</div>
-    <div><span style="background:#7f8c8d"></span> Поперечины 40×20×2</div>
-    <div><span style="background:#e74c3c"></span> Дышло 80×40×3</div>
-    <div><span style="background:#3498db"></span> Борта 25×25×2</div>
-    <div><span style="background:#27ae60"></span> Каркас тента 20×20×1,5</div>
-  </div>
+  <div class="tip">🖱 На схеме: клик на элемент = удалить<br>Shift+клик = добавить поперечину/стойку<br>🖱 Колёсико = зум</div>
+  <div class="tip" style="margin-top:6px">Синий ▬ 60×60×2 | Серый ▬ 40×20×2<br>Красный ▬ 80×40×3 | Голубой ▬ 25×25×2<br>Зелёный - - 20×20×1,5</div>
 </div>
 
-<div class="main">
-  <div class="canvas-wrap">
-    <canvas id="c" width="1100" height="800"></canvas>
-  </div>
+<canvas id="c"></canvas>
+
+<div class="toolbar" id="toolbar">
+  <b>🛠 Инструмент:</b>
+  <button class="active" onclick="setTool('delete')" id="btn-del">🗑 Удалить</button>
+  <button onclick="setTool('addCross')" id="btn-cross">➕ Поперечина</button>
+  <button onclick="setTool('addVert')" id="btn-vert">➕ Стойка борта</button>
+  <button onclick="setTool('addArch')" id="btn-arch">➕ Дуга тента</button>
+  <span class="sep"></span>
+  <button onclick="resetAll()">🔄 Сброс</button>
+  <span class="sep"></span>
+  <span style="color:#888;font-size:11px">L={L}мм W={W}мм</span>
 </div>
 
 <script>
-// ═══ ГЕОМЕТРИЯ: эталонный чертёж 2,5×1,5 ═══
-// Все пропорции привязаны к эталону L0=2570, W0=1570
+// ═══ STATE ═══
+let tool = 'delete';
+let crossPositions = [];  // positions of cross members as fraction of length
+let vertPositions = [];   // positions of side posts as fraction of length
+let archPositions = [];   // positions of tent arches as fraction of length
 
-const L0 = 2570, W0 = 1570;
-const HEADER = 120;  // px top offset
-const PADDING = 40;
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + ({delete:'del',addCross:'cross',addVert:'vert',addArch:'arch'}[t])).classList.add('active');
+}
 
-// Трубы и их сечения
+function resetAll() {
+  crossPositions = [];
+  vertPositions = [];
+  archPositions = [];
+  redraw();
+}
+
+function getParams() {
+  return {
+    L: parseInt(document.getElementById('L').value),
+    W: parseInt(document.getElementById('W').value),
+    sideH: parseInt(document.getElementById('sideH').value),
+    tentH: parseInt(document.getElementById('tentH').value),
+    brand: document.getElementById('brand').value,
+  };
+}
+
 const TUBES = {
-  frame:    { name:'60×60×2',   color:'#2c3e50', massPerM: 3.56 },  // ~3.56 кг/м для 60×60×2
-  cross:    { name:'40×20×2',   color:'#7f8c8d', massPerM: 1.78 },
-  drawbar:  { name:'80×40×3',   color:'#e74c3c', massPerM: 5.19 },
-  side:     { name:'25×25×2',   color:'#3498db', massPerM: 1.39 },
-  tent:     { name:'20×20×1,5', color:'#27ae60', massPerM: 0.84 },
+  frame:    {name:'60×60×2', color:'#2c3e50', massPerM:3.56},
+  cross:    {name:'40×20×2', color:'#7f8c8d', massPerM:1.78},
+  drawbar:  {name:'80×40×3', color:'#e74c3c', massPerM:5.19},
+  side:     {name:'25×25×2', color:'#3498db', massPerM:1.39},
+  tent:     {name:'20×20×1,5',color:'#27ae60', massPerM:0.84},
 };
 
-function drawFrame(ctx, L, W, scale, ox, oy) {
-  // Рама: внешний периметр
+// ═══ DRAWING ═══
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let scale = 0.3;
+let offsetX = 30, offsetY = 30;
+let dragging = false;
+let dragStartX, dragStartY, dragOffsetX, dragOffsetY;
+let zooming = false;
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth - 340;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.onresize = resizeCanvas;
+
+// Zoom & pan
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  scale *= factor;
+  scale = Math.max(0.15, Math.min(1.0, scale));
+  redraw();
+});
+
+canvas.addEventListener('mousedown', e => {
+  if (e.button === 1 || (e.button === 0 && e.altKey)) {
+    dragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragOffsetX = offsetX;
+    dragOffsetY = offsetY;
+  }
+});
+canvas.addEventListener('mousemove', e => {
+  if (dragging) {
+    offsetX = dragOffsetX + (e.clientX - dragStartX);
+    offsetY = dragOffsetY + (e.clientY - dragStartY);
+    redraw();
+  }
+});
+window.addEventListener('mouseup', () => { dragging = false; });
+
+// Click to add/remove
+canvas.addEventListener('click', e => {
+  const {L, W, sideH, tentH} = getParams();
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  const ox = offsetX;
+  const oy = offsetY + 80;
+  const fw = W * scale;
+  const fl = L * scale;
+  const dbLen = 2000 * (L / 2570) * scale;
+  const sideOX = ox + fw + 50;
+
+  if (tool === 'delete') {
+    // Check cross members
+    for (let i = crossPositions.length-1; i >= 0; i--) {
+      const y = oy + fl * crossPositions[i];
+      const dist = Math.abs(my - y);
+      if (mx > ox && mx < ox + fw && dist < 15) {
+        crossPositions.splice(i, 1);
+        redraw(); return;
+      }
+    }
+    // Check side posts
+    for (let i = vertPositions.length-1; i >= 0; i--) {
+      const x = sideOX + fl * vertPositions[i];
+      const dist = Math.abs(mx - x);
+      if (my > oy && my < oy + sideH*scale && dist < 15) {
+        vertPositions.splice(i, 1);
+        redraw(); return;
+      }
+    }
+    // Check tent arches
+    for (let i = archPositions.length-1; i >= 0; i--) {
+      const x = sideOX + fl * archPositions[i];
+      const th = tentH * scale;
+      const ty = oy - th - 10;
+      const dist = Math.abs(mx - x);
+      if (my > ty && my < ty + th && dist < 15) {
+        archPositions.splice(i, 1);
+        redraw(); return;
+      }
+    }
+  } else if (tool === 'addCross') {
+    // Add cross member where clicked
+    if (mx > ox && mx < ox + fw && my > oy && my < oy + fl) {
+      const frac = (my - oy) / fl;
+      // Don't add too close to existing
+      const tooClose = crossPositions.some(p => Math.abs(p - frac) < 0.05);
+      if (!tooClose) {
+        crossPositions.push(frac);
+        crossPositions.sort((a,b)=>a-b);
+        redraw();
+      }
+    }
+  } else if (tool === 'addVert') {
+    if (mx > sideOX && mx < sideOX + fl && my > oy && my < oy + sideH*scale) {
+      const frac = (mx - sideOX) / fl;
+      const tooClose = vertPositions.some(p => Math.abs(p - frac) < 0.05);
+      if (!tooClose) {
+        vertPositions.push(frac);
+        vertPositions.sort((a,b)=>a-b);
+        redraw();
+      }
+    }
+  } else if (tool === 'addArch') {
+    const th = tentH * scale;
+    const ty = oy - th - 10;
+    if (mx > sideOX && mx < sideOX + fl && my > ty && my < ty + th) {
+      const frac = (mx - sideOX) / fl;
+      const tooClose = archPositions.some(p => Math.abs(p - frac) < 0.05);
+      if (!tooClose) {
+        archPositions.push(frac);
+        archPositions.sort((a,b)=>a-b);
+        redraw();
+      }
+    }
+  }
+});
+
+function drawFrame(L, W) {
+  const ox = offsetX;
+  const oy = offsetY + 80;
+  const fw = W * scale;
+  const fl = L * scale;
+
+  // Frame outer
   ctx.strokeStyle = TUBES.frame.color;
   ctx.lineWidth = 8;
-  ctx.strokeRect(ox, oy, W*scale, L*scale);
-  
-  // Центральная продольная балка
-  ctx.beginPath();
-  ctx.moveTo(ox + W*scale/2, oy);
-  ctx.lineTo(ox + W*scale/2, oy + L*scale);
-  ctx.strokeStyle = TUBES.frame.color;
+  ctx.strokeRect(ox, oy, fw, fl);
+
+  // Center beam
   ctx.lineWidth = 6;
+  ctx.beginPath();
+  ctx.moveTo(ox + fw/2, oy);
+  ctx.lineTo(ox + fw/2, oy + fl);
   ctx.stroke();
-  
-  // Поперечины
-  const nCross = Math.max(3, Math.floor(L / 500));
+
+  // Cross members
   ctx.strokeStyle = TUBES.cross.color;
-  ctx.lineWidth = 4;
-  for (let i = 1; i <= nCross; i++) {
-    const y = oy + (L * scale * i) / (nCross + 1);
+  ctx.lineWidth = 5;
+  const totalCross = [...crossPositions];
+  // Add end cross members if none at 0 and 1
+  if (!totalCross.some(p => p < 0.05)) totalCross.unshift(0.05);
+  if (!totalCross.some(p => p > 0.95)) totalCross.push(0.95);
+  totalCross.forEach(frac => {
+    const y = oy + fl * frac;
     ctx.beginPath();
     ctx.moveTo(ox, y);
-    ctx.lineTo(ox + W*scale, y);
-    ctx.stroke();
-    // Размер поперечины
-    ctx.fillStyle = '#555';
-    ctx.font = '11px DejaVu Sans';
-    ctx.fillText(`${(W).toFixed(0)}`, ox + W*scale + 5, y + 4);
-  }
-  
-  // Косынки (углы)
-  const csz = 35;
-  ctx.strokeStyle = '#c0392b';
-  ctx.lineWidth = 1.5;
-  // 4 угла
-  [[ox,oy,1,1],[ox+W*scale,oy,-1,1],[ox,oy+L*scale,1,-1],[ox+W*scale,oy+L*scale,-1,-1]].forEach(([cx,cy,sx,sy]) => {
-    ctx.beginPath();
-    ctx.moveTo(cx, cy);
-    ctx.lineTo(cx + sx*csz, cy + sy*csz);
+    ctx.lineTo(ox + fw, y);
     ctx.stroke();
   });
-  
-  return {
-    frameMain: L * 2 + W * 2,       // периметр
-    frameCenter: L,                   // центр балка
-    frameCross: W * nCross,           // поперечины
-    nCross: nCross,
-  };
-}
 
-function drawDrawbar(ctx, L, W, scale, ox, oy) {
-  // Дышло треугольное
-  const dbLen = 2000 * (L / L0);  // пропорционально длине
+  // Corner gussets
+  ctx.strokeStyle = '#c0392b';
+  ctx.lineWidth = 1.5;
+  const cs = 30;
+  [[ox,oy,1,1],[ox+fw,oy,-1,1],[ox,oy+fl,1,-1],[ox+fw,oy+fl,-1,-1]].forEach(([cx,cy,sx,sy])=>{
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*cs,cy+sy*cs); ctx.stroke();
+  });
+
+  // Drawbar
+  const dbLen = 2000 * (L / 2570);
   const dbBase = W * 0.9;
-  const dbx = ox + (W*scale - dbBase*scale)/2;
-  const dby = oy + L*scale;
-  const apexX = ox + W*scale/2;
+  const dbx = ox + (fw - dbBase*scale)/2;
+  const dby = oy + fl;
+  const apexX = ox + fw/2;
   const apexY = dby + dbLen * scale;
-  
-  // Боковые трубы дышла
+
   ctx.strokeStyle = TUBES.drawbar.color;
   ctx.lineWidth = 7;
-  ctx.beginPath();
-  ctx.moveTo(dbx, dby);
-  ctx.lineTo(apexX, apexY);
-  ctx.stroke();
-  
-  ctx.beginPath();
-  ctx.moveTo(dbx + dbBase*scale, dby);
-  ctx.lineTo(apexX, apexY);
-  ctx.stroke();
-  
-  // Поперечина дышла
+  ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(dbx + dbBase*scale, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
   ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(dbx, dby + 150*scale);
-  ctx.lineTo(dbx + dbBase*scale, dby + 150*scale);
-  ctx.stroke();
-  
-  // Сцепное
+  ctx.beginPath(); ctx.moveTo(dbx, dby + 150*scale); ctx.lineTo(dbx + dbBase*scale, dby + 150*scale); ctx.stroke();
   ctx.fillStyle = '#e74c3c';
-  ctx.beginPath();
-  ctx.arc(apexX, apexY, 10, 0, Math.PI*2);
-  ctx.fill();
-  
-  // Размер дышла
-  ctx.fillStyle = '#555';
-  ctx.font = '11px DejaVu Sans';
-  ctx.fillText(`${(dbLen).toFixed(0)}`, apexX + 10, dby + (apexY-dby)/2);
-  
-  const sideTubeLen = Math.sqrt((dbBase/2)*(dbBase/2) + dbLen*dbLen);
-  
+  ctx.beginPath(); ctx.arc(apexX, apexY, 10, 0, Math.PI*2); ctx.fill();
+
   return {
-    drawbarSides: sideTubeLen * 2,
-    drawbarCross: dbBase,
-    drawbarLen: dbLen,
+    ox, oy, fw, fl,
+    dbLen, dbBase, apexX, apexY, dbx, dby,
+    totalCross: totalCross,
   };
 }
 
-function drawSides(ctx, L, W, sideH, scale, ox, oy) {
-  // Борта — вид сбоку (рисуем справа от рамы)
-  const sx = ox + W*scale + 80;
+function drawSides(L, W, sideH, frameData) {
+  const {ox, oy, fw, fl} = frameData;
+  const sx = ox + fw + 50;
   const sh = sideH * scale;
-  
-  // Каркас борта
+
   ctx.strokeStyle = TUBES.side.color;
   ctx.lineWidth = 3;
-  // Периметр борта
-  ctx.strokeRect(sx, oy, L*scale, sh);
-  
-  // Горизонтальные перекладины
-  const nHoriz = sideH >= 500 ? 2 : 1;
-  for (let i = 1; i <= nHoriz; i++) {
-    const hy = oy + (sh * i) / (nHoriz + 1);
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(sx, hy);
-    ctx.lineTo(sx + L*scale, hy);
-    ctx.stroke();
+  ctx.strokeRect(sx, oy, fl, sh);
+
+  // Horizontal rails
+  const nH = sideH >= 500 ? 2 : 1;
+  ctx.lineWidth = 2;
+  for (let i = 1; i <= nH; i++) {
+    const hy = oy + (sh * i) / (nH + 1);
+    ctx.beginPath(); ctx.moveTo(sx, hy); ctx.lineTo(sx + fl, hy); ctx.stroke();
   }
-  
-  // Вертикальные стойки
-  const nVert = Math.max(3, Math.floor(L / 500));
-  for (let i = 1; i <= nVert; i++) {
-    const vx = sx + (L * scale * i) / (nVert + 1);
+
+  // Vertical posts
+  const totalVert = [...vertPositions];
+  if (!totalVert.some(p => p < 0.03)) totalVert.unshift(0);
+  if (!totalVert.some(p => p > 0.97)) totalVert.push(1);
+  totalVert.sort((a,b)=>a-b);
+
+  totalVert.forEach(frac => {
+    const vx = sx + fl * frac;
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(vx, oy);
-    ctx.lineTo(vx, oy + sh);
-    ctx.stroke();
-  }
-  
-  // Размер высоты борта
+    ctx.beginPath(); ctx.moveTo(vx, oy); ctx.lineTo(vx, oy + sh); ctx.stroke();
+  });
+
   ctx.fillStyle = '#3498db';
   ctx.font = '11px DejaVu Sans';
   ctx.fillText(`${sideH}`, sx - 30, oy + sh/2);
-  
-  const horizMeters = nHoriz * (L / 1000);
-  const vertMeters = (nVert + 2) * (sideH / 1000);  // +2 for end posts
-  
-  // Two sides (left + right) + front + back
-  return {
-    sideLong: L / 1000 * 2,     // 2 длинных борта
-    sideShort: W / 1000 * 2,    // 2 коротких борта
-    sideHoriz: horizMeters * 2 + (W/1000) * nHoriz * 2,
-    sideVert: vertMeters * 2 + (W/1000) * (nVert + 2) * 2 / (L/1000) * (sideH/1000), // approximate
-    sideVertApprox: (sideH/1000) * ((L/500 + 2) * 2 + (W/500 + 2) * 2), // all vertical posts
-  };
+
+  return {sx, sh, totalVert};
 }
 
-function drawTent(ctx, L, W, tentH, scale, ox, oy) {
-  if (tentH <= 0) return { tentHoriz: 0, tentVert: 0, tentDiag: 0 };
-  
-  // Каркас тента — над бортами
-  const tx = ox + W*scale + 80;
-  const ty = oy - tentH * scale;
+function drawTent(L, W, tentH, frameData) {
+  if (tentH <= 0) return {totalArch:[]};
+  const {ox, oy, fw, fl} = frameData;
+  const tx = ox + fw + 50;
   const th = tentH * scale;
-  
+  const ty = oy - th - 10;
+
+  ctx.setLineDash([6,4]);
   ctx.strokeStyle = TUBES.tent.color;
-  ctx.setLineDash([6, 4]);
   ctx.lineWidth = 2.5;
-  ctx.strokeRect(tx, ty, L*scale, th);
+  ctx.strokeRect(tx, ty, fl, th);
   ctx.setLineDash([]);
-  
-  // Дуги/стойки тента
-  const nArches = Math.max(2, Math.floor(L / 600));
-  for (let i = 0; i <= nArches; i++) {
-    const ax = tx + (L * scale * i) / nArches;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(ax, ty);
-    ctx.lineTo(ax, ty + th);
-    ctx.stroke();
-  }
-  
-  // Горизонтальные рёбра
+
+  // Horizontal rails
   ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(tx, ty + th/2);
-  ctx.lineTo(tx + L*scale, ty + th/2);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(tx, ty);
-  ctx.lineTo(tx + L*scale, ty);
-  ctx.stroke();
-  
+  ctx.beginPath(); ctx.moveTo(tx, ty + th/2); ctx.lineTo(tx + fl, ty + th/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + fl, ty); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx, ty + th); ctx.lineTo(tx + fl, ty + th); ctx.stroke();
+
+  // Arches
+  const totalArch = [...archPositions];
+  if (!totalArch.some(p => p < 0.03)) totalArch.unshift(0);
+  if (!totalArch.some(p => p > 0.97)) totalArch.push(1);
+  totalArch.sort((a,b)=>a-b);
+
+  totalArch.forEach(frac => {
+    const ax = tx + fl * frac;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(ax, ty); ctx.lineTo(ax, ty + th); ctx.stroke();
+  });
+
   ctx.fillStyle = '#27ae60';
   ctx.font = '11px DejaVu Sans';
   ctx.fillText(`${tentH}`, tx - 30, ty + th/2);
-  
-  const nPosts = nArches + 1;
-  return {
-    tentVert: (tentH / 1000) * nPosts * 2,     // 2 sides
-    tentHoriz: (L / 1000) * 3 + (W / 1000) * 2,  // horizontal ribs
-    tentFrontBack: (tentH / 1000 + W / 1000) * 4, // front/back frames
-  };
+
+  return {tx, ty, th, totalArch};
 }
 
-function update() {
-  const L = parseInt(document.getElementById('length').value);
-  const W = parseInt(document.getElementById('width').value);
-  const sideH = parseInt(document.getElementById('sideH').value);
-  const tentH = parseInt(document.getElementById('tentH').value);
-  const axles = parseInt(document.getElementById('axles').value);
-  
-  const canvas = document.getElementById('c');
-  const ctx = canvas.getContext('2d');
-  
-  // Scale: fit 1100×800
-  const maxDrawn = L + 2000; // frame + drawbar
-  const scaleX = (canvas.width - 400) / W;
-  const scaleY = (canvas.height - 150) / maxDrawn;
-  const scale = Math.min(scaleX, scaleY);
-  
-  const ox = 80;
-  const oy = HEADER;
-  
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
+function redraw() {
+  const {L, W, sideH, tentH, brand} = getParams();
+  canvas.width = canvas.width; // clear
+
   // Grid
   ctx.strokeStyle = '#f0f0f0';
   ctx.lineWidth = 0.5;
-  for (let x = 0; x < canvas.width; x += 50) {
+  for (let x = 0; x < canvas.width; x += 25*scale*2) {
     ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
   }
-  for (let y = 0; y < canvas.height; y += 50) {
+  for (let y = 0; y < canvas.height; y += 25*scale*2) {
     ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
   }
-  
+
+  // Draw
+  const fd = drawFrame(L, W);
+  const sd = drawSides(L, W, sideH, fd);
+  const td = drawTent(L, W, tentH, fd);
+
   // Labels
   ctx.fillStyle = '#222';
   ctx.font = 'bold 14px DejaVu Sans';
-  ctx.fillText(`Прицеп ${document.getElementById('brand').selectedOptions[0].text} ${(L/1000).toFixed(1)}×${(W/1000).toFixed(1)} м`, ox, 25);
-  ctx.font = '12px DejaVu Sans';
-  ctx.fillText(`Борт ${sideH} мм  •  Тент ${tentH || 'нет'}  •  ${axles} ось`, ox, 45);
-  
-  // Draw frame
-  const frameData = drawFrame(ctx, L, W, scale, ox, oy);
-  
-  // Draw drawbar
-  const dbData = drawDrawbar(ctx, L, W, scale, ox, oy);
-  
-  // Draw sides
-  const sideData = drawSides(ctx, L, W, sideH, scale, ox, oy);
-  
-  // Draw tent
-  const tentData = drawTent(ctx, L, W, tentH, scale, ox, oy);
-  
-  // Total dimensions
-  const totalLen = L + dbData.drawbarLen;
-  ctx.fillStyle = '#C0392B';
-  ctx.font = '12px DejaVu Sans';
-  ctx.fillText(`${totalLen.toFixed(0)} мм общая`, ox + W*scale/2 - 30, oy + L*scale + dbData.drawbarLen*scale + 25);
-  
-  // Dimension lines on frame
+  ctx.fillText(`Прицеп ${brand} ${(L/1000).toFixed(1)}×${(W/1000).toFixed(1)} м  |  Борт ${sideH} мм  |  Тент ${tentH||'нет'}`, offsetX, 25);
+
+  // Dimensions
   ctx.strokeStyle = '#C0392B';
   ctx.lineWidth = 0.8;
-  ctx.setLineDash([4, 3]);
-  // Width
-  ctx.beginPath(); ctx.moveTo(ox, oy - 15); ctx.lineTo(ox + W*scale, oy - 15); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ox, oy - 20); ctx.lineTo(ox, oy - 10); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(ox + W*scale, oy - 20); ctx.lineTo(ox + W*scale, oy - 10); ctx.stroke();
-  ctx.fillText(`${W}`, ox + W*scale/2 - 20, oy - 18);
-  // Length
-  ctx.beginPath(); ctx.moveTo(ox - 20, oy); ctx.lineTo(ox - 20, oy + L*scale); ctx.stroke();
-  ctx.fillText(`${L}`, ox - 55, oy + L*scale/2);
+  ctx.setLineDash([4,3]);
+  // W
+  ctx.beginPath(); ctx.moveTo(fd.ox, fd.oy - 12); ctx.lineTo(fd.ox + fd.fw, fd.oy - 12); ctx.stroke();
+  ctx.fillText(`${W}`, fd.ox + fd.fw/2 - 20, fd.oy - 16);
+  // L
+  ctx.beginPath(); ctx.moveTo(fd.ox - 15, fd.oy); ctx.lineTo(fd.ox - 15, fd.oy + fd.fl); ctx.stroke();
+  ctx.fillText(`${L}`, fd.ox - 55, fd.oy + fd.fl/2);
+  // Total
+  const totL = L + fd.dbLen;
+  ctx.fillText(`${totL.toFixed(0)} мм общая`, fd.apexX - 35, fd.apexY + 18);
+  // Drawbar len
+  ctx.fillText(`${fd.dbLen.toFixed(0)}`, fd.apexX + 12, fd.dby + (fd.apexY-fd.dby)/2);
   ctx.setLineDash([]);
-  
-  // ═══ CALCULATE SPECIFICATION ═══
-  const spec = [
-    { name:'Рама', tube:TUBES.frame.name, meters:frameData.frameMain/1000 + frameData.frameCenter/1000 + frameData.frameCross/1000,
-      mass:0, details: `${(frameData.frameMain/1000).toFixed(1)}м периметр + ${(frameData.frameCenter/1000).toFixed(1)}м центр + ${(frameData.frameCross/1000).toFixed(1)}м поперечин (${frameData.nCross} шт)` },
-    { name:'Дышло', tube:TUBES.drawbar.name, meters:dbData.drawbarSides/1000 + dbData.drawbarCross/1000,
-      mass:0, details: `${(dbData.drawbarSides/1000).toFixed(1)}м стороны + ${(dbData.drawbarCross/1000).toFixed(1)}м перемычка` },
-    { name:'Борта', tube:TUBES.side.name, meters:sideData.sideVertApprox + frameData.nCross * 2 * (W/1000) * (sideH > 300 ? 1.3 : 1),
-      mass:0, details: `верт. стойки + горизонт. ${sideH}мм` },
-    { name:'Каркас тента', tube:TUBES.tent.name, meters:tentData.tentHoriz + tentData.tentVert + tentData.tentFrontBack,
-      mass:0, details: tentH > 0 ? `верт ${tentData.tentVert.toFixed(1)}м + гориз ${tentData.tentHoriz.toFixed(1)}м` : 'не используется' },
+
+  // ═══ CALC SPEC ═══
+  const nCross = fd.totalCross.length;
+  const nVert = sd.totalVert.length;
+  const nArch = td.totalArch ? td.totalArch.length : 0;
+  const nHSide = sideH >= 500 ? 2 : 1;
+
+  const frameMain = (L*2 + W*2)/1000;         // perimeter
+  const frameCenter = L/1000;
+  const frameCross = (W * nCross)/1000;
+
+  const dbSides = Math.sqrt((W*0.9/2)*(W*0.9/2) + fd.dbLen*fd.dbLen) * 2 / 1000;
+  const dbCrossBar = W * 0.9 / 1000;
+
+  // Side boards: 4 sides (2 long + 2 short)
+  // Long sides: nVert posts per side × sideH + nHSide rails × L
+  const sideLongPosts = nVert * (sideH/1000) * 2;
+  const sideShortPosts = (Math.floor(nVert * W/L) + 2) * (sideH/1000) * 2;
+  const sideLongRails = nHSide * (L/1000) * 2;
+  const sideShortRails = nHSide * (W/1000) * 2;
+  const sideMeters = sideLongPosts + sideShortPosts + sideLongRails + sideShortRails;
+
+  // Tent frame
+  const tentVert = tentH > 0 ? nArch * (tentH/1000) * 2 : 0;
+  const tentHoriz = tentH > 0 ? (L/1000)*3 + (W/1000)*2 : 0;
+  const tentFrontBack = tentH > 0 ? (tentH/1000 + W/1000)*4 : 0;
+  const tentMeters = tentVert + tentHoriz + tentFrontBack;
+
+  const items = [
+    {name:'Рама', tube:'60×60×2', meters: frameMain + frameCenter + frameCross, mass:0,
+     desc:`${frameMain.toFixed(1)}м периметр + ${frameCenter.toFixed(1)}м центр + ${frameCross.toFixed(1)}м поперечин (${nCross} шт)`},
+    {name:'Дышло', tube:'80×40×3', meters: dbSides + dbCrossBar, mass:0,
+     desc:`${dbSides.toFixed(1)}м стороны + ${dbCrossBar.toFixed(1)}м перемычка`},
+    {name:'Борта', tube:'25×25×2', meters: sideMeters, mass:0,
+     desc:`${nVert} стоек + ${nHSide} реек ×4 стороны, ${sideH}мм`},
+    {name:'Каркас тента', tube:'20×20×1,5', meters: tentMeters, mass:0,
+     desc: tentH > 0 ? `${nArch} дуг × 2 стороны + ${tentHoriz.toFixed(1)}м гориз.` : 'не используется'},
   ];
-  
-  // Recalculate with better precision
-  spec[0].meters = frameData.frameMain/1000 + frameData.frameCenter/1000 + frameData.frameCross/1000;
-  spec[1].meters = dbData.drawbarSides/1000 + dbData.drawbarCross/1000;
-  
-  // Борта: all 4 sides
-  const vertPostsSide = (Math.floor(L/500)+2) * 2; // long sides
-  const vertPostsFront = (Math.floor(W/500)+2) * 2; // short sides  
-  const vertMetersSide = vertPostsSide * (sideH/1000);
-  const vertMetersFront = vertPostsFront * (sideH/1000);
-  const horizMetersSide = (sideH >= 500 ? 2 : 1) * (L/1000) * 2; // top+bottom/mid rails long
-  const horizMetersFront = (sideH >= 500 ? 2 : 1) * (W/1000) * 2;
-  spec[2].meters = vertMetersSide + vertMetersFront + horizMetersSide + horizMetersFront;
-  
-  // Каркас тента  
-  if (tentH > 0) {
-    const nArches2 = Math.max(2, Math.floor(L/600));
-    spec[3].meters = (tentH/1000)*(nArches2+1)*2 + (L/1000)*3 + (W/1000)*4;
-  } else {
-    spec[3].meters = 0;
-  }
-  
-  // Mass calculation
-  spec.forEach(s => {
-    const t = Object.values(TUBES).find(t => t.name === s.tube);
-    s.mass = s.meters * (t ? t.massPerM : 0);
+
+  items.forEach(it => {
+    const t = Object.values(TUBES).find(tb => tb.name === it.tube);
+    it.mass = it.meters * (t ? t.massPerM : 0);
   });
-  
-  // Draw specification table
-  const specDiv = document.getElementById('spec');
-  const totalDiv = document.getElementById('total');
-  
+
+  let totM = 0, totKg = 0;
   let html = '<table>';
-  let totMeters = 0, totMass = 0;
-  spec.forEach(s => {
-    if (s.meters <= 0) return;
-    totMeters += s.meters;
-    totMass += s.mass;
-    html += `<tr><td><b>${s.name}</b></td><td>${s.tube}</td></tr>`;
-    html += `<tr><td colspan="2" style="color:#888;font-size:10px">${s.details}</td></tr>`;
-    html += `<tr><td>Метраж</td><td style="text-align:right">${s.meters.toFixed(1)} м</td></tr>`;
-    html += `<tr><td>Вес</td><td style="text-align:right">${s.mass.toFixed(1)} кг</td></tr>`;
-    html += `<tr><td colspan="2" style="height:4px"></td></tr>`;
+  items.forEach(it => {
+    if (it.meters <= 0) return;
+    totM += it.meters; totKg += it.mass;
+    html += `<tr><td><b>${it.name}</b></td><td>${it.tube}</td></tr>`;
+    html += `<tr><td colspan="2" style="color:#888">${it.desc}</td></tr>`;
+    html += `<tr><td>Метраж</td><td style="text-align:right">${it.meters.toFixed(1)} м</td></tr>`;
+    html += `<tr><td>Вес</td><td style="text-align:right">${it.mass.toFixed(1)} кг</td></tr>`;
+    html += `<tr><td colspan="2" style="height:3px"></td></tr>`;
   });
   html += '</table>';
-  specDiv.innerHTML = html;
-  
-  totalDiv.innerHTML = `<table>
-    <tr><td>Общий метраж</td><td style="text-align:right;font-weight:bold">${totMeters.toFixed(1)} м</td></tr>
-    <tr><td>Общий вес металла</td><td style="text-align:right;font-weight:bold">${totMass.toFixed(1)} кг</td></tr>
-    <tr><td>Стоимость металла*</td><td style="text-align:right;font-weight:bold">~${(totMass * 85).toFixed(0)} ₽</td></tr>
-  </table>
-  <div style="font-size:9px;color:#888;margin-top:6px;">* ~85 ₽/кг Ст3, уточнить</div>`;
+  document.getElementById('spec').innerHTML = html;
+  document.getElementById('total').innerHTML = `<table>
+    <tr><td>Метраж</td><td style="text-align:right;font-weight:bold">${totM.toFixed(1)} м</td></tr>
+    <tr><td>Вес металла</td><td style="text-align:right;font-weight:bold">${totKg.toFixed(1)} кг</td></tr>
+    <tr><td>~Стоимость</td><td style="text-align:right">~${(totKg*85).toFixed(0)} ₽</td></tr>
+  </table>`;
+
+  // Update toolbar info
+  const info = document.querySelector('.toolbar span:last-child');
+  if (info) info.textContent = `L=${L}мм W=${W}мм | поперечин:${nCross} стоек:${nVert} дуг:${nArch} | зум:${(scale*100).toFixed(0)}%`;
 }
 
-update();
+redraw();
 </script>
 </body>
 </html>

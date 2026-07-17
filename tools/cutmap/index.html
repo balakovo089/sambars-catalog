@@ -24,7 +24,6 @@ input:focus,select:focus{outline:none;border-color:#3498db}
 .tip{font-size:10px;color:#aaa;margin-top:4px}
 .main{flex:1;overflow:auto;background:#e8ecf0}
 canvas{cursor:crosshair;display:block}
-.model-info{font-size:11px;color:#2c3e50;background:#e8f0ff;padding:4px 8px;border-radius:4px;margin-bottom:8px}
 .toolbar{position:fixed;bottom:20px;left:360px;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;gap:8px;align-items:center;font-size:12px}
 .toolbar button{padding:6px 16px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;white-space:nowrap}
 .toolbar button.active{background:#3498db;color:#fff;border-color:#3498db}
@@ -39,7 +38,9 @@ canvas{cursor:crosshair;display:block}
 
   <label>Модель</label>
   <select id="brand" onchange="redraw()">
-    <option>Барсук</option><option>Самбарс</option><option>Бизон</option>
+    <option value="barsuk">Барсук (60×40×2)</option>
+    <option value="sambars">Самбарс (60×60×2)</option>
+    <option value="bizon">Бизон (60×60×2)</option>
   </select>
   <label>Длина рамы, мм</label>
   <input type="number" id="L" value="2000" min="1500" max="6000" step="50" onchange="redraw()">
@@ -61,8 +62,8 @@ canvas{cursor:crosshair;display:block}
   <div class="result" id="spec"></div>
   <h3>⚖️ ИТОГО</h3>
   <div class="result" id="total"></div>
-  <div class="tip">🖱 На схеме: клик на элемент = удалить<br>Кнопки внизу = добавить поперечину/стойку/дугу<br>🖱 Колёсико = зум | Alt+drag = двигать</div>
-  <div class="tip" style="margin-top:4px"><b>Барсук:</b> рама 60×40×2, без центр. балки<br><b>Самбарс/Бизон:</b> рама 60×60×2, с центр. балкой</div>
+  <div class="tip">🖱 На схеме: клик на элемент = удалить<br>Shift+клик = добавить поперечину/стойку<br>🖱 Колёсико = зум</div>
+  <div class="tip" style="margin-top:6px">Синий ▬ 60×60×2 | Серый ▬ 40×20×2<br>Красный ▬ 80×40×3 | Голубой ▬ 25×25×2<br>Зелёный - - 20×20×1,5</div>
 </div>
 
 <canvas id="c"></canvas>
@@ -85,6 +86,10 @@ let tool = 'delete';
 let crossPositions = [];  // positions of cross members as fraction of length
 let vertPositions = [];   // positions of side posts as fraction of length
 let archPositions = [];   // positions of tent arches as fraction of length
+
+function getModel() { return document.getElementById('brand').value; }
+function getFrameTube() { return getModel() === 'barsuk' ? TUBES.frame6040 : TUBES.frame60; }
+function hasCenterBeam() { return getModel() !== 'barsuk'; }
 
 function setTool(t) {
   tool = t;
@@ -110,10 +115,11 @@ function getParams() {
 }
 
 const TUBES = {
-  frame:    {name:'60×60×2', color:'#2c3e50', massPerM:3.56},
-  cross:    {name:'40×20×2', color:'#7f8c8d', massPerM:1.78},
+  frame60:  {name:'60×60×2', color:'#2c3e50', massPerM:3.56},
+  frame6040: {name:'60×40×2', color:'#34495e', massPerM:2.93},
+  cross:    {name:'40×20×1,5', color:'#7f8c8d', massPerM:1.35},
   drawbar:  {name:'80×40×3', color:'#e74c3c', massPerM:5.19},
-  side:     {name:'25×25×2', color:'#3498db', massPerM:1.39},
+  side:     {name:'25×25×1,5', color:'#3498db', massPerM:1.08},
   tent:     {name:'20×20×1,5',color:'#27ae60', massPerM:0.84},
 };
 
@@ -242,43 +248,19 @@ canvas.addEventListener('click', e => {
   }
 });
 
-function getFrameTube() {
-  const b = document.getElementById('brand').value;
-  return b === 'barsuk' ? TUBES.frame6040 : TUBES.frame60;
-}
-
-function hasCenterBeam() {
-  return document.getElementById('brand').value !== 'barsuk';
-}
-
-function onModelChange() {
-  const b = document.getElementById('brand').value;
-  if (b === 'barsuk') {
-    document.getElementById('W').value = '1250';
-    document.getElementById('L').value = '2000';
-  } else if (b === 'bizon') {
-    document.getElementById('W').value = '2000';
-    document.getElementById('L').value = '3000';
-  }
-  crossPositions = [];
-  vertPositions = [];
-  archPositions = [];
-  redraw();
-}
-
 function drawFrame(L, W) {
   const ox = offsetX;
   const oy = offsetY + 80;
   const fw = W * scale;
   const fl = L * scale;
-  const frameTube = getFrameTube();
 
   // Frame outer
+  const frameTube = getFrameTube();
   ctx.strokeStyle = frameTube.color;
   ctx.lineWidth = 8;
   ctx.strokeRect(ox, oy, fw, fl);
 
-  // Center beam (only for Sambars/Bizon)
+  // Center beam (only Sambars/Bizon)
   if (hasCenterBeam()) {
     ctx.lineWidth = 6;
     ctx.beginPath();
@@ -458,7 +440,6 @@ function redraw() {
   const frameMain = (L*2 + W*2)/1000;
   const frameCenter = hasCenterBeam() ? L/1000 : 0;
   const frameCross = (W * nCross)/1000;
-  const frameTube = getFrameTube();
 
   const dbSides = Math.sqrt((W*0.9/2)*(W*0.9/2) + fd.dbLen*fd.dbLen) * 2 / 1000;
   const dbCrossBar = W * 0.9 / 1000;
@@ -478,7 +459,7 @@ function redraw() {
   const tentMeters = tentVert + tentHoriz + tentFrontBack;
 
   const items = [
-    {name:'Рама', tube:frameTube.name, meters: frameMain + frameCenter + frameCross, mass:0,
+    {name:'Рама', tube:getFrameTube().name, meters: frameMain + frameCenter + frameCross, mass:0,
      desc:`${frameMain.toFixed(1)}м периметр${frameCenter>0?' + '+frameCenter.toFixed(1)+'м центр':''} + ${frameCross.toFixed(1)}м поперечин (${nCross} шт)`},
     {name:'Дышло', tube:'80×40×3', meters: dbSides + dbCrossBar, mass:0,
      desc:`${dbSides.toFixed(1)}м стороны + ${dbCrossBar.toFixed(1)}м перемычка`},

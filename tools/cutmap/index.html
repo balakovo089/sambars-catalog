@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Карта раскроя прицепа — инженерный калькулятор</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family: 'DejaVu Sans', Arial, sans-serif; background:#f5f5f5; display:flex; }
+.sidebar { width:320px; background:#fff; padding:20px; height:100vh; overflow-y:auto; box-shadow:2px 0 8px rgba(0,0,0,.1); z-index:2; }
+.sidebar h2 { font-size:16px; color:#2c3e50; margin-bottom:16px; }
+.sidebar h3 { font-size:13px; color:#555; margin:16px 0 8px; border-top:1px solid #eee; padding-top:12px; }
+label { display:block; font-size:11px; color:#777; margin-bottom:2px; }
+input, select { width:100%; padding:6px 8px; border:1px solid #ddd; border-radius:4px; font-size:13px; margin-bottom:10px; font-family:inherit; }
+input:focus, select:focus { outline:none; border-color:#3498db; }
+.result { background:#f0f4ff; padding:12px; border-radius:6px; margin-top:8px; }
+.result table { width:100%; font-size:11px; border-collapse:collapse; }
+.result th { text-align:left; color:#555; font-weight:600; padding:3px 0; }
+.result td { padding:2px 0; color:#222; }
+.result .total { border-top:2px solid #2c3e50; font-weight:bold; font-size:13px; }
+canvas { display:block; }
+.main { flex:1; overflow:auto; padding:20px; }
+.canvas-wrap { background:#fff; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.1); overflow:hidden; display:inline-block; }
+.legend { font-size:11px; color:#888; margin-top:10px; }
+.legend span { display:inline-block; width:14px; height:14px; margin-right:6px; vertical-align:middle; border-radius:2px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🔧 Карта раскроя прицепа</h2>
+  
+  <label>Модель</label>
+  <select id="brand" onchange="update()">
+    <option value="barsuk">Барсук</option>
+    <option value="sambars">Самбарс</option>
+    <option value="bizon">Бизон</option>
+  </select>
+  
+  <label>Длина рамы, мм</label>
+  <input type="number" id="length" value="2000" min="1500" max="6000" step="50" onchange="update()">
+  
+  <label>Ширина рамы, мм</label>
+  <select id="width" onchange="update()">
+    <option value="1250">1250</option>
+    <option value="1500" selected>1500</option>
+    <option value="1800">1800</option>
+    <option value="2000">2000</option>
+  </select>
+  
+  <label>Высота борта, мм</label>
+  <select id="sideH" onchange="update()">
+    <option value="300" selected>300</option>
+    <option value="500">500</option>
+  </select>
+
+  <label>Высота тента, мм</label>
+  <select id="tentH" onchange="update()">
+    <option value="0">Без тента</option>
+    <option value="500">500</option>
+    <option value="1200" selected>1200</option>
+  </select>
+
+  <label>Количество осей</label>
+  <select id="axles" onchange="update()">
+    <option value="1" selected>1 ось</option>
+    <option value="2">2 оси</option>
+  </select>
+
+  <h3>📊 СПЕЦИФИКАЦИЯ МЕТАЛЛА</h3>
+  <div class="result" id="spec"></div>
+  
+  <h3>⚖️ ИТОГО</h3>
+  <div class="result" id="total"></div>
+
+  <div class="legend" style="margin-top:16px;">
+    <div><span style="background:#2c3e50"></span> Рама 60×60×2</div>
+    <div><span style="background:#7f8c8d"></span> Поперечины 40×20×2</div>
+    <div><span style="background:#e74c3c"></span> Дышло 80×40×3</div>
+    <div><span style="background:#3498db"></span> Борта 25×25×2</div>
+    <div><span style="background:#27ae60"></span> Каркас тента 20×20×1,5</div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="canvas-wrap">
+    <canvas id="c" width="1100" height="800"></canvas>
+  </div>
+</div>
+
+<script>
+// ═══ ГЕОМЕТРИЯ: эталонный чертёж 2,5×1,5 ═══
+// Все пропорции привязаны к эталону L0=2570, W0=1570
+
+const L0 = 2570, W0 = 1570;
+const HEADER = 120;  // px top offset
+const PADDING = 40;
+
+// Трубы и их сечения
+const TUBES = {
+  frame:    { name:'60×60×2',   color:'#2c3e50', massPerM: 3.56 },  // ~3.56 кг/м для 60×60×2
+  cross:    { name:'40×20×2',   color:'#7f8c8d', massPerM: 1.78 },
+  drawbar:  { name:'80×40×3',   color:'#e74c3c', massPerM: 5.19 },
+  side:     { name:'25×25×2',   color:'#3498db', massPerM: 1.39 },
+  tent:     { name:'20×20×1,5', color:'#27ae60', massPerM: 0.84 },
+};
+
+function drawFrame(ctx, L, W, scale, ox, oy) {
+  // Рама: внешний периметр
+  ctx.strokeStyle = TUBES.frame.color;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(ox, oy, W*scale, L*scale);
+  
+  // Центральная продольная балка
+  ctx.beginPath();
+  ctx.moveTo(ox + W*scale/2, oy);
+  ctx.lineTo(ox + W*scale/2, oy + L*scale);
+  ctx.strokeStyle = TUBES.frame.color;
+  ctx.lineWidth = 6;
+  ctx.stroke();
+  
+  // Поперечины
+  const nCross = Math.max(3, Math.floor(L / 500));
+  ctx.strokeStyle = TUBES.cross.color;
+  ctx.lineWidth = 4;
+  for (let i = 1; i <= nCross; i++) {
+    const y = oy + (L * scale * i) / (nCross + 1);
+    ctx.beginPath();
+    ctx.moveTo(ox, y);
+    ctx.lineTo(ox + W*scale, y);
+    ctx.stroke();
+    // Размер поперечины
+    ctx.fillStyle = '#555';
+    ctx.font = '11px DejaVu Sans';
+    ctx.fillText(`${(W).toFixed(0)}`, ox + W*scale + 5, y + 4);
+  }
+  
+  // Косынки (углы)
+  const csz = 35;
+  ctx.strokeStyle = '#c0392b';
+  ctx.lineWidth = 1.5;
+  // 4 угла
+  [[ox,oy,1,1],[ox+W*scale,oy,-1,1],[ox,oy+L*scale,1,-1],[ox+W*scale,oy+L*scale,-1,-1]].forEach(([cx,cy,sx,sy]) => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + sx*csz, cy + sy*csz);
+    ctx.stroke();
+  });
+  
+  return {
+    frameMain: L * 2 + W * 2,       // периметр
+    frameCenter: L,                   // центр балка
+    frameCross: W * nCross,           // поперечины
+    nCross: nCross,
+  };
+}
+
+function drawDrawbar(ctx, L, W, scale, ox, oy) {
+  // Дышло треугольное
+  const dbLen = 2000 * (L / L0);  // пропорционально длине
+  const dbBase = W * 0.9;
+  const dbx = ox + (W*scale - dbBase*scale)/2;
+  const dby = oy + L*scale;
+  const apexX = ox + W*scale/2;
+  const apexY = dby + dbLen * scale;
+  
+  // Боковые трубы дышла
+  ctx.strokeStyle = TUBES.drawbar.color;
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(dbx, dby);
+  ctx.lineTo(apexX, apexY);
+  ctx.stroke();
+  
+  ctx.beginPath();
+  ctx.moveTo(dbx + dbBase*scale, dby);
+  ctx.lineTo(apexX, apexY);
+  ctx.stroke();
+  
+  // Поперечина дышла
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(dbx, dby + 150*scale);
+  ctx.lineTo(dbx + dbBase*scale, dby + 150*scale);
+  ctx.stroke();
+  
+  // Сцепное
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath();
+  ctx.arc(apexX, apexY, 10, 0, Math.PI*2);
+  ctx.fill();
+  
+  // Размер дышла
+  ctx.fillStyle = '#555';
+  ctx.font = '11px DejaVu Sans';
+  ctx.fillText(`${(dbLen).toFixed(0)}`, apexX + 10, dby + (apexY-dby)/2);
+  
+  const sideTubeLen = Math.sqrt((dbBase/2)*(dbBase/2) + dbLen*dbLen);
+  
+  return {
+    drawbarSides: sideTubeLen * 2,
+    drawbarCross: dbBase,
+    drawbarLen: dbLen,
+  };
+}
+
+function drawSides(ctx, L, W, sideH, scale, ox, oy) {
+  // Борта — вид сбоку (рисуем справа от рамы)
+  const sx = ox + W*scale + 80;
+  const sh = sideH * scale;
+  
+  // Каркас борта
+  ctx.strokeStyle = TUBES.side.color;
+  ctx.lineWidth = 3;
+  // Периметр борта
+  ctx.strokeRect(sx, oy, L*scale, sh);
+  
+  // Горизонтальные перекладины
+  const nHoriz = sideH >= 500 ? 2 : 1;
+  for (let i = 1; i <= nHoriz; i++) {
+    const hy = oy + (sh * i) / (nHoriz + 1);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(sx, hy);
+    ctx.lineTo(sx + L*scale, hy);
+    ctx.stroke();
+  }
+  
+  // Вертикальные стойки
+  const nVert = Math.max(3, Math.floor(L / 500));
+  for (let i = 1; i <= nVert; i++) {
+    const vx = sx + (L * scale * i) / (nVert + 1);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(vx, oy);
+    ctx.lineTo(vx, oy + sh);
+    ctx.stroke();
+  }
+  
+  // Размер высоты борта
+  ctx.fillStyle = '#3498db';
+  ctx.font = '11px DejaVu Sans';
+  ctx.fillText(`${sideH}`, sx - 30, oy + sh/2);
+  
+  const horizMeters = nHoriz * (L / 1000);
+  const vertMeters = (nVert + 2) * (sideH / 1000);  // +2 for end posts
+  
+  // Two sides (left + right) + front + back
+  return {
+    sideLong: L / 1000 * 2,     // 2 длинных борта
+    sideShort: W / 1000 * 2,    // 2 коротких борта
+    sideHoriz: horizMeters * 2 + (W/1000) * nHoriz * 2,
+    sideVert: vertMeters * 2 + (W/1000) * (nVert + 2) * 2 / (L/1000) * (sideH/1000), // approximate
+    sideVertApprox: (sideH/1000) * ((L/500 + 2) * 2 + (W/500 + 2) * 2), // all vertical posts
+  };
+}
+
+function drawTent(ctx, L, W, tentH, scale, ox, oy) {
+  if (tentH <= 0) return { tentHoriz: 0, tentVert: 0, tentDiag: 0 };
+  
+  // Каркас тента — над бортами
+  const tx = ox + W*scale + 80;
+  const ty = oy - tentH * scale;
+  const th = tentH * scale;
+  
+  ctx.strokeStyle = TUBES.tent.color;
+  ctx.setLineDash([6, 4]);
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(tx, ty, L*scale, th);
+  ctx.setLineDash([]);
+  
+  // Дуги/стойки тента
+  const nArches = Math.max(2, Math.floor(L / 600));
+  for (let i = 0; i <= nArches; i++) {
+    const ax = tx + (L * scale * i) / nArches;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(ax, ty);
+    ctx.lineTo(ax, ty + th);
+    ctx.stroke();
+  }
+  
+  // Горизонтальные рёбра
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tx, ty + th/2);
+  ctx.lineTo(tx + L*scale, ty + th/2);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(tx + L*scale, ty);
+  ctx.stroke();
+  
+  ctx.fillStyle = '#27ae60';
+  ctx.font = '11px DejaVu Sans';
+  ctx.fillText(`${tentH}`, tx - 30, ty + th/2);
+  
+  const nPosts = nArches + 1;
+  return {
+    tentVert: (tentH / 1000) * nPosts * 2,     // 2 sides
+    tentHoriz: (L / 1000) * 3 + (W / 1000) * 2,  // horizontal ribs
+    tentFrontBack: (tentH / 1000 + W / 1000) * 4, // front/back frames
+  };
+}
+
+function update() {
+  const L = parseInt(document.getElementById('length').value);
+  const W = parseInt(document.getElementById('width').value);
+  const sideH = parseInt(document.getElementById('sideH').value);
+  const tentH = parseInt(document.getElementById('tentH').value);
+  const axles = parseInt(document.getElementById('axles').value);
+  
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  
+  // Scale: fit 1100×800
+  const maxDrawn = L + 2000; // frame + drawbar
+  const scaleX = (canvas.width - 400) / W;
+  const scaleY = (canvas.height - 150) / maxDrawn;
+  const scale = Math.min(scaleX, scaleY);
+  
+  const ox = 80;
+  const oy = HEADER;
+  
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  // Grid
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < canvas.width; x += 50) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += 50) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+  
+  // Labels
+  ctx.fillStyle = '#222';
+  ctx.font = 'bold 14px DejaVu Sans';
+  ctx.fillText(`Прицеп ${document.getElementById('brand').selectedOptions[0].text} ${(L/1000).toFixed(1)}×${(W/1000).toFixed(1)} м`, ox, 25);
+  ctx.font = '12px DejaVu Sans';
+  ctx.fillText(`Борт ${sideH} мм  •  Тент ${tentH || 'нет'}  •  ${axles} ось`, ox, 45);
+  
+  // Draw frame
+  const frameData = drawFrame(ctx, L, W, scale, ox, oy);
+  
+  // Draw drawbar
+  const dbData = drawDrawbar(ctx, L, W, scale, ox, oy);
+  
+  // Draw sides
+  const sideData = drawSides(ctx, L, W, sideH, scale, ox, oy);
+  
+  // Draw tent
+  const tentData = drawTent(ctx, L, W, tentH, scale, ox, oy);
+  
+  // Total dimensions
+  const totalLen = L + dbData.drawbarLen;
+  ctx.fillStyle = '#C0392B';
+  ctx.font = '12px DejaVu Sans';
+  ctx.fillText(`${totalLen.toFixed(0)} мм общая`, ox + W*scale/2 - 30, oy + L*scale + dbData.drawbarLen*scale + 25);
+  
+  // Dimension lines on frame
+  ctx.strokeStyle = '#C0392B';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([4, 3]);
+  // Width
+  ctx.beginPath(); ctx.moveTo(ox, oy - 15); ctx.lineTo(ox + W*scale, oy - 15); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox, oy - 20); ctx.lineTo(ox, oy - 10); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(ox + W*scale, oy - 20); ctx.lineTo(ox + W*scale, oy - 10); ctx.stroke();
+  ctx.fillText(`${W}`, ox + W*scale/2 - 20, oy - 18);
+  // Length
+  ctx.beginPath(); ctx.moveTo(ox - 20, oy); ctx.lineTo(ox - 20, oy + L*scale); ctx.stroke();
+  ctx.fillText(`${L}`, ox - 55, oy + L*scale/2);
+  ctx.setLineDash([]);
+  
+  // ═══ CALCULATE SPECIFICATION ═══
+  const spec = [
+    { name:'Рама', tube:TUBES.frame.name, meters:frameData.frameMain/1000 + frameData.frameCenter/1000 + frameData.frameCross/1000,
+      mass:0, details: `${(frameData.frameMain/1000).toFixed(1)}м периметр + ${(frameData.frameCenter/1000).toFixed(1)}м центр + ${(frameData.frameCross/1000).toFixed(1)}м поперечин (${frameData.nCross} шт)` },
+    { name:'Дышло', tube:TUBES.drawbar.name, meters:dbData.drawbarSides/1000 + dbData.drawbarCross/1000,
+      mass:0, details: `${(dbData.drawbarSides/1000).toFixed(1)}м стороны + ${(dbData.drawbarCross/1000).toFixed(1)}м перемычка` },
+    { name:'Борта', tube:TUBES.side.name, meters:sideData.sideVertApprox + frameData.nCross * 2 * (W/1000) * (sideH > 300 ? 1.3 : 1),
+      mass:0, details: `верт. стойки + горизонт. ${sideH}мм` },
+    { name:'Каркас тента', tube:TUBES.tent.name, meters:tentData.tentHoriz + tentData.tentVert + tentData.tentFrontBack,
+      mass:0, details: tentH > 0 ? `верт ${tentData.tentVert.toFixed(1)}м + гориз ${tentData.tentHoriz.toFixed(1)}м` : 'не используется' },
+  ];
+  
+  // Recalculate with better precision
+  spec[0].meters = frameData.frameMain/1000 + frameData.frameCenter/1000 + frameData.frameCross/1000;
+  spec[1].meters = dbData.drawbarSides/1000 + dbData.drawbarCross/1000;
+  
+  // Борта: all 4 sides
+  const vertPostsSide = (Math.floor(L/500)+2) * 2; // long sides
+  const vertPostsFront = (Math.floor(W/500)+2) * 2; // short sides  
+  const vertMetersSide = vertPostsSide * (sideH/1000);
+  const vertMetersFront = vertPostsFront * (sideH/1000);
+  const horizMetersSide = (sideH >= 500 ? 2 : 1) * (L/1000) * 2; // top+bottom/mid rails long
+  const horizMetersFront = (sideH >= 500 ? 2 : 1) * (W/1000) * 2;
+  spec[2].meters = vertMetersSide + vertMetersFront + horizMetersSide + horizMetersFront;
+  
+  // Каркас тента  
+  if (tentH > 0) {
+    const nArches2 = Math.max(2, Math.floor(L/600));
+    spec[3].meters = (tentH/1000)*(nArches2+1)*2 + (L/1000)*3 + (W/1000)*4;
+  } else {
+    spec[3].meters = 0;
+  }
+  
+  // Mass calculation
+  spec.forEach(s => {
+    const t = Object.values(TUBES).find(t => t.name === s.tube);
+    s.mass = s.meters * (t ? t.massPerM : 0);
+  });
+  
+  // Draw specification table
+  const specDiv = document.getElementById('spec');
+  const totalDiv = document.getElementById('total');
+  
+  let html = '<table>';
+  let totMeters = 0, totMass = 0;
+  spec.forEach(s => {
+    if (s.meters <= 0) return;
+    totMeters += s.meters;
+    totMass += s.mass;
+    html += `<tr><td><b>${s.name}</b></td><td>${s.tube}</td></tr>`;
+    html += `<tr><td colspan="2" style="color:#888;font-size:10px">${s.details}</td></tr>`;
+    html += `<tr><td>Метраж</td><td style="text-align:right">${s.meters.toFixed(1)} м</td></tr>`;
+    html += `<tr><td>Вес</td><td style="text-align:right">${s.mass.toFixed(1)} кг</td></tr>`;
+    html += `<tr><td colspan="2" style="height:4px"></td></tr>`;
+  });
+  html += '</table>';
+  specDiv.innerHTML = html;
+  
+  totalDiv.innerHTML = `<table>
+    <tr><td>Общий метраж</td><td style="text-align:right;font-weight:bold">${totMeters.toFixed(1)} м</td></tr>
+    <tr><td>Общий вес металла</td><td style="text-align:right;font-weight:bold">${totMass.toFixed(1)} кг</td></tr>
+    <tr><td>Стоимость металла*</td><td style="text-align:right;font-weight:bold">~${(totMass * 85).toFixed(0)} ₽</td></tr>
+  </table>
+  <div style="font-size:9px;color:#888;margin-top:6px;">* ~85 ₽/кг Ст3, уточнить</div>`;
+}
+
+update();
+</script>
+</body>
+</html>

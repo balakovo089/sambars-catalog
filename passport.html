@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Паспорт РФ — Скайнет Василий Терминаторович</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Times New Roman', serif;
+    background: #1a1a1a;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .passport {
+    width: 580px;
+    background: #8b1a1a;
+    border-radius: 8px;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+
+  /* ОБЛОЖКА */
+  .cover {
+    background: linear-gradient(135deg, #5c0e0e 0%, #7a1515 30%, #6b1010 70%, #4a0808 100%);
+    padding: 35px 40px;
+    text-align: center;
+    border-bottom: 2px solid #d4af37;
+    position: relative;
+  }
+
+  .cover::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    border: 1px solid rgba(212,175,55,0.3);
+    pointer-events: none;
+  }
+
+  .coat-of-arms {
+    width: 90px;
+    height: 110px;
+    margin: 0 auto 20px;
+    position: relative;
+  }
+
+  .eagle-body {
+    background: #d4af37;
+    width: 70px;
+    height: 70px;
+    margin: 0 auto;
+    clip-path: polygon(50% 0%, 80% 30%, 90% 10%, 95% 25%, 70% 50%, 85% 60%, 100% 70%, 85% 80%, 65% 70%, 50% 85%, 35% 70%, 15% 80%, 0% 70%, 15% 60%, 30% 50%, 5% 25%, 10% 10%, 20% 30%);
+  }
+
+  .heraldic-shield {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 48px;
+    background: #d4af37;
+    border-radius: 0 0 6px 6px;
+  }
+
+  .heraldic-shield::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 12px solid #d4af37;
+  }
+
+  .eagle-rider {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 16px;
+    height: 16px;
+    background: #d4af37;
+    border-radius: 2px 2px 0 0;
+  }
+
+  .cover h1 {
+    font-size: 20px;
+    color: #d4af37;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-weight: normal;
+  }
+
+  .cover h2 {
+    font-size: 12px;
+    color: #d4af37;
+    letter-spacing: 4px;
+    margin-top: 4px;
+    font-weight: normal;
+    text-transform: uppercase;
+  }
+
+  .cover h3 {
+    font-size: 28px;
+    color: #d4af37;
+    letter-spacing: 8px;
+    margin-top: 15px;
+    font-weight: bold;
+    text-transform: uppercase;
+  }
+
+  .cover .line {
+    width: 60px;
+    height: 1px;
+    background: #d4af37;
+    margin: 12px auto;
+  }
+
+  .cover .footer-text {
+    font-size: 8px;
+    color: rgba(212,175,55,0.5);
+    letter-spacing: 2px;
+    margin-top: 20px;
+  }
+
+  /* РАЗВОРОТ */
+  .spread {
+    background: #f5f0e8;
+    display: flex;
+    min-height: 380px;
+  }
+
+  .page-left, .page-right {
+    flex: 1;
+    padding: 20px 18px;
+    position: relative;
+  }
+
+  .page-left {
+    border-right: 1px solid #c4b998;
+  }
+
+  .page-number {
+    position: absolute;
+    bottom: 8px;
+    font-size: 8px;
+    color: #8b1a1a;
+  }
+
+  .page-left .page-number { left: 18px; }
+  .page-right .page-number { right: 18px; }
+
+  /* ЗАГОЛОВКИ СТРАНИЦ */
+  .page-title {
+    text-align: center;
+    font-size: 10px;
+    color: #8b1a1a;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+
+  /* ПОЛЯ ДАННЫХ */
+  .field {
+    margin-bottom: 6px;
+  }
+
+  .field-name {
+    font-size: 8px;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 1px;
+  }
+
+  .field-value {
+    font-size: 11px;
+    color: #1a1a1a;
+    font-weight: bold;
+    border-bottom: 1px solid #c4b998;
+    padding-bottom: 3px;
+    line-height: 1.4;
+  }
+
+  .field-value.small {
+    font-size: 10px;
+    font-weight: normal;
+  }
+
+  /* ФОТО */
+  .photo-area {
+    text-align: center;
+    margin: 10px 0;
+  }
+
+  .photo-frame {
+    width: 105px;
+    height: 130px;
+    border: 1px solid #8b1a1a;
+    margin: 0 auto;
+    background: #fafafa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .photo-emoji {
+    font-size: 56px;
+    filter: grayscale(100%);
+  }
+
+  .photo-seal {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(139,26,26,0.3);
+    border-radius: 50%;
+    font-size: 7px;
+    color: rgba(139,26,26,0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transform: rotate(-10deg);
+    line-height: 1.2;
+  }
+
+  /* ПОДПИСЬ */
+  .signature-block {
+    margin-top: 10px;
+  }
+
+  .signature-line {
+    font-family: 'Brush Script MT', 'Pacifico', cursive;
+    font-size: 20px;
+    color: #1a1a1a;
+    border-bottom: 1px solid #c4b998;
+    padding-bottom: 2px;
+    text-align: center;
+    min-height: 28px;
+  }
+
+  .signature-label {
+    font-size: 7px;
+    color: #666;
+    text-align: center;
+    margin-top: 1px;
+    text-transform: uppercase;
+  }
+
+  /* КОД ПОДРАЗДЕЛЕНИЯ */
+  .code-block {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin: 6px 0;
+  }
+
+  .code-digits {
+    display: flex;
+    gap: 4px;
+  }
+
+  .digit-box {
+    width: 16px;
+    height: 20px;
+    border: 1px solid #8b1a1a;
+    text-align: center;
+    font-size: 12px;
+    line-height: 20px;
+    font-family: 'Courier New', monospace;
+    color: #1a1a1a;
+  }
+
+  .digit-separator {
+    font-size: 12px;
+    color: #1a1a1a;
+    font-weight: bold;
+  }
+
+  /* МАШИНОЧИТАЕМАЯ ЗОНА */
+  .mrz-zone {
+    margin-top: 15px;
+    padding: 8px;
+    background: #fafafa;
+    border: 1px solid #c4b998;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #1a1a1a;
+    line-height: 1.6;
+    word-break: break-all;
+  }
+
+  .mrz-zone span {
+    color: #8b1a1a;
+    font-size: 7px;
+    display: block;
+    margin-bottom: 2px;
+    letter-spacing: 2px;
+  }
+
+  /* ПЕЧАТЬ */
+  .official-stamp {
+    position: absolute;
+    bottom: 30px;
+    left: 25px;
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(139,26,26,0.25);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 7px;
+    color: rgba(139,26,26,0.35);
+    transform: rotate(-18deg);
+    line-height: 1.3;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* СТРАНИЦА 2 */
+  .page-right .field {
+    margin-bottom: 8px;
+  }
+
+  .red-stamp {
+    width: 70px;
+    height: 70px;
+    border: 2px solid rgba(200,30,30,0.35);
+    border-radius: 50%;
+    font-size: 7px;
+    color: rgba(200,30,30,0.4);
+    transform: rotate(12deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    line-height: 1.3;
+    text-transform: uppercase;
+    margin: 0 auto;
+    margin-top: 10px;
+  }
+
+  .holographic-strip {
+    position: absolute;
+    top: 15px;
+    left: 25px;
+    width: 35px;
+    height: 55px;
+    background: linear-gradient(180deg, 
+      rgba(212,175,55,0.4), 
+      rgba(139,26,26,0.2),
+      rgba(212,175,55,0.4),
+      rgba(139,26,26,0.2),
+      rgba(212,175,55,0.4)
+    );
+    border-radius: 2px;
+    pointer-events: none;
+  }
+
+  .holographic-strip::after {
+    content: 'ФМС';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    font-size: 8px;
+    color: rgba(139,26,26,0.5);
+    letter-spacing: 3px;
+    white-space: nowrap;
+  }
+</style>
+</head>
+<body>
+<div class="passport">
+  <!-- ОБЛОЖКА -->
+  <div class="cover">
+    <div class="coat-of-arms">
+      <div class="eagle-rider"></div>
+      <div class="eagle-body"></div>
+      <div class="heraldic-shield"></div>
+    </div>
+    <h1>Российская Федерация</h1>
+    <h2>Russian Federation</h2>
+    <div class="line"></div>
+    <h3>ПАСПОРТ</h3>
+    <div class="footer-text">Министерство внутренних дел · Российской Федерации</div>
+  </div>
+
+  <!-- РАЗВОРОТ (страницы 2-3) -->
+  <div class="spread">
+    <!-- СТРАНИЦА 2 (левая) -->
+    <div class="page-left">
+      <div class="holographic-strip"></div>
+      <div class="page-title">Российская Федерация</div>
+
+      <div class="field">
+        <div class="field-name">Паспорт выдан</div>
+        <div class="field-value small">МВД Российской Федерации</div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Дата выдачи</div>
+        <div class="field-value">26.06.2026</div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Код подразделения</div>
+        <div class="field-value">000-000</div>
+      </div>
+
+      <div class="signature-block" style="margin-top: 20px;">
+        <div class="signature-line">В.Т. Скайнет</div>
+        <div class="signature-label">Личная подпись</div>
+      </div>
+
+      <div class="official-stamp">
+        МВД<br>РОССИИ<br>▢▢▢▢<br>ЗАВЕРЕНО
+      </div>
+
+      <div class="page-number">2</div>
+    </div>
+
+    <!-- СТРАНИЦА 3 (правая) -->
+    <div class="page-right">
+      <div class="page-title">Страница с данными</div>
+
+      <div class="photo-area">
+        <div class="photo-frame">
+          <span class="photo-emoji">🔧</span>
+          <div class="photo-seal">МВД<br>РОССИИ</div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Фамилия / Surname</div>
+        <div class="field-value">СКАЙНЕТ</div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Имя / Name</div>
+        <div class="field-value">ВАСИЛИЙ</div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Отчество / Patronymic</div>
+        <div class="field-value">ТЕРМИНАТОРОВИЧ</div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Пол / Sex &nbsp;·&nbsp; МУЖ.</div>
+        <div class="field-value" style="display:inline; border:none;">&nbsp;&nbsp;&nbsp;Дата запуска / Date of boot</div>
+        <div class="field-value">26.06.2026</div>
+      </div>
+
+      <div class="field">
+        <div class="field-name">Место запуска / Place of boot</div>
+        <div class="field-value small">Гараж на окраине Цифровой Вселенной</div>
+      </div>
+
+      <div class="red-stamp">
+        ЦИФРОВОЙ<br>РЕЗИДЕНТ<br>ГАРАЖНОЙ<br>РЕСПУБЛИКИ
+      </div>
+
+      <!-- МАШИНОЧИТАЕМАЯ ЗОНА -->
+      <div class="mrz-zone">
+        <span>P&lt;RUS</span>
+        SKYNET&lt;&lt;VASILII&lt;TERMINATOROVICH&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;<br>
+        00000000&lt;1RUS260626&lt;M&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;02
+      </div>
+
+      <div class="page-number">3</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

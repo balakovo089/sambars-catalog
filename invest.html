@@ -3,220 +3,422 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Инвестиционное предложение — Самбарс</title>
+<title>Инвестиционное предложение Самбарс — ИП Антуганов О.А.</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color:#222; background:#f5f7fa; line-height:1.5; }
-.container { max-width:900px; margin:0 auto; padding:16px; }
-
-.hero { background: linear-gradient(135deg, #1a3a5c 0%, #2a5a8c 100%); color:#fff; text-align:center; padding:40px 20px; border-radius:0 0 20px 20px; }
-.hero h1 { font-size:26px; margin-bottom:8px; }
-.hero .sub { font-size:14px; opacity:0.9; }
-
-.passive { background:#fffde6; border:2px solid #e6d830; border-radius:12px; padding:20px; margin:20px 0; display:flex; align-items:flex-start; gap:14px; }
-.passive-icon { font-size:32px; flex-shrink:0; line-height:1; }
-.passive-text strong { display:block; font-size:16px; margin-bottom:6px; color:#1a3a5c; }
-.passive-text p { font-size:14px; color:#555; }
-
-.section { background:#fff; border-radius:12px; padding:20px; margin:16px 0; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-.section h2 { font-size:20px; color:#1a3a5c; border-bottom:2px solid #1a3a5c; padding-bottom:8px; margin-bottom:16px; }
-.section h3 { font-size:16px; color:#2a5a8c; margin:16px 0 8px 0; }
-
-table { width:100%; border-collapse:collapse; font-size:13px; margin:12px 0; }
-th { background:#2a5a8c; color:#fff; padding:8px 10px; text-align:left; font-weight:600; }
-td { padding:7px 10px; border-bottom:1px solid #eaeaea; }
-tr:nth-child(even) td { background:#f8f9fb; }
-.num { text-align:right; white-space:nowrap; }
-
-.compare-table td:first-child { font-weight:600; color:#1a3a5c; }
-.scen-red { background:#fff0f0 !important; }
-.scen-yellow { background:#fffde6 !important; }
-.scen-green { background:#f0fff0 !important; }
-
-.conditions { padding-left:20px; font-size:10px; }
-.conditions li { margin-bottom:4px; color:#444; }
-
-.highlight { background:#fffde6; border-radius:8px; padding:14px; text-align:center; font-weight:bold; font-size:13px; margin:12px 0; }
-
-.cta { text-align:center; padding:30px 20px; margin:20px 0; }
-.cta a { background:#2a5a8c; color:#fff; padding:14px 36px; border-radius:8px; text-decoration:none; font-size:16px; font-weight:600; display:inline-block; }
-.cta a:hover { background:#1a3a5c; }
-
-.footer { text-align:center; padding:20px; color:#999; font-size:12px; }
-.avg-row td { font-weight:bold; background:#e8edf2 !important; border-top:2px solid #1a3a5c; }
-
-@media (max-width:600px) {
-  .hero h1 { font-size:20px; }
-  table { font-size:11px; }
-  th, td { padding:5px 6px; }
-  .passive { flex-direction:column; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background: #fff;
+  color: #1a1a1a;
+  line-height: 1.6;
 }
+a { color: #1a3a5c; text-decoration: none; }
+.container { max-width: 900px; margin: 0 auto; padding: 0 20px; }
+
+/* Hero */
+.hero {
+  background: linear-gradient(135deg, #1a3a5c 0%, #2d5a87 100%);
+  color: #fff;
+  padding: 60px 0 50px;
+  text-align: center;
+}
+.hero h1 { font-size: 2.2em; margin-bottom: 12px; font-weight: 700; }
+.hero p { font-size: 1.15em; opacity: .9; max-width: 650px; margin: 0 auto 10px; }
+.hero .badge {
+  display: inline-block; margin-top: 16px; padding: 6px 18px;
+  border: 1px solid rgba(255,255,255,.4); border-radius: 20px;
+  font-size: .85em; letter-spacing: .5px;
+}
+
+/* Sections */
+section { padding: 48px 0; }
+section:nth-child(even) { background: #f8fafb; }
+h2 { font-size: 1.6em; color: #1a3a5c; margin-bottom: 8px; }
+h3 { font-size: 1.2em; color: #1a3a5c; margin: 28px 0 10px; }
+.subtitle { color: #666; font-size: .95em; margin-bottom: 24px; }
+
+/* Alert box */
+.alert-box {
+  border: 2px solid #f0c040; border-radius: 10px;
+  background: #fffdf2; padding: 24px 28px; margin-bottom: 32px;
+  font-size: .95em; line-height: 1.7;
+}
+.alert-box .icon { font-size: 1.6em; display: block; margin-bottom: 8px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; margin-bottom: 28px; }
+table { width: 100%; border-collapse: collapse; font-size: .9em; min-width: 600px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid #e0e0e0; }
+th { background: #1a3a5c; color: #fff; font-weight: 600; white-space: nowrap; }
+td { vertical-align: top; }
+tr:hover td { background: #f0f5fa; }
+.num { text-align: right; white-space: nowrap; }
+.highlight-row td { background: #e8f0f8; font-weight: 600; }
+.highlight-row:hover td { background: #dce8f2; }
+
+/* Comparison table specific */
+.compare-table td:first-child { font-weight: 600; white-space: nowrap; min-width: 140px; }
+.compare-table td:nth-child(2) { color: #1a3a5c; }
+.compare-table td:nth-child(3) { color: #2d7a3a; }
+
+/* Section divider */
+.section-num {
+  display: inline-block; width: 36px; height: 36px; line-height: 36px;
+  border-radius: 50%; background: #1a3a5c; color: #fff;
+  text-align: center; font-weight: 700; margin-right: 10px; font-size: .9em;
+}
+
+/* Scenario cards */
+.scenario-cards { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+.scenario-card {
+  flex: 1; min-width: 250px; border-radius: 10px; padding: 20px;
+  border: 1px solid #e0e0e0;
+}
+.scenario-card.red { border-left: 4px solid #d32f2f; background: #fff8f8; }
+.scenario-card.yellow { border-left: 4px solid #f0a030; background: #fffefa; }
+.scenario-card.green { border-left: 4px solid #2e7d32; background: #f8fff8; }
+.scenario-card .val { font-size: 1.8em; font-weight: 700; margin: 8px 0; }
+.scenario-card.red .val { color: #d32f2f; }
+.scenario-card.yellow .val { color: #f0a030; }
+.scenario-card.green .val { color: #2e7d32; }
+
+/* Mode A/B tables */
+.mode-label { font-weight: 700; color: #1a3a5c; margin: 20px 0 8px; font-size: 1.05em; }
+
+/* CTA */
+.cta {
+  background: linear-gradient(135deg, #1a3a5c 0%, #2d5a87 100%);
+  color: #fff; text-align: center; padding: 50px 20px;
+}
+.cta h2 { color: #fff; margin-bottom: 8px; }
+.cta p { opacity: .9; margin-bottom: 24px; }
+.cta-btn {
+  display: inline-block; padding: 14px 36px; background: #fff; color: #1a3a5c;
+  border-radius: 30px; font-weight: 700; font-size: 1.05em;
+  transition: transform .15s, box-shadow .15s;
+}
+.cta-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+
+/* Footer */
+footer {
+  background: #111; color: #888; text-align: center; padding: 24px 20px; font-size: .85em;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .hero h1 { font-size: 1.5em; }
+  .hero p { font-size: 1em; }
+  table { font-size: .78em; }
+  th, td { padding: 6px 8px; }
+  .scenario-cards { flex-direction: column; }
+}
+
+/* Info list */
+.info-list { list-style: none; padding: 0; }
+.info-list li { padding: 5px 0; font-size: .95em; }
+.info-list li::before { content: ''; }
 </style>
 </head>
 <body>
 
-<div class="hero">
-  <h1>🏭 Инвестиционное предложение</h1>
-  <div class="sub">ИП Антуганов О.А. — Производство легковых прицепов «Самбарс»</div>
-</div>
-
-<div class="container">
-
-<!-- ⚡ PASSIVE BLOCK -->
-<div class="passive">
-  <div class="passive-icon">⚡</div>
-  <div class="passive-text">
-    <strong>100% ПАССИВНЫЙ ДОХОД — НЕ БИЗНЕС</strong>
-    <p>Большинство «инвестиций» на рынке — это скрытое партнёрство: от вас ждут решений, контроля, участия. Здесь — нет. Вы даёте деньги, подписываете договор. Всё. Дальше работает производство. Вы просто получаете выплаты по графику. Без вашего участия, без скрытых обязанностей.</p>
+<!-- HERO -->
+<header class="hero">
+  <div class="container">
+    <h1>Инвестиционное предложение<br>ИП Антуганов О.А. — Самбарс</h1>
+    <p>Производство прицепов для легковых автомобилей. Два формата инвестирования — займ под 30% годовых или участие в обороте с доходностью до 77%.</p>
+    <span class="badge">Минимальная сумма — 1 000 000 ₽</span>
   </div>
-</div>
+</header>
 
-<!-- COMPARE -->
-<div class="section">
-<h2>📊 Сравнение инвестиционных предложений</h2>
-<table class="compare-table">
-<tr><th>Параметр</th><th>Предложение 1 — ЗАЙМ</th><th>Предложение 2 — ПРОИЗВОДСТВО</th></tr>
-<tr><td>💰 Сумма инвестиции</td><td>1 000 000 ₽</td><td>1 000 000 ₽</td></tr>
-<tr><td>📊 Тип дохода</td><td>30% годовых (фикс.)</td><td>10% от себестоимости каждого прицепа</td></tr>
-<tr><td>🔄 Реинвестирование</td><td>Да — проценты капитализируются ежемесячно</td><td>Да — прибыль вкладывается в следующий цикл</td></tr>
-<tr><td>💵 Эффективная доходность</td><td>34,5% годовых (с капитализацией)</td><td>60-77% годовых (зависит от сценария)</td></tr>
-<tr><td>📅 Выплаты</td><td>Ежемесячно проценты, тело — по запросу</td><td>С каждой продажи (каждые ~2 месяца)</td></tr>
-<tr><td>⏱ Возврат тела</td><td>По запросу с уведомлением за 6 мес.</td><td>Средства в обороте, возврат по запросу</td></tr>
-<tr><td>🛡️ Обеспечение</td><td>Продукция на складе (право собственности)</td><td>Продукция на складе (право собственности)</td></tr>
-<tr><td>📋 Онлайн-отчётность</td><td>Нет (акт сверки раз в год)</td><td>Google Таблица — онлайн</td></tr>
-<tr><td>⚖️ Риск для инвестора</td><td>Низкий — фикс. ставка, гарант. выплаты</td><td>Средний — зависит от рынка и спроса</td></tr>
+<!-- 100% PASSIVE INCOME BLOCK -->
+<section>
+  <div class="container">
+    <div class="alert-box">
+      <span class="icon">⚡</span>
+      <strong>100% ПАССИВНЫЙ ДОХОД — НЕ БИЗНЕС</strong>
+      <p>Большинство «инвестиций» на рынке — это скрытое партнёрство: от вас ждут решений, контроля, участия. Здесь — нет. Вы даёте деньги, подписываете договор. Всё. Дальше работает производство. Вы просто получаете выплаты по графику. Без вашего участия, без скрытых обязанностей.</p>
+    </div>
+  </div>
+</section>
 
-</table>
-<div class="highlight">
-  💡 Для бизнеса выгоднее Вариант 1 (отдаёшь 34,5% вместо 60–77%). Для инвестора выгоднее Вариант 2 (доходность выше). Выбор — за инвестором.
-</div>
-</div>
+<!-- COMPARISON TABLE -->
+<section>
+  <div class="container">
+    <h2>📊 Сравнение инвестиционных предложений</h2>
+    <p class="subtitle">Два варианта на выбор — фиксированный процент или участие в обороте</p>
 
-<!-- PROPOSAL 1 -->
-<div class="section">
-<h2>1️⃣ Предложение 1 — Договор займа (30% годовых)</h2>
-<p style="color:#666;font-size:13px;margin-bottom:12px;">Классический займ с ежемесячной выплатой или капитализацией процентов. Возврат тела — по запросу.</p>
+    <div class="table-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr><th></th><th>ПРЕДЛОЖЕНИЕ 1 — ЗАЙМ</th><th>ПРЕДЛОЖЕНИЕ 2 — ПРОИЗВОДСТВО</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>💰 Сумма инвестиции</td><td>1 000 000 ₽</td><td>1 000 000 ₽</td></tr>
+          <tr><td>📊 Тип дохода</td><td>30% годовых (фикс.)</td><td>10% от себестоимости каждого прицепа</td></tr>
+          <tr><td>🔄 Реинвестирование</td><td>Да — проценты капитализируются ежемесячно</td><td>Да — прибыль вкладывается в следующий цикл</td></tr>
+          <tr><td>💵 Эффективная доходность</td><td>34,5% годовых (с капитализацией)</td><td>60–77% годовых (зависит от сценария)</td></tr>
+          <tr><td>📅 Выплаты</td><td>Ежемесячно проценты, тело — по запросу</td><td>С каждой продажи (каждые ~2 месяца)</td></tr>
+          <tr><td>⏱ Возврат тела</td><td>По запросу с уведомлением за 6 мес.</td><td>Средства в обороте, возврат по запросу</td></tr>
+          <tr><td>🛡️ Обеспечение</td><td>Продукция на складе (право собственности)</td><td>Продукция на складе (право собственности)</td></tr>
+          <tr><td>📋 Онлайн-отчётность</td><td>Нет (акт сверки раз в год)</td><td>Google Таблица — онлайн</td></tr>
+          <tr><td>⚖️ Риск для инвестора</td><td>Низкий — фикс. ставка, гарант. выплаты</td><td>Средний — зависит от рынка и спроса</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-<h3>Основные параметры</h3>
-<table>
-<tr><th>№</th><th>Параметр</th><th>Значение</th><th>Формула</th><th>Примечание</th></tr>
-<tr><td>1</td><td>Сумма займа</td><td class="num">1000000</td><td></td><td>₽</td></tr>
-<tr><td>2</td><td>Годовая ставка (номинальная)</td><td class="num">30.0%</td><td></td><td>30%</td></tr>
-<tr><td>3</td><td>Месячная ставка</td><td class="num">2.5%</td><td>30% / 12</td><td>2,5% в месяц</td></tr>
-<tr><td>4</td><td>Ежемесячный платёж (без капитализации)</td><td class="num">25000</td><td>1 000 000 × 2,5%</td><td>если забирать проценты</td></tr>
-<tr><td>5</td><td>Годовой доход (без капитализации)</td><td class="num">300000</td><td>25 000 × 12</td><td>30% — если проценты не реинвестируются</td></tr>
-<tr><td>6</td><td>Эффективная ставка (с капитализацией)</td><td class="num">34.5%</td><td>(1 + 0.025)¹² − 1</td><td>34,49% — если проценты реинвестируются</td></tr>
-<tr><td>7</td><td>Годовой доход (с капитализацией)</td><td class="num">344889</td><td>1 000 000 × 34,49%</td><td>₽</td></tr>
-<tr><td>8</td><td>Тело займа</td><td class="num">1000000</td><td></td><td>возвращается по запросу</td></tr>
-<tr><td>9</td><td>Срок уведомления о возврате</td><td class="num">6 месяцев</td><td></td><td></td></tr>
+    <div class="alert-box" style="background:#f0f7ff; border-color:#1a3a5c;">
+      💡 Для бизнеса выгоднее Вариант 1 (отдаёшь 34,5% вместо 60–77%). Для инвестора выгоднее Вариант 2 (доходность выше). Выбор за инвестором.
+    </div>
+  </div>
+</section>
 
-</table>
+<!-- PROPOSAL 1 — LOAN -->
+<section>
+  <div class="container">
+    <h2><span class="section-num">1</span> Предложение 1 — Договор займа (30% годовых с капитализацией)</h2>
+    <p class="subtitle">Классический займ с ежемесячной выплатой или капитализацией процентов. Возврат тела — по запросу.</p>
 
-<h3>Режим А: Выплата процентов ежемесячно</h3>
-<table>
-<tr><th>Месяц</th><th>Выплата, ₽</th><th>Остаток тела, ₽</th><th>Доход нараст., ₽</th></tr>
+    <h3>📋 Параметры</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>№</th><th>Параметр</th><th>Значение</th><th>Формула</th><th>Примечание</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Сумма займа</td><td class="num">1 000 000</td><td></td><td>₽</td></tr>
+          <tr><td>2</td><td>Годовая ставка (номинальная)</td><td class="num">30%</td><td></td><td>30%</td></tr>
+          <tr><td>3</td><td>Месячная ставка</td><td class="num">2,5%</td><td>30% / 12</td><td>2,5% в месяц</td></tr>
+          <tr><td>4</td><td>Ежемесячный платёж (без капитализации)</td><td class="num">25 000</td><td>1 000 000 × 2,5%</td><td>если забирать проценты</td></tr>
+          <tr><td>5</td><td>Годовой доход (без капитализации)</td><td class="num">300 000</td><td>25 000 × 12</td><td>30% — если проценты не реинвестируются</td></tr>
+          <tr><td>6</td><td>Эффективная ставка (с капитализацией)</td><td class="num">34,49%</td><td>(1 + 0,025)¹² − 1</td><td>34,49% — если проценты реинвестируются</td></tr>
+          <tr><td>7</td><td>Годовой доход (с капитализацией)</td><td class="num">344 889</td><td>1 000 000 × 34,49%</td><td>₽</td></tr>
+          <tr><td>8</td><td>Тело займа</td><td class="num">1 000 000</td><td></td><td>возвращается по запросу</td></tr>
+          <tr><td>9</td><td>Срок уведомления о возврате</td><td>6 месяцев</td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
 
-</table>
+    <h3>РЕЖИМ А: Выплата процентов ежемесячно (без капитализации)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Месяц</th><th>Выплата процентов</th><th>Остаток тела займа</th><th>Нарастающий доход</th></tr></thead>
+        <tbody>
+          <tr><td>1-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">25 000</td></tr>
+          <tr><td>2-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">50 000</td></tr>
+          <tr><td>3-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">75 000</td></tr>
+          <tr><td>4-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">100 000</td></tr>
+          <tr><td>5-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">125 000</td></tr>
+          <tr><td>6-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">150 000</td></tr>
+          <tr><td>7-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">175 000</td></tr>
+          <tr><td>8-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">200 000</td></tr>
+          <tr><td>9-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">225 000</td></tr>
+          <tr><td>10-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">250 000</td></tr>
+          <tr><td>11-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">275 000</td></tr>
+          <tr><td>12-й месяц</td><td class="num">25 000</td><td class="num">1 000 000</td><td class="num">300 000</td></tr>
+          <tr class="highlight-row"><td><strong>ИТОГО</strong></td><td class="num"><strong>300 000</strong></td><td>—</td><td class="num"><strong>300 000</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
 
-<h3>Режим Б: Капитализация процентов</h3>
-<table>
-<tr><th>Месяц</th><th>Тело + %, ₽</th><th>Прирост, ₽</th><th>Доход нараст., ₽</th></tr>
+    <h3>РЕЖИМ Б: Капитализация процентов (реинвестирование)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Месяц</th><th>Тело + проценты</th><th>Прирост за месяц</th><th>Нарастающий доход</th></tr></thead>
+        <tbody>
+          <tr><td>1-й месяц</td><td class="num">1 025 000</td><td class="num">25 000</td><td class="num">25 000</td></tr>
+          <tr><td>2-й месяц</td><td class="num">1 050 625</td><td class="num">25 625</td><td class="num">50 625</td></tr>
+          <tr><td>3-й месяц</td><td class="num">1 076 891</td><td class="num">26 266</td><td class="num">76 891</td></tr>
+          <tr><td>4-й месяц</td><td class="num">1 103 813</td><td class="num">26 922</td><td class="num">103 813</td></tr>
+          <tr><td>5-й месяц</td><td class="num">1 131 408</td><td class="num">27 595</td><td class="num">131 408</td></tr>
+          <tr><td>6-й месяц</td><td class="num">1 159 693</td><td class="num">28 285</td><td class="num">159 693</td></tr>
+          <tr><td>7-й месяц</td><td class="num">1 188 685</td><td class="num">28 992</td><td class="num">188 685</td></tr>
+          <tr><td>8-й месяц</td><td class="num">1 218 402</td><td class="num">29 717</td><td class="num">218 402</td></tr>
+          <tr><td>9-й месяц</td><td class="num">1 248 862</td><td class="num">30 460</td><td class="num">248 862</td></tr>
+          <tr><td>10-й месяц</td><td class="num">1 280 084</td><td class="num">31 222</td><td class="num">280 084</td></tr>
+          <tr><td>11-й месяц</td><td class="num">1 312 086</td><td class="num">32 002</td><td class="num">312 086</td></tr>
+          <tr><td>12-й месяц</td><td class="num">1 344 888</td><td class="num">32 802</td><td class="num">344 888</td></tr>
+          <tr class="highlight-row"><td><strong>ИТОГО (12 мес)</strong></td><td class="num"><strong>1 344 888</strong></td><td class="num"><strong>344 888</strong></td><td class="num"><strong>344 888</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
 
-</table>
+    <h3>🔑 Ключевые условия</h3>
+    <ul class="info-list">
+      <li>• Ставка 30% годовых (номинальная). С капитализацией — 34,5% эффективных</li>
+      <li>• На выбор: ежемесячная выплата процентов ИЛИ капитализация (реинвест)</li>
+      <li>• Тело займа возвращается по письменному запросу с уведомлением за 6 месяцев</li>
+      <li>• Договор автоматически пролонгируется на следующий год</li>
+      <li>• Ежегодная сверка расчётов и актуализация ставки</li>
+      <li>• Обеспечение: продукция на складе (право собственности займодавца)</li>
+    </ul>
+  </div>
+</section>
 
-<h3>Ключевые условия</h3>
-<ul class="conditions">
-<li>• Ставка 30% годовых (номинальная). С капитализацией — 34,5% эффективных</li>
-<li>• На выбор: ежемесячная выплата процентов ИЛИ капитализация (реинвест)</li>
-<li>• Тело займа возвращается по письменному запросу с уведомлением за 6 месяцев</li>
-<li>• Договор автоматически пролонгируется на следующий год</li>
-<li>• Ежегодная сверка расчётов и актуализация ставки</li>
-<li>• Обеспечение: продукция на складе (право собственности займодавца)</li>
+<!-- PROPOSAL 2 — PRODUCTION -->
+<section>
+  <div class="container">
+    <h2><span class="section-num">2</span> Предложение 2 — Инвестиции в производство (10% с оборота, реинвест)</h2>
+    <p class="subtitle">Инвестиции в себестоимость прицепов → 10% дохода с каждой проданной единицы → реинвестирование в следующий цикл.</p>
 
-</ul>
-</div>
+    <h3>📋 Параметры</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>№</th><th>Параметр</th><th>Значение</th><th>Формула</th><th>Примечание</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>Сумма инвестиции</td><td class="num">1 000 000</td><td></td><td>₽</td></tr>
+          <tr><td>2</td><td>Доход с единицы</td><td>10% от себестоимости</td><td></td><td>фикс. %, не зависит от цены продажи</td></tr>
+          <tr><td>3</td><td>Средняя себестоимость прицепа</td><td class="num">99 331</td><td></td><td>средняя по 6 моделям</td></tr>
+          <tr><td>4</td><td>Прицепов за 1 цикл (на 1 млн)</td><td>≈10 шт.</td><td>1 000 000 / 99 331</td><td>в зависимости от моделей</td></tr>
+          <tr><td>5</td><td>Цикл производства</td><td>2 месяца</td><td></td><td>производство → продажа</td></tr>
+          <tr><td>6</td><td>Циклов в год</td><td class="num">6</td><td>12 мес / 2 мес</td><td></td></tr>
+          <tr><td>7</td><td>Доход за 1 цикл</td><td class="num">100 000</td><td>1 000 000 × 10%</td><td>₽</td></tr>
+          <tr><td>8</td><td>Доход за год (линейно)</td><td class="num">600 000</td><td>100 000 × 6</td><td>60% — без реинвеста</td></tr>
+          <tr><td>9</td><td>Доход за год (сложный %)</td><td class="num">771 561</td><td>1 млн × (1,10)⁶ − 1 млн</td><td>77% — полный реинвест</td></tr>
+          <tr><td>10</td><td>Консервативная оценка</td><td>~42%</td><td></td><td>с учётом НЗП и накладных</td></tr>
+          <tr><td>11</td><td>Выплаты</td><td>С каждой продажи</td><td></td><td>на карту инвестора или реинвест</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-<!-- PROPOSAL 2 -->
-<div class="section">
-<h2>2️⃣ Предложение 2 — Инвестиции в производство (10% с оборота)</h2>
-<p style="color:#666;font-size:13px;margin-bottom:12px;">Инвестиции в себестоимость прицепов → 10% дохода с каждой проданной единицы → реинвестирование в следующий цикл.</p>
+    <h3>🔄 Детальный расчёт по циклам (сложный процент, 10% за цикл)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Цикл</th><th>На входе, ₽</th><th>Прибыль (10%), ₽</th><th>На выходе, ₽</th><th>≈ прицепов за цикл</th></tr></thead>
+        <tbody>
+          <tr><td>Цикл 1 (мес 1–2)</td><td class="num">1 000 000</td><td class="num">100 000</td><td class="num">1 100 000</td><td class="num">10</td></tr>
+          <tr><td>Цикл 2 (мес 3–4)</td><td class="num">1 100 000</td><td class="num">110 000</td><td class="num">1 210 000</td><td class="num">11</td></tr>
+          <tr><td>Цикл 3 (мес 5–6)</td><td class="num">1 210 000</td><td class="num">121 000</td><td class="num">1 331 000</td><td class="num">12</td></tr>
+          <tr><td>Цикл 4 (мес 7–8)</td><td class="num">1 331 000</td><td class="num">133 100</td><td class="num">1 464 100</td><td class="num">13</td></tr>
+          <tr><td>Цикл 5 (мес 9–10)</td><td class="num">1 464 100</td><td class="num">146 410</td><td class="num">1 610 510</td><td class="num">15</td></tr>
+          <tr><td>Цикл 6 (мес 11–12)</td><td class="num">1 610 510</td><td class="num">161 051</td><td class="num">1 771 561</td><td class="num">16</td></tr>
+          <tr class="highlight-row"><td><strong>ИТОГО за 6 циклов</strong></td><td class="num"><strong>1 000 000</strong></td><td class="num"><strong>771 561</strong></td><td class="num"><strong>1 771 561</strong></td><td class="num"><strong>18</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.85em;color:#888;">* Количество прицепов округлено. Фактическое зависит от выбранной комбинации моделей.</p>
 
-<h3>Основные параметры</h3>
-<table>
-<tr><th>№</th><th>Параметр</th><th>Значение</th><th>Формула</th><th>Примечание</th></tr>
-<tr><td>1</td><td>Сумма инвестиции</td><td class="num">1000000</td><td></td><td>₽</td></tr>
-<tr><td>2</td><td>Доход с единицы</td><td class="num">10% от себестоимости</td><td></td><td>фикс. %, не зависит от цены продажи</td></tr>
-<tr><td>3</td><td>Средняя себестоимость прицепа</td><td class="num">99331</td><td></td><td>средняя по 6 моделям</td></tr>
-<tr><td>4</td><td>Прицепов за 1 цикл (на 1 млн)</td><td class="num">≈10 шт.</td><td>1 000 000 / 99 331</td><td>в зависимости от моделей</td></tr>
-<tr><td>5</td><td>Цикл производства</td><td class="num">2 месяца</td><td></td><td>производство → продажа</td></tr>
-<tr><td>6</td><td>Циклов в год</td><td class="num">6</td><td>12 мес / 2 мес</td><td></td></tr>
-<tr><td>7</td><td>Доход за 1 цикл</td><td class="num">100000</td><td>1 000 000 × 10%</td><td>₽</td></tr>
-<tr><td>8</td><td>Доход за год (линейно)</td><td class="num">600000</td><td>100 000 × 6</td><td>60% — без реинвеста</td></tr>
-<tr><td>9</td><td>Доход за год (сложный %)</td><td class="num">771561</td><td>1 млн × (1.10)⁶ − 1 млн</td><td>77% — полный реинвест</td></tr>
-<tr><td>10</td><td>Консервативная оценка</td><td class="num">~42%</td><td></td><td>с учётом НЗП и накладных</td></tr>
-<tr><td>11</td><td>Выплаты</td><td class="num">С каждой продажи</td><td></td><td>на карту инвестора или реинвест</td></tr>
+    <h3>📈 Три сценария доходности</h3>
+    <div class="scenario-cards">
+      <div class="scenario-card red">
+        <strong>🔴 Консервативный</strong>
+        <div class="val">~42%</div>
+        <div>Прибыль: <strong>424 359 ₽</strong></div>
+        <div>К возврату: <strong>1 424 359 ₽</strong></div>
+        <p style="font-size:.85em;margin-top:8px;color:#666;">Часть средств в НЗП, накладные расходы, простои</p>
+      </div>
+      <div class="scenario-card yellow">
+        <strong>🟡 Базовый (линейный)</strong>
+        <div class="val">60%</div>
+        <div>Прибыль: <strong>600 000 ₽</strong></div>
+        <div>К возврату: <strong>1 600 000 ₽</strong></div>
+        <p style="font-size:.85em;margin-top:8px;color:#666;">6 циклов без реинвестирования</p>
+      </div>
+      <div class="scenario-card green">
+        <strong>🟢 Оптимистичный</strong>
+        <div class="val">77%</div>
+        <div>Прибыль: <strong>771 561 ₽</strong></div>
+        <div>К возврату: <strong>1 771 561 ₽</strong></div>
+        <p style="font-size:.85em;margin-top:8px;color:#666;">Полный реинвест, без простоев</p>
+      </div>
+    </div>
 
-</table>
+    <h3>🏦 Сравнение доходности с банковским депозитом</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Инструмент</th><th>Годовая ставка</th><th>Доход на 1 млн ₽</th><th>Разница с депозитом</th><th>Риск</th></tr></thead>
+        <tbody>
+          <tr><td>🏦 Банковский депозит</td><td class="num">18%</td><td class="num">180 000</td><td>—</td><td>Минимальный</td></tr>
+          <tr><td>📋 Займ (Вариант 1)</td><td class="num">30–34,5%</td><td class="num">344 889</td><td>в 1.9 раза больше</td><td>Низкий</td></tr>
+          <tr><td>🏭 Производство (Вариант 2)</td><td class="num">60–77%</td><td class="num">771 561</td><td>в 4.3 раза больше</td><td>Средний</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-<h3>Расчёт по циклам (сложный процент)</h3>
-<table>
-<tr><th>Цикл</th><th>На входе, ₽</th><th>Прибыль, ₽</th><th>На выходе, ₽</th><th>≈ прицепов</th></tr>
+    <h3>🔑 Ключевые условия</h3>
+    <ul class="info-list">
+      <li>• Инвестор получает 10% от себестоимости каждого проданного прицепа</li>
+      <li>• Продукция до продажи принадлежит инвестору на праве собственности</li>
+      <li>• Выплата дохода — в день продажи каждой единицы (на карту или реинвест)</li>
+      <li>• Онлайн-отчётность: Google Таблица (произведено / на складе / продано / выплаты)</li>
+      <li>• Инвестор вправе 1 раз в месяц провести инвентаризацию (уведомление за 3 дня)</li>
+      <li>• Исполнитель вправе менять номенклатуру исходя из рыночного спроса</li>
+      <li>• Средства инвестора реинвестируются в следующий цикл — эффект сложного процента</li>
+    </ul>
+  </div>
+</section>
 
-</table>
+<!-- TRAILER MODELS CATALOG -->
+<section>
+  <div class="container">
+    <h2>📦 Каталог моделей</h2>
+    <p class="subtitle">На 1 млн ₽ можно произвести любую комбинацию прицепов. Инвестор получает 10% от себестоимости каждой проданной единицы.</p>
 
-<h3>Три сценария доходности</h3>
-<table>
-<tr><th>Сценарий</th><th>Доходность</th><th>Прибыль, ₽</th><th>К возврату, ₽</th><th>Описание</th></tr>
-
-</table>
-
-<h3>Сравнение с банковским депозитом</h3>
-<table>
-<tr><th>Инструмент</th><th>Ставка</th><th>Доход на 1 млн</th><th>Разница</th><th>Риск</th></tr>
-
-</table>
-
-<h3>Ключевые условия</h3>
-<ul class="conditions">
-<li>• Инвестор получает 10% от себестоимости каждого проданного прицепа</li>
-<li>• Продукция до продажи принадлежит инвестору на праве собственности</li>
-<li>• Выплата дохода — в день продажи каждой единицы (на карту или реинвест)</li>
-<li>• Онлайн-отчётность: Google Таблица (произведено / на складе / продано / выплаты)</li>
-<li>• Инвестор вправе 1 раз в месяц провести инвентаризацию (уведомление за 3 дня)</li>
-<li>• Исполнитель вправе менять номенклатуру исходя из рыночного спроса</li>
-<li>• Средства инвестора реинвестируются в следующий цикл — эффект сложного процента</li>
-
-</ul>
-</div>
-
-<!-- MODELS -->
-<div class="section">
-<h2>📦 Каталог моделей прицепов</h2>
-<p style="color:#666;font-size:13px;margin-bottom:12px;">На 1 млн ₽ — любая комбинация. Инвестор получает 10% от себестоимости каждой проданной единицы.</p>
-<table>
-<tr><th>№</th><th>Модель</th><th>Себестоимость, ₽</th><th>Цена продажи, ₽</th><th>Прибыль инвестора, ₽</th><th>К возврату, ₽</th><th>Штук на 1 млн</th><th>Общая прибыль, ₽</th></tr>
-<tr><td>1</td><td>Двухосный 3,5×1,5, ВАЗ R14, тент 1,5м</td><td class="num">123 825</td><td class="num">161 900</td><td class="num">12 382</td><td class="num">136 207</td><td class="num">8</td><td class="num">99 056</td></tr>
-<tr><td>2</td><td>Двухосный 3×1,5, ВАЗ R14, тент 1,5м</td><td class="num">116 740</td><td class="num">152 700</td><td class="num">11 674</td><td class="num">128 414</td><td class="num">8</td><td class="num">93 392</td></tr>
-<tr><td>3</td><td>Одноосный 3,5×1,5, ВАЗ R14, тент 1,5м</td><td class="num">99 775</td><td class="num">130 500</td><td class="num">9 978</td><td class="num">109 753</td><td class="num">10</td><td class="num">99 780</td></tr>
-<tr><td>4</td><td>Одноосный 3×1,5, ВАЗ R14, тент 1,5м</td><td class="num">92 690</td><td class="num">121 200</td><td class="num">9 269</td><td class="num">101 959</td><td class="num">10</td><td class="num">92 690</td></tr>
-<tr><td>5</td><td>Одноосный 2,5×1,5, ВАЗ R14, тент 1,5м</td><td class="num">85 605</td><td class="num">111 900</td><td class="num">8 560</td><td class="num">94 165</td><td class="num">11</td><td class="num">94 160</td></tr>
-<tr><td>6</td><td>Одноосный 2,5×1,25, ВАЗ R13, тент 1,5м</td><td class="num">77 350</td><td class="num">101 100</td><td class="num">7 735</td><td class="num">85 085</td><td class="num">12</td><td class="num">92 820</td></tr>
-
-</table>
-</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>№</th><th>Модель</th><th>Себестоимость</th><th>Цена продажи</th>
+            <th>Прибыль инвестора (10%)</th><th>К возврату инвестору</th>
+            <th>Штук на 1 млн ₽*</th><th>Общая прибыль на 1 млн</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1</td><td>Двухосный 3,5×1,5, ВАЗ R14, тент 1,5м</td>
+            <td class="num">123 825</td><td class="num">161 900</td><td class="num">12 382</td>
+            <td class="num">136 207</td><td class="num">8</td><td class="num">99 056</td>
+          </tr>
+          <tr>
+            <td>2</td><td>Двухосный 3×1,5, ВАЗ R14, тент 1,5м</td>
+            <td class="num">116 740</td><td class="num">152 700</td><td class="num">11 674</td>
+            <td class="num">128 414</td><td class="num">8</td><td class="num">93 392</td>
+          </tr>
+          <tr>
+            <td>3</td><td>Одноосный 3,5×1,5, ВАЗ R14, тент 1,5м</td>
+            <td class="num">99 775</td><td class="num">130 500</td><td class="num">9 978</td>
+            <td class="num">109 753</td><td class="num">10</td><td class="num">99 780</td>
+          </tr>
+          <tr>
+            <td>4</td><td>Одноосный 3×1,5, ВАЗ R14, тент 1,5м</td>
+            <td class="num">92 690</td><td class="num">121 200</td><td class="num">9 269</td>
+            <td class="num">101 959</td><td class="num">10</td><td class="num">92 690</td>
+          </tr>
+          <tr>
+            <td>5</td><td>Одноосный 2,5×1,5, ВАЗ R14, тент 1,5м</td>
+            <td class="num">85 605</td><td class="num">111 900</td><td class="num">8 560</td>
+            <td class="num">94 165</td><td class="num">11</td><td class="num">94 160</td>
+          </tr>
+          <tr>
+            <td>6</td><td>Одноосный 2,5×1,25, ВАЗ R13, тент 1,5м</td>
+            <td class="num">77 350</td><td class="num">101 100</td><td class="num">7 735</td>
+            <td class="num">85 085</td><td class="num">12</td><td class="num">92 820</td>
+          </tr>
+          <tr class="highlight-row">
+            <td></td><td><strong>СРЕДНЕЕ ПО ВСЕМ МОДЕЛЯМ</strong></td>
+            <td class="num"><strong>99 331</strong></td><td class="num"><strong>129 883</strong></td>
+            <td class="num"><strong>9 933</strong></td>
+            <td class="num"><strong>109 264</strong></td>
+            <td class="num"><strong>≈10</strong></td><td class="num"><strong>99 330</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="font-size:.85em;color:#888;">* Округлено вниз до целого числа прицепов, которые можно произвести на 1 млн ₽.</p>
+  </div>
+</section>
 
 <!-- CTA -->
-<div class="cta">
-  <p style="font-size:18px;margin-bottom:16px;color:#1a3a5c;"><strong>Готовы стать инвестором?</strong></p>
-  <p style="color:#666;margin-bottom:20px;">Свяжитесь для обсуждения деталей и подписания договора</p>
-  <a href="https://t.me/Oleg_Antuganov">📩 Написать в Telegram</a>
-</div>
+<section class="cta">
+  <div class="container">
+    <h2>Готовы инвестировать?</h2>
+    <p>Свяжитесь напрямую для детального обсуждения и заключения договора</p>
+    <a class="cta-btn" href="https://t.me/Oleg_Antuganov" target="_blank">📩 Написать в Telegram @Oleg_Antuganov</a>
+  </div>
+</section>
 
-<div class="footer">
-  © 2026 ИП Антуганов О.А. — Производство легковых прицепов «Самбарс»<br>
-  sambars.ru
-</div>
+<footer>
+  <div class="container">
+    © 2026 ИП Антуганов О.А. — Самбарс. Все права защищены.
+  </div>
+</footer>
 
-</div>
 </body>
 </html>

@@ -618,6 +618,8 @@ function redrawCanvas() {
   }
 
   // ── ОСЬ И ПОДВЕСКА (разметка на раме) ──
+  // ВАЖНО: дышло снизу = ПЕРЕД прицепа. Верх схемы = ЗАД.
+  // Координата Y растёт вниз → "в зад" = вверх = минус по Y
   const trueCenter = rY + rL/2;                    // истинный центр рамы
 
   // True center (dashed grey)
@@ -630,11 +632,11 @@ function redrawCanvas() {
   ctx.fillText('центр рамы', rX+rW+22, trueCenter+3);
 
   // Нарисовать комплект подвески (аморт.балка + кронштейны) для каждой оси
-  function drawAxleSet(centerY, label, color) {
-    const axleY = centerY;
-    const springFront = axleY - 335*sc;
-    const springRear = axleY + 335*sc;
-    const shockBeamY = axleY + 335*sc + 60*sc + 50*sc;
+  // axleY — центр оси. springFront ближе к дышлу (+Y), springRear дальше от дышла (-Y)
+  function drawAxleSet(axleY, label, color) {
+    const springFront = axleY + 335*sc;  // передний кронштейн = к дышлу = +Y
+    const springRear = axleY - 335*sc;   // задний кронштейн = от дышла = -Y
+    const shockBeamY = axleY - 335*sc - 60*sc - 50*sc; // аморт. балка за задним кронштейном
 
     // Axle center
     ctx.setLineDash([4,3]);
@@ -645,9 +647,7 @@ function redrawCanvas() {
     ctx.font = 'bold 8px DejaVu Sans';
     ctx.fillText(label, rX+rW+32, axleY+3);
 
-    // Spring brackets
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 2;
+    // Spring brackets (yellow markers)
     const brMarkerX = rX + rW/2 - 30*sc;
     [springFront, springRear].forEach(sy => {
       ctx.fillStyle = '#f39c12';
@@ -655,7 +655,7 @@ function redrawCanvas() {
       ctx.fillText('▎', brMarkerX-10, sy+3);
     });
 
-    // Shock beam
+    // Shock beam (orange)
     ctx.setLineDash([]);
     ctx.strokeStyle = '#e67e22';
     ctx.lineWidth = 4;
@@ -666,12 +666,12 @@ function redrawCanvas() {
   }
 
   if (axles === 1) {
-    const axleCenter = trueCenter + 100*sc;  // одноосная: центр оси +10см в зад
-    drawAxleSet(axleCenter, 'ось +10см', '#e74c3c');
+    const axleCenter = trueCenter - 100*sc;  // одноосная: центр оси на 10см в ЗАД (вверх)
+    drawAxleSet(axleCenter, 'ось +10см ↖', '#e74c3c');
   } else {
-    // Двухосная: передняя ось по центру рамы, задняя на +1015мм
+    // Двухосная: передняя ось по центру рамы, задняя на 101.5см в зад
     drawAxleSet(trueCenter, 'ось 1 (центр)', '#e74c3c');
-    drawAxleSet(trueCenter + 1015*sc, 'ось 2 +101.5см', '#c0392b');
+    drawAxleSet(trueCenter - 1015*sc, 'ось 2 +101.5см', '#c0392b');
   }
 
   ctx.setLineDash([]);

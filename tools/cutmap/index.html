@@ -360,6 +360,7 @@ function recalc() {
   ];
   if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00]});
+  allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
   if (sTotal > 0) {
     const sidePieces = [sPerimeter, sPerimeter]; // top + bottom
     for (let i = 0; i < totalJumpers; i++) sidePieces.push(bp.boardH/1000);
@@ -615,6 +616,55 @@ function redrawCanvas() {
     });
   }
 
+  // ── ОСЬ И ПОДВЕСКА (разметка на раме) ──
+  const trueCenter = rY + rL/2;                    // истинный центр рамы
+  const axleCenter = trueCenter + 100*sc;           // центр оси = центр + 100 мм в зад
+  const springFront = axleCenter - 335*sc;          // передний кронштейн рессоры
+  const springRear = axleCenter + 335*sc;           // задний кронштейн рессоры
+  const springBrWidth = 60*sc;                       // ширина кронштейна
+  const heelPadWidth = 50*sc;                        // пятка рессоры
+  const shockBeamY = axleCenter + 335*sc + springBrWidth + heelPadWidth; // аморт. балка
+
+  // True center (dashed)
+  ctx.setLineDash([3,5]);
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(rX-20, trueCenter); ctx.lineTo(rX+rW+20, trueCenter); ctx.stroke();
+  ctx.fillStyle = '#666';
+  ctx.font = '8px DejaVu Sans';
+  ctx.fillText('центр рамы', rX+rW+22, trueCenter+3);
+
+  // Axle center (dashed red)
+  ctx.setLineDash([4,3]);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(rX-30, axleCenter); ctx.lineTo(rX+rW+30, axleCenter); ctx.stroke();
+  ctx.fillStyle = '#e74c3c';
+  ctx.font = 'bold 8px DejaVu Sans';
+  ctx.fillText('центр оси +10см', rX+rW+32, axleCenter+3);
+
+  // Spring brackets (small markers)
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 2;
+  const brLeft = rX + (frameW*sc - frameW*0.5*sc)/2;  // brackets near center, not at frame edge
+  [springFront, springRear].forEach(sy => {
+    ctx.fillStyle = '#f39c12';
+    ctx.font = '7px DejaVu Sans';
+    ctx.fillText('▎', brLeft-10, sy+3);
+    ctx.fillText('▎', brLeft+frameW*0.5*sc, sy+3);
+  });
+
+  // Shock beam (orange, thick)
+  ctx.setLineDash([]);
+  ctx.strokeStyle = '#e67e22';
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(rX, shockBeamY); ctx.lineTo(rX+rW, shockBeamY); ctx.stroke();
+  ctx.fillStyle = '#e67e22';
+  ctx.font = 'bold 8px DejaVu Sans';
+  ctx.fillText('аморт. балка', rX+rW+4, shockBeamY+3);
+
+  ctx.setLineDash([]);
+
   // Drawbar
   const dbLen = 2000;
   const dbBase = frameW * 0.9;
@@ -641,11 +691,12 @@ function redrawCanvas() {
   drawDim(apexX+8, dby+(apexY-dby)/2, `${dbLen} мм`);
 
   // Annotations
+  const shockDist = Math.round(frameL/2 + 545);
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм)`, rX, rY+rL+12);
-  ctx.fillText(`профиль: ${bp.frameProfile}`, rX, rY+rL+24);
-  if (brand !== 'Барсук') ctx.fillText(`+ центр. балка + косынки (4 шт)`, rX+130, rY+rL+24);
+  ctx.fillText(`поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм) | аморт. балка: ${shockDist} мм от переда`, rX, rY+rL+12);
+  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile}`, rX, rY+rL+24);
+  if (brand !== 'Барсук') ctx.fillText(`+ центр. балка + косынки (4 шт) | рессоры ${bp.springs}-лист.`, rX+210, rY+rL+24);
 
   curY = apexY + 30;
 

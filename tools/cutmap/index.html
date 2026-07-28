@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Спецификации прицепов — Самбарс</title>
+<title>Спецификации прицепов — Самбарс v28.07</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DejaVu Sans',Arial,sans-serif;background:#1a1a2e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
@@ -756,13 +756,19 @@ function redrawCanvas() {
   const apexY = dby + dbLen * sc;   // hitch позиция
 
   const DRAW_Y_OFF = 10;
+  // Side beam attachment points — к ВНУТРЕННЕЙ стенке лонжерона
+  const ATTACH_INSET = bp.frameProfile.includes('60×60') ? 30 : 25;  // отступ от края рамы
+  const ATTACH_L = rX + ATTACH_INSET*sc;
+  const ATTACH_R = rX + rW - ATTACH_INSET*sc;
+  
   const HITCH_Y = apexY + DRAW_Y_OFF;          // точка фаркопа
   const JOINT_Y = HITCH_Y + 150*sc;             // 15 см от hitch по центр. лучу
-  const FRONT_Y = dby + DRAW_Y_OFF;             // передний край рамы
+  const FRONT_Y = dby + DRAW_Y_OFF;             // передний край рамы (под рамой)
   const ATTACH_Y = dby - 220*sc;                // крепление к лонжеронам: 22 см внутри
   const MID_X = rX + rW/2;
-  const ATTACH_L = rX;
-  const ATTACH_R = rX + rW;
+  
+  const crossL = ATTACH_L;                      // перемычка: от левого до правого луча
+  const crossR = ATTACH_R;
 
   // 1. Центральный луч (пунктир): hitch → joint → front edge
   ctx.setLineDash([4,3]);
@@ -790,8 +796,8 @@ function redrawCanvas() {
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5*scale);
   ctx.beginPath();
-  ctx.moveTo(ATTACH_L, FRONT_Y);
-  ctx.lineTo(ATTACH_R, FRONT_Y);
+  ctx.moveTo(crossL, FRONT_Y);
+  ctx.lineTo(crossR, FRONT_Y);
   ctx.stroke();
 
   // 4. Маркеры

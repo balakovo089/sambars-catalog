@@ -343,12 +343,18 @@ function recalc() {
   // Frame perimeter pieces
   const fpLong = frameL/1000; // 2 pieces
   const fpShort = frameW/1000; // 2 pieces
-  const fpCross = frameW/1000; // cross.n pieces
+  const fpCross = frameW/1000; // полная ширина (Барсук)
+  const fpCrossHalf = (frameW/2)/1000; // половинка (Самбарс/Бизон)
 
   let allProfilePieces = [
     {label:`Рама ${frameProfile}`, pieces:[fpLong, fpLong, fpShort, fpShort]},
-    {label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)},
   ];
+  // Поперечины: для Самбарса — двойное количество половинок (слева и справа от центр. балки)
+  if (brand !== 'Барсук') {
+    allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross * 2).fill(fpCrossHalf)});
+  } else {
+    allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)});
+  }
   if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00]});
   allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
@@ -651,12 +657,19 @@ function redrawCanvas() {
     totalCross += n;
   });
   
-  // Draw regular cross members (40×20)
+  // Draw regular cross members (40×20) — on Sambars, two halves per position
   ctx.strokeStyle = '#7f8c8d';
   ctx.lineWidth = Math.max(2, 3);
   crossPositions.forEach(pos => {
-    const y = rY + rL - (pos / frameL) * rL;  // от ПЕРЕДНЕГО края
-    ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
+    const y = rY + rL - (pos / frameL) * rL;
+    if (brand !== 'Барсук') {
+      // Самбарс: две половинки слева и справа от центр. балки
+      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW/2 - 2, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rX + rW/2 + 2, y); ctx.lineTo(rX + rW, y); ctx.stroke();
+    } else {
+      // Барсук: цельная поперечина
+      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
+    }
   });
 
   // Corner gussets

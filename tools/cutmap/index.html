@@ -764,17 +764,26 @@ function redrawCanvas() {
   const drawbarYOffset = 10;       // визуальный отступ вниз (под рамой)
   const dbEdgeY = dby + drawbarYOffset;
   
-  // Side beams (dashed) — from frame sides to hitch, 15cm offset
+  // Side beams (dashed) — from 15cm point to frame sides
   ctx.setLineDash([3,3]);
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5);
-  ctx.beginPath(); ctx.moveTo(dbx, dbEdgeY); ctx.lineTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(dbx + dbBase*sc, dbEdgeY); ctx.lineTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.stroke();
-  // Center beam (dashed): hitch → 15cm offset → cross member at frame edge
+  const jointX = apexX;
+  const jointY = apexY + sideStartOffset + drawbarYOffset;
+  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx, dbEdgeY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx + dbBase*sc, dbEdgeY); ctx.stroke();
+  // Center beam (dashed): hitch → 15cm joint point → cross member at frame edge
   ctx.lineWidth = Math.max(2, 3);
-  ctx.beginPath(); ctx.moveTo(apexX, apexY + drawbarYOffset); ctx.lineTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.lineTo(dbx + dbBase*sc/2, dbEdgeY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(apexX, apexY + drawbarYOffset); ctx.lineTo(jointX, jointY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx + dbBase*sc/2, dbEdgeY); ctx.stroke();
   ctx.setLineDash([]);
+  
+  // Joint point marker (15cm from hitch — side beams start here)
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath(); ctx.arc(jointX, jointY, 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 8px DejaVu Sans';
+  ctx.fillText('15см', jointX + 8, jointY + 3);
   
   // Cross member at front edge (SOLID — visible at frame edge)
   ctx.strokeStyle = '#e74c3c';

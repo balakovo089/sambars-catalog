@@ -749,79 +749,88 @@ function redrawCanvas() {
   ctx.fillStyle = '#888';
   ctx.fillText('▲ ЗАД', rX + rW/2 - 25, rY - 6);
 
-  // Drawbar dimensions
-  const dbSideLen = (L <= 2500) ? 1.80 : 2.00;  // same as recalc
-  const dbLen = dbSideLen * 1000;  // длина бокового луча в мм
-  const dbBase = frameW * 0.9;
-  const dbx = rX + (rW - dbBase*sc)/2;
-  const dby = rY + rL;
-  const apexX = rX + rW/2;
-  const apexY = dby + dbLen * sc;
+  // ── ДЫШЛО ──
+  const dbSideLen = (L <= 2500) ? 1.80 : 2.00;
+  const dbLen = dbSideLen * 1000;  // 1800 или 2000 мм
+  const dby = rY + rL;              // передний край рамы
+  const apexY = dby + dbLen * sc;   // hitch позиция
 
-  // Drawbar — BELOW frame, not in same plane
-  // Center beam 120cm, side beams start at 15cm offset, run UNDER frame to sides
-  const sideStartOffset = 150*sc;  // точка: 15 см от hitch = 105 см перед рамой
-  const drawbarYOffset = 10;       // визуальный отступ вниз (под рамой)
-  const dbEdgeY = dby + drawbarYOffset;
-  
-  // Side beams — go UNDER frame to side rails at ~22cm from front edge
-  const sideAttachDist = 220;  // mm from front edge (по словам Олега: 21-23 см)
-  const sideAttachY = dby - sideAttachDist * sc;
-  
-  const jointX = apexX;
-  const jointY = (apexY + drawbarYOffset) + 150*sc;  // 15 см от hitch = 105 см перед рамой
-  
-  ctx.setLineDash([3,3]);
+  const DRAW_Y_OFF = 10;
+  const HITCH_Y = apexY + DRAW_Y_OFF;          // точка фаркопа
+  const JOINT_Y = HITCH_Y + 150*sc;             // 15 см от hitch по центр. лучу
+  const FRONT_Y = dby + DRAW_Y_OFF;             // передний край рамы
+  const ATTACH_Y = dby - 220*sc;                // крепление к лонжеронам: 22 см внутри
+  const MID_X = rX + rW/2;
+  const ATTACH_L = rX;
+  const ATTACH_R = rX + rW;
+
+  // 1. Центральный луч (пунктир): hitch → joint → front edge
+  ctx.setLineDash([4,3]);
   ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = Math.max(4, 5);
-  // Side beams: from 15cm joint → to side rails (UNDER frame)
-  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(rX, sideAttachY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(rX + rW, sideAttachY); ctx.stroke();
-  
-  // Center beam: hitch → 15cm joint → cross member at front edge
-  ctx.lineWidth = Math.max(2, 3);
-  ctx.beginPath(); ctx.moveTo(apexX, apexY + drawbarYOffset); ctx.lineTo(jointX, jointY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx + dbBase*sc/2, dbEdgeY); ctx.stroke();
+  ctx.lineWidth = Math.max(2, 3*scale);
+  ctx.beginPath();
+  ctx.moveTo(MID_X, HITCH_Y);
+  ctx.lineTo(MID_X, JOINT_Y);
+  ctx.lineTo(MID_X, FRONT_Y);
+  ctx.stroke();
+
+  // 2. Боковые лучи (пунктир, толще): joint → attachments
+  ctx.lineWidth = Math.max(4, 5*scale);
+  ctx.beginPath();
+  ctx.moveTo(MID_X, JOINT_Y);
+  ctx.lineTo(ATTACH_L, ATTACH_Y);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(MID_X, JOINT_Y);
+  ctx.lineTo(ATTACH_R, ATTACH_Y);
+  ctx.stroke();
   ctx.setLineDash([]);
-  
-  // Side rail attachment markers
+
+  // 3. Перемычка (сплошная): между точками крепления у переднего края
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = Math.max(4, 5*scale);
+  ctx.beginPath();
+  ctx.moveTo(ATTACH_L, FRONT_Y);
+  ctx.lineTo(ATTACH_R, FRONT_Y);
+  ctx.stroke();
+
+  // 4. Маркеры
+  // Hitch — красный круг
   ctx.fillStyle = '#e74c3c';
-  [rX, rX+rW].forEach(sx => {
-    ctx.fillRect(sx-3, sideAttachY-3, 6, 6);
-  });
-  ctx.fillStyle = '#888';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`крепление к лонжерону`, rX+rW+5, sideAttachY+3);
-  ctx.fillText(`~22 см от переда`, rX+rW+5, sideAttachY+14);
-  
-  // Joint point marker (15cm from hitch)
+  ctx.beginPath();
+  ctx.arc(MID_X, HITCH_Y, 7, 0, Math.PI*2);
+  ctx.fill();
+
+  // Joint — бело-красный круг с "15см"
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(jointX, jointY, 7, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(MID_X, JOINT_Y, 7, 0, Math.PI*2);
+  ctx.fill();
   ctx.fillStyle = '#e74c3c';
-  ctx.beginPath(); ctx.arc(jointX, jointY, 5, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.arc(MID_X, JOINT_Y, 5, 0, Math.PI*2);
+  ctx.fill();
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 8px DejaVu Sans';
-  ctx.fillText('15см', jointX + 10, jointY + 3);
+  ctx.fillText('15см', MID_X + 10, JOINT_Y + 3);
+
+  // Attachments — красные квадраты
+  ctx.fillStyle = '#e74c3c';
+  [ATTACH_L, ATTACH_R].forEach(sx => {
+    ctx.fillRect(sx - 3, ATTACH_Y - 3, 6, 6);
+  });
+
+  // 5. Подписи
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`центр. луч 120см | боковые ${dbSideLen*100}см`, rX + rW/2 - 90, apexY + drawbarYOffset - 5);
-  
-  // Cross member at front edge (SOLID — visible at frame edge)
-  ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = Math.max(4, 5);
-  ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(dbx + dbBase*sc, dby); ctx.stroke();
-  
-  // Hitch circle
-  ctx.fillStyle = '#e74c3c';
-  ctx.beginPath(); ctx.arc(apexX, apexY + drawbarYOffset, 7, 0, Math.PI*2); ctx.fill();
+  ctx.fillText('▼ фаркоп', MID_X - 25, HITCH_Y + 18);
+  ctx.fillText('центр.луч 120см', MID_X - 55, (HITCH_Y + JOINT_Y)/2);
+  ctx.fillText(`${dbSideLen*100}см`, ATTACH_R + 5, (JOINT_Y + ATTACH_Y)/2 + 3);
+  ctx.fillText('крепление ~22см', ATTACH_R + 5, ATTACH_Y + 3);
 
-  // Dimensions
+  // Размеры рамы
   drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');
   drawDimArrow(rX-15, rY, rX-15, rY+rL, `${frameL} мм`, 'left');
-  // Centre beam: 1200mm from hitch to cross member
-  drawDim(apexX-55, apexY + drawbarYOffset + (dbEdgeY - (apexY + drawbarYOffset))/2, `1200 мм`);
-  // Side beam length
-  drawDim(apexX+8, dby+(apexY-dby)/2, `${dbLen} мм`);
 
   // Annotations
   ctx.fillStyle = '#888';

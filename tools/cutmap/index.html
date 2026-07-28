@@ -533,7 +533,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.onresize = resizeCanvas;
 
-let baseScale = 0.25;
+let baseScale = 0.30;  // крупнее чтобы было видно детали
 // Zoom removed — all elements in single scale. Pan via offX/offY.
 
 function redrawCanvas() {
@@ -823,10 +823,11 @@ function redrawCanvas() {
   // 5. Подписи
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  ctx.fillText('▼ фаркоп', MID_X - 25, HITCH_Y + 18);
-  ctx.fillText('центр.луч 120см', MID_X - 55, (HITCH_Y + JOINT_Y)/2);
-  ctx.fillText(`${dbSideLen*100}см`, ATTACH_R + 5, (JOINT_Y + ATTACH_Y)/2 + 3);
-  ctx.fillText('крепление ~22см', ATTACH_R + 5, ATTACH_Y + 3);
+  ctx.fillText('▼ Hitch', MID_X - 20, HITCH_Y + 18);
+  ctx.fillText('120 см', MID_X - 55, (HITCH_Y + FRONT_Y)/2);      // вся длина центр. луча
+  ctx.fillText('15 см', MID_X + 8, (HITCH_Y + JOINT_Y)/2 + 4);   // отрезок до joint
+  ctx.fillText(`${dbSideLen*100} см`, ATTACH_R + 5, (JOINT_Y + ATTACH_Y)/2 + 3);
+  ctx.fillText('~22 см', ATTACH_R + 5, ATTACH_Y + 3);
 
   // Размеры рамы
   drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');

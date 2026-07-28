@@ -2,511 +2,674 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Карта раскроя прицепа — редактор</title>
+<title>Спецификации прицепов — Самбарс</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DejaVu Sans',Arial,sans-serif;background:#f5f5f5;display:flex;height:100vh}
-.sidebar{width:340px;background:#fff;padding:16px;overflow-y:auto;box-shadow:2px 0 8px rgba(0,0,0,.1);z-index:2}
-.sidebar h2{font-size:15px;color:#2c3e50;margin-bottom:12px}
-.sidebar h3{font-size:12px;color:#555;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px}
-label{display:block;font-size:11px;color:#777;margin-bottom:1px}
-input,select{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-bottom:8px}
-input:focus,select:focus{outline:none;border-color:#3498db}
-.btn{display:inline-block;padding:6px 14px;border-radius:4px;font-size:12px;cursor:pointer;border:none;margin:2px}
-.btn-blue{background:#3498db;color:#fff}
-.btn-red{background:#e74c3c;color:#fff}
-.btn-gray{background:#eee;color:#555}
-.result{background:#f0f4ff;padding:10px;border-radius:6px;margin-top:6px;font-size:11px}
-.result table{width:100%;border-collapse:collapse}
-.result th{text-align:left;color:#555;font-weight:600;padding:2px 0}
-.result td{padding:1px 0}
-.result .total{border-top:2px solid #2c3e50;font-weight:bold}
-.tip{font-size:10px;color:#aaa;margin-top:4px}
-.main{flex:1;overflow:auto;background:#e8ecf0}
-canvas{cursor:crosshair;display:block}
-.toolbar{position:fixed;bottom:20px;left:360px;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;gap:8px;align-items:center;font-size:12px}
-.toolbar button{padding:6px 16px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;white-space:nowrap}
-.toolbar button.active{background:#3498db;color:#fff;border-color:#3498db}
-.toolbar button:hover{opacity:.85}
-.toolbar .sep{width:1px;height:20px;background:#ddd}
+body{font-family:'DejaVu Sans',Arial,sans-serif;background:#1a1a2e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
+/* ── Левая панель ── */
+.sidebar{width:380px;background:#16213e;padding:14px;overflow-y:auto;overflow-x:hidden;border-right:1px solid #0f3460;flex-shrink:0}
+.sidebar h2{font-size:16px;color:#e94560;margin-bottom:10px}
+.sidebar h3{font-size:13px;color:#a0a0c0;margin:14px 0 8px;border-top:1px solid #0f3460;padding-top:10px}
+label{display:block;font-size:11px;color:#777;margin-bottom:2px}
+select{width:100%;padding:6px 8px;background:#1a1a2e;color:#e0e0e0;border:1px solid #0f3460;border-radius:4px;font-size:13px;margin-bottom:8px}
+select:focus{outline:none;border-color:#e94560}
+
+.meta-info{font-size:11px;color:#888;line-height:1.6;background:#0f3460;padding:8px 10px;border-radius:4px;margin-bottom:8px}
+.meta-info b{color:#e94560}
+
+.section{background:#1a1a2e;border-radius:6px;padding:10px;margin-bottom:8px;font-size:11px}
+.section h4{color:#e94560;font-size:12px;margin-bottom:6px}
+.section table{width:100%;border-collapse:collapse}
+.section th{text-align:left;color:#a0a0c0;font-size:10px;padding:2px 4px;border-bottom:1px solid #0f3460}
+.section td{padding:2px 4px;font-size:11px}
+.section .num{text-align:right;font-family:monospace}
+.section .sub{color:#888;font-size:10px}
+
+.cut-block{margin-bottom:6px}
+.cut-bar{display:flex;height:14px;border-radius:2px;overflow:hidden;margin-top:2px}
+.cut-seg{display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;min-width:14px}
+.cut-waste{background:#333!important;color:#666}
+
+.summary{background:linear-gradient(135deg,#0f3460,#16213e);padding:10px;border-radius:6px;margin-top:8px}
+.summary table{width:100%}
+.summary td{padding:2px 0;font-size:12px}
+.summary .val{text-align:right;font-weight:bold;color:#e94560}
+
+/* ── Правая панель (схема) ── */
+.main{flex:1;overflow:hidden;position:relative;background:#1a1a2e}
+canvas{display:block;cursor:grab}
+.toolbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#16213e;padding:6px 12px;border-radius:8px;border:1px solid #0f3460;display:flex;gap:6px;align-items:center;font-size:11px;z-index:10}
+.toolbar button{padding:5px 12px;border-radius:4px;border:1px solid #0f3460;background:#1a1a2e;color:#e0e0e0;cursor:pointer;font-size:11px}
+.toolbar button:hover{background:#0f3460}
+.toolbar button.active{background:#e94560;color:#fff;border-color:#e94560}
+.toolbar .sep{width:1px;height:16px;background:#0f3460}
+.legend{position:absolute;top:8px;right:16px;font-size:10px;color:#888;line-height:1.8}
+
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#1a1a2e}
+::-webkit-scrollbar-thumb{background:#0f3460;border-radius:3px}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-  <h2>🔧 Карта раскроя прицепа</h2>
+  <h2>🔧 Спецификации Самбарс</h2>
 
-  <label>Модель</label>
-  <select id="brand" onchange="redraw()">
-    <option value="barsuk">Барсук (60×40×2)</option>
-    <option value="sambars">Самбарс (60×60×2)</option>
-    <option value="bizon">Бизон (60×60×2)</option>
+  <label>Модель из каталога</label>
+  <select id="modelSelect" onchange="onModelChange()"></select>
+
+  <div class="meta-info" id="metaInfo"></div>
+
+  <h3>📐 ПАРАМЕТРЫ</h3>
+  <label>Бренд</label>
+  <select id="brand" onchange="onParamChange()">
+    <option value="Барсук">Барсук</option>
+    <option value="Самбарс">Самбарс</option>
   </select>
-  <label>Длина рамы, мм</label>
-  <input type="number" id="L" value="2000" min="1500" max="6000" step="50" onchange="redraw()">
-  <label>Ширина рамы, мм</label>
-  <select id="W" onchange="redraw()">
-    <option value="1250">1250</option><option value="1500" selected>1500</option>
-    <option value="1800">1800</option><option value="2000">2000</option>
-  </select>
-  <label>Высота борта, мм</label>
-  <select id="sideH" onchange="redraw()">
-    <option value="300" selected>300</option><option value="500">500</option>
-  </select>
-  <label>Высота тента, мм</label>
-  <select id="tentH" onchange="redraw()">
-    <option value="0">Без тента</option><option value="500">500</option><option value="1200" selected>1200</option>
+  <label>Ширина, мм</label>
+  <select id="W" onchange="onParamChange()"></select>
+  <label>Длина, мм</label>
+  <select id="L" onchange="onParamChange()"></select>
+  <label>Тент, см</label>
+  <select id="tentH" onchange="onParamChange()"></select>
+  <label>Осей</label>
+  <select id="axles" onchange="onParamChange()">
+    <option value="1">1</option>
+    <option value="2">2</option>
   </select>
 
-  <h3>📊 СПЕЦИФИКАЦИЯ</h3>
-  <div class="result" id="spec"></div>
-  <h3>⚖️ ИТОГО</h3>
-  <div class="result" id="total"></div>
-  <div class="tip">🖱 На схеме: клик на элемент = удалить<br>Shift+клик = добавить поперечину/стойку<br>🖱 Колёсико = зум</div>
-  <div class="tip" style="margin-top:6px">Синий ▬ 60×60×2 | Серый ▬ 40×20×2<br>Красный ▬ 80×40×3 | Голубой ▬ 25×25×2<br>Зелёный - - 20×20×1,5</div>
+  <h3>📊 МЕТАЛЛОПРОКАТ</h3>
+  <div class="section" id="metalSpec"></div>
+
+  <h3>🪚 РАСКЛАДКА РАСПИЛА (6м хлысты)</h3>
+  <div class="section" id="cutPlan"></div>
+
+  <h3>🪵 РАСКРОЙ ФАНЕРЫ</h3>
+  <div class="section" id="plywoodPlan"></div>
+  <div style="display:none" id="tentPlanBlock">
+    <h3>⛺ ТЕНТ</h3>
+    <div class="section" id="tentPlan"></div>
+  </div>
+
+  <h3>🔩 БОЛТОВАЯ КАРТА</h3>
+  <div class="section" id="boltMap"></div>
+
+  <h3>⚖️ СВОДКА</h3>
+  <div class="summary" id="summary"></div>
 </div>
 
-<canvas id="c"></canvas>
-
-<div class="toolbar" id="toolbar">
-  <b>🛠 Инструмент:</b>
-  <button class="active" onclick="setTool('delete')" id="btn-del">🗑 Удалить</button>
-  <button onclick="setTool('addCross')" id="btn-cross">➕ Поперечина</button>
-  <button onclick="setTool('addVert')" id="btn-vert">➕ Стойка борта</button>
-  <button onclick="setTool('addArch')" id="btn-arch">➕ Дуга тента</button>
-  <span class="sep"></span>
-  <button onclick="resetAll()">🔄 Сброс</button>
-  <span class="sep"></span>
-  <span style="color:#888;font-size:11px">L={L}мм W={W}мм</span>
+<div class="main">
+  <canvas id="c"></canvas>
+  <div class="toolbar">
+    <span style="color:#888">Масштаб:</span>
+    <button onclick="scaleBy(-0.1)">−</button>
+    <button onclick="scaleBy(0.1)">+</button>
+    <button onclick="resetView()">Сброс</button>
+    <span class="sep"></span>
+    <span id="zoomLabel">100%</span>
+  </div>
+  <div class="legend">
+    <span style="color:#5dade2">▬▬</span> Рама<br>
+    <span style="color:#7f8c8d">▬▬</span> Поперечины<br>
+    <span style="color:#e74c3c">▬▬</span> Дышло<br>
+    <span style="color:#3498db">▬▬</span> Борта<br>
+    <span style="color:#27ae60">- -</span> Тент
+  </div>
 </div>
 
 <script>
-// ═══ STATE ═══
-let tool = 'delete';
-let crossPositions = [];  // positions of cross members as fraction of length
-let vertPositions = [];   // positions of side posts as fraction of length
-let archPositions = [];   // positions of tent arches as fraction of length
+// ══════════════════════════════════════════════════════════
+// КАТАЛОГ МОДЕЛЕЙ (из catalog_data.json)
+// ══════════════════════════════════════════════════════════
+const CATALOG = [
+  {num:1, brand:"Барсук", model:"Барсук 1.25×2.0", w:1250, l:2000, tent:50, ax:[1]},
+  {num:2, brand:"Барсук", model:"Барсук 1.25×2.5", w:1250, l:2500, tent:70, ax:[1,2]},
+  {num:3, brand:"Барсук", model:"Барсук 1.25×3.0", w:1250, l:3000, tent:120, ax:[1,2]},
+  {num:4, brand:"Барсук", model:"Барсук 1.5×2.5", w:1500, l:2500, tent:70, ax:[1,2]},
+  {num:5, brand:"Барсук", model:"Барсук 1.5×3.0", w:1500, l:3000, tent:120, ax:[1,2]},
+  {num:6, brand:"Барсук", model:"Барсук 1.5×3.5", w:1500, l:3500, tent:120, ax:[1,2]},
+  {num:7, brand:"Самбарс", model:"Самбарс 1.25×2.0", w:1250, l:2000, tent:70, ax:[1]},
+  {num:8, brand:"Самбарс", model:"Самбарс 1.25×2.5", w:1250, l:2500, tent:120, ax:[1,2]},
+  {num:9, brand:"Самбарс", model:"Самбарс 1.25×3.0", w:1250, l:3000, tent:120, ax:[1,2]},
+  {num:10, brand:"Самбарс", model:"Самбарс 1.5×2.5", w:1500, l:2500, tent:120, ax:[1,2]},
+  {num:11, brand:"Самбарс", model:"Самбарс 1.5×3.0", w:1500, l:3000, tent:120, ax:[1,2]},
+  {num:12, brand:"Самбарс", model:"Самбарс 1.5×3.5", w:1500, l:3500, tent:120, ax:[1,2]},
+  {num:13, brand:"Самбарс", model:"Самбарс 1.7×3.0", w:1700, l:3000, tent:140, ax:[1,2]},
+  {num:14, brand:"Самбарс", model:"Самбарс 1.7×3.5", w:1700, l:3500, tent:140, ax:[1,2]},
+  {num:15, brand:"Самбарс", model:"Самбарс 1.7×4.0", w:1700, l:4000, tent:140, ax:[1,2]},
+  {num:16, brand:"Самбарс", model:"Самбарс 1.93×3.5", w:1930, l:3500, tent:140, ax:[1,2]},
+  {num:17, brand:"Самбарс", model:"Самбарс 1.93×4.0", w:1930, l:4000, tent:140, ax:[1,2]},
+  {num:18, brand:"Самбарс", model:"Самбарс 1.93×4.5", w:1930, l:4500, tent:140, ax:[1,2]},
+  {num:19, brand:"Бизон", model:"Бизон 2.0×3.5", w:2000, l:3500, tent:0, ax:[2]},
+  {num:20, brand:"Бизон", model:"Бизон 2.0×4.0", w:2000, l:4000, tent:0, ax:[2]},
+];
 
-function getModel() { return document.getElementById('brand').value; }
-function getFrameTube() { return getModel() === 'barsuk' ? TUBES.frame6040 : TUBES.frame60; }
-function hasCenterBeam() { return getModel() !== 'barsuk'; }
-
-function setTool(t) {
-  tool = t;
-  document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
-  document.getElementById('btn-' + ({delete:'del',addCross:'cross',addVert:'vert',addArch:'arch'}[t])).classList.add('active');
-}
-
-function resetAll() {
-  crossPositions = [];
-  vertPositions = [];
-  archPositions = [];
-  redraw();
-}
-
-function getParams() {
-  return {
-    L: parseInt(document.getElementById('L').value),
-    W: parseInt(document.getElementById('W').value),
-    sideH: parseInt(document.getElementById('sideH').value),
-    tentH: parseInt(document.getElementById('tentH').value),
-    brand: document.getElementById('brand').value,
-  };
-}
-
-const TUBES = {
-  frame60:  {name:'60×60×2', color:'#2c3e50', massPerM:3.56},
-  frame6040: {name:'60×40×2', color:'#34495e', massPerM:2.93},
-  cross:    {name:'40×20×1,5', color:'#7f8c8d', massPerM:1.35},
-  drawbar:  {name:'80×40×3', color:'#e74c3c', massPerM:5.19},
-  side:     {name:'25×25×1,5', color:'#3498db', massPerM:1.08},
-  tent:     {name:'20×20×1,5',color:'#27ae60', massPerM:0.84},
+// ══════════════════════════════════════════════════════════
+// ПАРАМЕТРЫ БРЕНДОВ (из стандартов)
+// ══════════════════════════════════════════════════════════
+const BRAND = {
+  'Барсук': {
+    frameProfile:'60×40×2', extraMM:60, sideProfile:'25×25×2', sideThick:30,
+    drawbarProfile:'60×60×2', axleProfile:'50×50×3', springs:3,
+    tentPVC:'ПВХ 500 г/м²', tentClr:'серый', espander:6, wheels:'R13',
+    frontFlap:'наглухо', rearFlap:'ремни'
+  },
+  'Самбарс': {
+    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
+    drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:5,
+    tentPVC:'ПВХ 650 г/м²', tentClr:'графитовый', espander:8, wheels:'R14',
+    frontFlap:'поворотки', rearFlap:'поворотки'
+  },
+  'Бизон': {
+    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
+    drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:7,
+    tentPVC:'ПВХ 650 г/м²', tentClr:'графитовый', espander:8, wheels:'R14',
+    frontFlap:'поворотки', rearFlap:'поворотки'
+  }
 };
 
-// ═══ DRAWING ═══
+const TUBES = {
+  '60×40×2':  {mass:2.93, color:'#5dade2'},
+  '60×60×2':  {mass:3.56, color:'#5dade2'},
+  '40×20×2':  {mass:1.35, color:'#7f8c8d'},
+  '80×40×3':  {mass:5.19, color:'#e74c3c'},
+  '50×50×3':  {mass:4.30, color:'#c0392b'},
+  '50×50×4':  {mass:5.60, color:'#c0392b'},
+  '25×25×2':  {mass:1.40, color:'#3498db'},
+  '20×20×1.5':{mass:0.84, color:'#27ae60'},
+};
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1};
+let scale = 1.0, offX = 0, offY = 0;
+let dragging = false, dragSX, dragSY, dragOX, dragOY;
+
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
-let scale = 0.3;
-let offsetX = 30, offsetY = 30;
-let dragging = false;
-let dragStartX, dragStartY, dragOffsetX, dragOffsetY;
-let zooming = false;
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+function init() {
+  const sel = document.getElementById('modelSelect');
+  CATALOG.forEach((m,i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = `#${m.num} ${m.model} тент ${m.tent||'—'}см`;
+    sel.appendChild(opt);
+  });
+  sel.value = '9'; // Самбарс 1.5×3.0 default
+  onModelChange();
+}
 
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function calcStep(total, divisor) {
+  const n = Math.max(1, Math.round(total / divisor));
+  return {n, step: total / n};
+}
+
+function roundXlysts(metalM) {
+  const withMargin = metalM * 1.10;
+  return Math.ceil(withMargin / 6);
+}
+
+function cut6m(pieces) {
+  // Bin-packing pieces into 6m stocks (greedy)
+  const sorted = [...pieces].sort((a,b) => b - a);
+  const stocks = [];
+  for (const p of sorted) {
+    let placed = false;
+    for (let s of stocks) {
+      if (s.used + p <= 6.0 + 0.005) { s.used += p; s.items.push(p); placed = true; break; }
+    }
+    if (!placed) stocks.push({used: p, items: [p]});
+  }
+  return stocks;
+}
+
+// ══════════════════════════════════════════════════════════
+// MODEL SELECTION
+// ══════════════════════════════════════════════════════════
+function onModelChange() {
+  const idx = parseInt(document.getElementById('modelSelect').value);
+  const m = CATALOG[idx];
+  document.getElementById('brand').value = m.brand;
+  document.getElementById('tentH').value = m.tent;
+  document.getElementById('axles').value = m.ax[0];
+
+  // Set W/L options
+  updateWLOptions(m.brand);
+  document.getElementById('W').value = m.w;
+  document.getElementById('L').value = m.l;
+
+  onParamChange();
+}
+
+function updateWLOptions(brand) {
+  const wSel = document.getElementById('W');
+  const lSel = document.getElementById('L');
+  wSel.innerHTML = ''; lSel.innerHTML = '';
+
+  const widths = brand === 'Барсук' ? [1250, 1500] :
+                 brand === 'Самбарс' ? [1250, 1500, 1700, 1930] : [2000];
+  const lengths = brand === 'Барсук' ? [2000, 2500, 3000, 3500] :
+                  brand === 'Самбарс' ? [2000, 2500, 3000, 3500, 4000, 4500] : [3500, 4000];
+
+  widths.forEach(w => { const o = document.createElement('option'); o.value = w; o.textContent = (w/1000).toFixed(2)+'м'; wSel.appendChild(o); });
+  lengths.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = (l/1000).toFixed(1)+'м'; lSel.appendChild(o); });
+}
+
+function onParamChange() {
+  state.brand = document.getElementById('brand').value;
+  state.W = parseInt(document.getElementById('W').value);
+  state.L = parseInt(document.getElementById('L').value);
+  state.tentH = parseInt(document.getElementById('tentH').value) || 0;
+  state.axles = parseInt(document.getElementById('axles').value);
+  updateWLOptions(state.brand);
+  recalc();
+}
+
+// ══════════════════════════════════════════════════════════
+// MAIN CALC
+// ══════════════════════════════════════════════════════════
+function recalc() {
+  const {brand, W, L, tentH, axles} = state;
+  const bp = BRAND[brand];
+  const hasTent = tentH > 0;
+  const tentMM = tentH * 10;
+
+  // Frame
+  const frameW = W + bp.extraMM;
+  const frameL = L + bp.extraMM;
+  const fPerimeter = 2*(frameW + frameL)/1000;
+  const cross = calcStep(frameL, 600);
+  const crossM = cross.n * frameW / 1000;
+  const centerM = (brand !== 'Барсук') ? frameL/1000 : 0;
+
+  // Drawbar
+  const dbCenter = 1.20;
+  const dbSides = 2 * 2.00;
+  const dbTotal = dbCenter + dbSides;
+
+  // Axle
+  const axleM = ((frameW + 200)/1000) * axles;
+
+  // Sides
+  const sPerimeter = 2*(W + L)/1000;
+  const sFrame = 2 * sPerimeter; // top + bottom rails
+  const sStep = calcStep(2*(W+L), 800);
+  const sJumpers = sStep.n * (300/1000);
+  const sTotal = sFrame + sJumpers;
+
+  // Tent frame
+  let tentArchCount = 0, tentFrameM = 0, tentArea = 0;
+  if (hasTent) {
+    const remaining = frameL - 800;
+    const archStep = remaining > 0 ? calcStep(remaining, 700) : {n:0, step:0};
+    tentArchCount = 1 + archStep.n;
+    const firstArchMM = frameW + 2*(tentMM - 300);
+    const otherArchMM = frameW + 2*tentMM;
+    const archesM = (firstArchMM + archStep.n * otherArchMM)/1000;
+    const sideFramesM = 2 * frameL/1000;
+    const spacersM = tentArchCount * 2 * 0.10;
+    tentFrameM = archesM + sideFramesM + spacersM;
+    tentArea = ((frameW + 2*tentMM)/1000) * (frameL/1000) * 1.15;
+  }
+
+  // Plywood
+  const floorArea = (W/1000) * (L/1000);
+  const sideArea = sPerimeter * 0.30;
+  const sheetArea125 = 3.125;
+  const sheetArea150 = 4.50;
+  const floorSheets = W <= 1250 ? Math.ceil(floorArea / sheetArea125) :
+                      W <= 1500 ? Math.ceil(floorArea / sheetArea150) :
+                      Math.ceil(floorArea / sheetArea125);
+  const sideSheets = Math.ceil(sideArea / sheetArea125);
+
+  // Bolts
+  const sBoltStep = calcStep(2*(W+L), 800);
+  const sBoltsCount = Math.max(sBoltStep.n, 8);
+  const floorBolts = Math.ceil(floorArea * 4) + Math.ceil(sPerimeter / 0.3);
+  const axleBolts = axles * 8;
+  const tentBolts = hasTent ? Math.ceil(frameL/800) * 2 : 0;
+
+  // ═══ CUT PLANS ═══
+  // Metal pieces for cutting
+  const frameProfile = bp.frameProfile;
+  const drawbarProfile = bp.drawbarProfile;
+  const axleProfile = bp.axleProfile;
+
+  // Frame perimeter pieces
+  const fpLong = frameL/1000; // 2 pieces
+  const fpShort = frameW/1000; // 2 pieces
+  const fpCross = frameW/1000; // cross.n pieces
+
+  let allProfilePieces = [
+    {label:`Рама ${frameProfile}`, pieces:[fpLong, fpLong, fpShort, fpShort]},
+    {label:`Поперечины 40×20×2`, pieces:Array(cross.n).fill(fpCross)},
+  ];
+  if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
+  allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00]});
+  if (sTotal > 0) {
+    const sidePieces = [sPerimeter, sPerimeter]; // top + bottom
+    for (let i = 0; i < sStep.n; i++) sidePieces.push(0.30);
+    allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
+  }
+  if (tentFrameM > 0) {
+    const archFirst = (frameW + 2*(tentMM - 300))/1000;
+    const archOther = (frameW + 2*tentMM)/1000;
+    const tfPieces = [archFirst, frameL/1000, frameL/1000];
+    for (let i = 0; i < (tentArchCount - 1); i++) tfPieces.push(archOther);
+    for (let i = 0; i < tentArchCount * 2; i++) tfPieces.push(0.10);
+    allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:tfPieces});
+  }
+  allProfilePieces.push({label:`Ось ${axleProfile}`, pieces:Array(axles).fill((frameW + 200)/1000)});
+
+  // ═══ RENDER ═══
+  renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);
+  renderCutPlan(allProfilePieces);
+  renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W);
+  if (hasTent) {
+    document.getElementById('tentPlanBlock').style.display = 'block';
+    renderTent(tentArea, bp, sPerimeter, hasTent);
+  } else {
+    document.getElementById('tentPlanBlock').style.display = 'none';
+  }
+  renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, sPerimeter);
+  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state);
+  updateMeta();
+  redrawCanvas();
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER HELPERS
+// ══════════════════════════════════════════════════════════
+function renderMetalSpec(pieces, bp, hasTent, archCount) {
+  let html = '<table><tr><th>Профиль</th><th>Назначение</th><th class="num">Метров</th><th class="num">Хлыстов 6м</th></tr>';
+  for (const grp of pieces) {
+    const totalM = grp.pieces.reduce((a,b) => a+b, 0);
+    const xlysts = roundXlysts(totalM);
+    const parts = grp.label.split(' ');
+    const prof = parts.pop();
+    const label = parts.join(' ');
+    html += `<tr><td>${prof}</td><td>${label}</td><td class="num">${totalM.toFixed(1)}</td><td class="num">${xlysts}</td></tr>`;
+  }
+  html += '</table>';
+  document.getElementById('metalSpec').innerHTML = html;
+}
+
+function renderCutPlan(pieces) {
+  let html = '';
+  for (const grp of pieces) {
+    const stocks = cut6m(grp.pieces);
+    html += `<div class="cut-block"><b>${grp.label}</b> — ${stocks.length} хлыст(ов)`;
+    stocks.forEach((s, i) => {
+      html += `<div class="cut-bar">`;
+      const colors = ['#e94560','#3498db','#27ae60','#f39c12','#9b59b6','#1abc9c','#e67e22','#2ecc71'];
+      s.items.forEach((p, j) => {
+        const w = (p / 6.0 * 100).toFixed(1);
+        html += `<div class="cut-seg" style="width:${w}%;background:${colors[j%colors.length]}">${p.toFixed(2)}</div>`;
+      });
+      const waste = 6.0 - s.used;
+      if (waste > 0.01) html += `<div class="cut-seg cut-waste" style="width:${(waste/6.0*100).toFixed(1)}%">${waste.toFixed(2)}</div>`;
+      html += `</div>`;
+    });
+    html += '</div>';
+  }
+  document.getElementById('cutPlan').innerHTML = html;
+}
+
+function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W) {
+  const sheetSize = W <= 1500 ? '125×250 см' : '150×300 см';
+  let html = `<table>
+    <tr><th>Назначение</th><th>Площадь</th><th>Листов</th></tr>
+    <tr><td>Пол (фанера 9 мм с сеткой)</td><td>${floorArea.toFixed(2)} м²</td><td><b>${floorSheets}</b> ${sheetSize}</td></tr>
+    <tr><td>Борта (фанера 9 мм вл.)</td><td>${sideArea.toFixed(2)} м²</td><td><b>${sideSheets}</b> 125×250 см</td></tr>
+    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО фанеры</b></td><td></td><td><b>${floorSheets + sideSheets}</b> листов</td></tr>
+  </table>`;
+  document.getElementById('plywoodPlan').innerHTML = html;
+}
+
+function renderTent(area, bp, sPerimeter, hasTent) {
+  const perimeter = sPerimeter + 4*(state.tentH*10)/1000;
+  const louvers10 = Math.ceil(perimeter / 0.15);
+  let html = `<table>
+    <tr><td>Материал</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
+    <tr><td>Площадь</td><td><b>${area.toFixed(1)} м²</b></td></tr>
+    <tr><td>Эспандер ${bp.espander} мм</td><td>${(perimeter*1.1).toFixed(1)} м</td></tr>
+    <tr><td>Люверсы 10 мм</td><td>${louvers10} шт</td></tr>
+    <tr><td>Люверсы 27 мм</td><td>${Math.ceil(perimeter/0.5)} шт</td></tr>
+    <tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
+    <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
+    <tr><td>Срок службы</td><td>~${brand === 'Барсук' ? 2 : 7} лет</td></tr>
+  </table>`;
+  document.getElementById('tentPlan').innerHTML = html;
+}
+
+function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, sPerim) {
+  let html = `<table>
+    <tr><th>Узел</th><th>Тип</th><th class="num">Кол-во</th></tr>
+    <tr><td>Борта → рама</td><td>М8×100 + гайка + шайба</td><td class="num">${sBolts}</td></tr>
+    <tr><td>Пол → рама</td><td>М6 мебельный потай + гайка</td><td class="num">${fBolts}</td></tr>
+    <tr><td>Ось / подвеска</td><td>М12×90 + М12×70</td><td class="num">${aBolts}</td></tr>
+    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td></tr>
+    <tr><td>Заклёпки бортов 4.8×25</td><td>—</td><td class="num">~${Math.ceil(sPerim * 3)}</td></tr>`;
+  if (tBolts > 0) {
+    html += `<tr><td>Каркас тента → борта</td><td>М8×35 + эр-гайка</td><td class="num">${tBolts}</td></tr>`;
+  }
+  html += `<tr><td>Петли заднего борта</td><td>Быстросъёмные</td><td class="num">2</td></tr>
+    <tr><td>Замки бортовые</td><td>—</td><td class="num">${st.brand === 'Барсук' ? 2 : 4}</td></tr>
+    <tr><td>Замки самосвала</td><td>—</td><td class="num">2</td></tr>
+  </table>`;
+  document.getElementById('boltMap').innerHTML = html;
+}
+
+function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st) {
+  let totalMetal = 0, totalMass = 0;
+  pieces.forEach(grp => {
+    const tm = grp.pieces.reduce((a,b)=>a+b,0);
+    const parts = grp.label.split(' ');
+    const prof = parts[parts.length-1];
+    const massPerM = TUBES[prof] ? TUBES[prof].mass : 0;
+    totalMetal += tm;
+    totalMass += tm * massPerM;
+  });
+  const xlysts = pieces.reduce((sum, g) => sum + roundXlysts(g.pieces.reduce((a,b)=>a+b,0)), 0);
+  document.getElementById('summary').innerHTML = `<table>
+    <tr><td>Металла всего</td><td class="val">${totalMetal.toFixed(1)} м</td></tr>
+    <tr><td>Вес металла</td><td class="val">${totalMass.toFixed(1)} кг</td></tr>
+    <tr><td>Хлыстов 6м</td><td class="val">~${xlysts} шт</td></tr>
+    <tr><td>Фанера</td><td class="val">${fSheets + sSheets} листов</td></tr>
+    <tr><td>Тент</td><td class="val">${tentArea > 0 ? tentArea.toFixed(1)+' м²' : '—'}</td></tr>
+    <tr><td>Колёса</td><td class="val">${bp.wheels} ×${st.axles*2}</td></tr>
+    <tr><td>Рессоры</td><td class="val">${bp.springs}-лист ×${st.axles*2}</td></tr>
+  </table>`;
+}
+
+function updateMeta() {
+  const {brand, W, L, tentH, axles} = state;
+  const bp = BRAND[brand];
+  const frameW = W + bp.extraMM;
+  const frameL = L + bp.extraMM;
+  const axlePos = (frameL/2 + 100);
+  document.getElementById('metaInfo').innerHTML =
+    `<b>${brand}</b> ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м<br>
+    Рама: ${frameW}×${frameL} мм | Ось от переда: ${axlePos.toFixed(0)} мм<br>
+    Борт: ${bp.sideThick} мм | Тент: ${tentH||'—'} см | Осей: ${axles}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// CANVAS DRAWING
+// ══════════════════════════════════════════════════════════
 function resizeCanvas() {
-  canvas.width = window.innerWidth - 340;
+  canvas.width = window.innerWidth - 380;
   canvas.height = window.innerHeight;
 }
 resizeCanvas();
 window.onresize = resizeCanvas;
 
-// Zoom & pan
+let baseScale = 0.25;
+
+function redrawCanvas() {
+  const {brand, W, L, tentH, axles} = state;
+  const bp = BRAND[brand];
+  const frameW = W + bp.extraMM;
+  const frameL = L + bp.extraMM;
+  const hasTent = tentH > 0;
+  const tentMM = tentH * 10;
+
+  canvas.width = canvas.width;
+  const sc = baseScale * scale;
+  const ox = 30 + offX;
+  const oy = 80 + offY;
+  const fw = frameW * sc;
+  const fl = frameL * sc;
+
+  // Grid
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 0.3;
+  for (let x = 0; x < canvas.width; x += 50*sc) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for (let y = 0; y < canvas.height; y += 50*sc) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+
+  // ── TOP VIEW (Frame) ──
+  // Frame
+  ctx.strokeStyle = TUBES[bp.frameProfile]?.color || '#5dade2';
+  ctx.lineWidth = Math.max(6*scale, 3);
+  ctx.strokeRect(ox, oy, fw, fl);
+
+  // Center beam
+  if (brand !== 'Барсук') {
+    ctx.lineWidth = Math.max(4*scale, 2);
+    ctx.beginPath(); ctx.moveTo(ox+fw/2, oy); ctx.lineTo(ox+fw/2, oy+fl); ctx.stroke();
+  }
+
+  // Cross members
+  const cross = calcStep(frameL, 600);
+  ctx.strokeStyle = '#7f8c8d';
+  ctx.lineWidth = Math.max(3*scale, 2);
+  for (let i = 0; i <= cross.n; i++) {
+    const y = oy + (fl * i) / cross.n;
+    ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox+fw, y); ctx.stroke();
+  }
+
+  // ── Drawbar ──
+  const dbLen = 2000; // мм
+  const dbBase = frameW * 0.9;
+  const dbx = ox + (fw - dbBase*sc)/2;
+  const dby = oy + fl;
+  const apexX = ox + fw/2;
+  const apexY = dby + dbLen * sc;
+
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = Math.max(5*scale, 3);
+  ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(dbx + dbBase*sc, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
+  // Center beam
+  ctx.setLineDash([6,3]);
+  ctx.lineWidth = Math.max(3*scale, 2);
+  ctx.beginPath(); ctx.moveTo(apexX, apexY); ctx.lineTo(dbx + dbBase*sc/2, dby + 150*sc); ctx.stroke();
+  ctx.setLineDash([]);
+  // Hitch circle
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath(); ctx.arc(apexX, apexY, 8, 0, Math.PI*2); ctx.fill();
+
+  // ── Side view ──
+  const svX = ox + fw + 60;
+  const svY = oy + fl + 40;
+  const svLen = frameL * sc;
+  const svH = bp.sideThick * sc;
+
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = Math.max(3*scale, 2);
+  ctx.strokeRect(svX, svY, svLen, svH);
+
+  // Side posts
+  const sStep = calcStep(2*(W+L), 800);
+  for (let i = 0; i <= sStep.n; i++) {
+    if (i === 0 || i === sStep.n) {
+      const vx = svX + (svLen * i) / sStep.n;
+      ctx.beginPath(); ctx.moveTo(vx, svY); ctx.lineTo(vx, svY+svH); ctx.stroke();
+    }
+  }
+
+  // ── Tent (if present) ──
+  if (hasTent) {
+    const tY = svY - tentMM*sc - 5;
+    const tH = tentMM * sc;
+    ctx.setLineDash([4,3]);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = Math.max(2*scale, 1.5);
+    ctx.strokeRect(svX, tY, svLen, tH);
+    ctx.setLineDash([]);
+
+    const archCount = 1 + (frameL - 800 > 0 ? calcStep(frameL - 800, 700).n : 0);
+    for (let i = 0; i < archCount; i++) {
+      let ax;
+      if (i === 0) ax = svX + 800*sc;
+      else {
+        const rem = frameL - 800;
+        const archStep = calcStep(rem, 700);
+        ax = svX + 800*sc + (rem * (i-1) / Math.max(archStep.n-1||1, 1)) * sc;
+      }
+      ctx.beginPath(); ctx.moveTo(ax, tY); ctx.lineTo(ax, tY+tH); ctx.stroke();
+    }
+  }
+
+  // ── Labels ──
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = `${Math.max(12*scale, 10)}px DejaVu Sans`;
+  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${bp.sideThick} мм | Тент ${tentH} см | Осей ${axles}`, ox, 20);
+
+  // Dimensions
+  ctx.fillStyle = '#e94560';
+  ctx.font = '11px DejaVu Sans';
+  ctx.fillText(`${frameW}`, ox + fw/2 - 20, oy - 6);
+  ctx.fillText(`${frameL}`, ox - 50, oy + fl/2);
+  ctx.fillText(`${dbLen}`, apexX + 12, dby + (apexY - dby)/2);
+  ctx.fillText(`Борт ${bp.sideThick}`, svX - 40, svY + svH/2 + 3);
+  if (hasTent) ctx.fillText(`Тент ${tentH}`, svX - 42, tY + tH/2 + 3);
+
+  document.getElementById('zoomLabel').textContent = `${(scale*100).toFixed(0)}%`;
+}
+
+// ══════════════════════════════════════════════════════════
+// CANVAS INTERACTION
+// ══════════════════════════════════════════════════════════
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  const factor = e.deltaY < 0 ? 1.1 : 0.9;
-  scale *= factor;
-  scale = Math.max(0.15, Math.min(1.0, scale));
-  redraw();
+  scaleBy(e.deltaY < 0 ? 0.1 : -0.1);
 });
 
 canvas.addEventListener('mousedown', e => {
-  if (e.button === 1 || (e.button === 0 && e.altKey)) {
-    dragging = true;
-    dragStartX = e.clientX;
-    dragStartY = e.clientY;
-    dragOffsetX = offsetX;
-    dragOffsetY = offsetY;
-  }
+  dragging = true;
+  dragSX = e.clientX; dragSY = e.clientY;
+  dragOX = offX; dragOY = offY;
 });
 canvas.addEventListener('mousemove', e => {
   if (dragging) {
-    offsetX = dragOffsetX + (e.clientX - dragStartX);
-    offsetY = dragOffsetY + (e.clientY - dragStartY);
-    redraw();
+    offX = dragOX + (e.clientX - dragSX);
+    offY = dragOY + (e.clientY - dragSY);
+    redrawCanvas();
   }
 });
 window.addEventListener('mouseup', () => { dragging = false; });
 
-// Click to add/remove
-canvas.addEventListener('click', e => {
-  const {L, W, sideH, tentH} = getParams();
-  const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
-
-  const ox = offsetX;
-  const oy = offsetY + 80;
-  const fw = W * scale;
-  const fl = L * scale;
-  const dbLen = 2000 * (L / 2570) * scale;
-  const sideOX = ox + fw + 50;
-
-  if (tool === 'delete') {
-    // Check cross members
-    for (let i = crossPositions.length-1; i >= 0; i--) {
-      const y = oy + fl * crossPositions[i];
-      const dist = Math.abs(my - y);
-      if (mx > ox && mx < ox + fw && dist < 15) {
-        crossPositions.splice(i, 1);
-        redraw(); return;
-      }
-    }
-    // Check side posts
-    for (let i = vertPositions.length-1; i >= 0; i--) {
-      const x = sideOX + fl * vertPositions[i];
-      const dist = Math.abs(mx - x);
-      if (my > oy && my < oy + sideH*scale && dist < 15) {
-        vertPositions.splice(i, 1);
-        redraw(); return;
-      }
-    }
-    // Check tent arches
-    for (let i = archPositions.length-1; i >= 0; i--) {
-      const x = sideOX + fl * archPositions[i];
-      const th = tentH * scale;
-      const ty = oy - th - 10;
-      const dist = Math.abs(mx - x);
-      if (my > ty && my < ty + th && dist < 15) {
-        archPositions.splice(i, 1);
-        redraw(); return;
-      }
-    }
-  } else if (tool === 'addCross') {
-    // Add cross member where clicked
-    if (mx > ox && mx < ox + fw && my > oy && my < oy + fl) {
-      const frac = (my - oy) / fl;
-      // Don't add too close to existing
-      const tooClose = crossPositions.some(p => Math.abs(p - frac) < 0.05);
-      if (!tooClose) {
-        crossPositions.push(frac);
-        crossPositions.sort((a,b)=>a-b);
-        redraw();
-      }
-    }
-  } else if (tool === 'addVert') {
-    if (mx > sideOX && mx < sideOX + fl && my > oy && my < oy + sideH*scale) {
-      const frac = (mx - sideOX) / fl;
-      const tooClose = vertPositions.some(p => Math.abs(p - frac) < 0.05);
-      if (!tooClose) {
-        vertPositions.push(frac);
-        vertPositions.sort((a,b)=>a-b);
-        redraw();
-      }
-    }
-  } else if (tool === 'addArch') {
-    const th = tentH * scale;
-    const ty = oy - th - 10;
-    if (mx > sideOX && mx < sideOX + fl && my > ty && my < ty + th) {
-      const frac = (mx - sideOX) / fl;
-      const tooClose = archPositions.some(p => Math.abs(p - frac) < 0.05);
-      if (!tooClose) {
-        archPositions.push(frac);
-        archPositions.sort((a,b)=>a-b);
-        redraw();
-      }
-    }
-  }
-});
-
-function drawFrame(L, W) {
-  const ox = offsetX;
-  const oy = offsetY + 80;
-  const fw = W * scale;
-  const fl = L * scale;
-
-  // Frame outer
-  const frameTube = getFrameTube();
-  ctx.strokeStyle = frameTube.color;
-  ctx.lineWidth = 8;
-  ctx.strokeRect(ox, oy, fw, fl);
-
-  // Center beam (only Sambars/Bizon)
-  if (hasCenterBeam()) {
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(ox + fw/2, oy);
-    ctx.lineTo(ox + fw/2, oy + fl);
-    ctx.stroke();
-  }
-
-  // Cross members
-  ctx.strokeStyle = TUBES.cross.color;
-  ctx.lineWidth = 5;
-  const totalCross = [...crossPositions];
-  // Add end cross members if none at 0 and 1
-  if (!totalCross.some(p => p < 0.05)) totalCross.unshift(0.05);
-  if (!totalCross.some(p => p > 0.95)) totalCross.push(0.95);
-  totalCross.forEach(frac => {
-    const y = oy + fl * frac;
-    ctx.beginPath();
-    ctx.moveTo(ox, y);
-    ctx.lineTo(ox + fw, y);
-    ctx.stroke();
-  });
-
-  // Corner gussets
-  ctx.strokeStyle = '#c0392b';
-  ctx.lineWidth = 1.5;
-  const cs = 30;
-  [[ox,oy,1,1],[ox+fw,oy,-1,1],[ox,oy+fl,1,-1],[ox+fw,oy+fl,-1,-1]].forEach(([cx,cy,sx,sy])=>{
-    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*cs,cy+sy*cs); ctx.stroke();
-  });
-
-  // Drawbar
-  const dbLen = 2000 * (L / 2570);
-  const dbBase = W * 0.9;
-  const dbx = ox + (fw - dbBase*scale)/2;
-  const dby = oy + fl;
-  const apexX = ox + fw/2;
-  const apexY = dby + dbLen * scale;
-
-  ctx.strokeStyle = TUBES.drawbar.color;
-  ctx.lineWidth = 7;
-  // Side tubes
-  ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(dbx + dbBase*scale, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
-  // Cross bar
-  ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.moveTo(dbx, dby + 150*scale); ctx.lineTo(dbx + dbBase*scale, dby + 150*scale); ctx.stroke();
-  // Center beam (from hitch to middle of cross bar)
-  ctx.lineWidth = 5;
-  ctx.setLineDash([8,4]);
-  ctx.beginPath(); ctx.moveTo(apexX, apexY); ctx.lineTo(dbx + dbBase*scale/2, dby + 150*scale); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#e74c3c';
-  ctx.beginPath(); ctx.arc(apexX, apexY, 10, 0, Math.PI*2); ctx.fill();
-
-  return {
-    ox, oy, fw, fl,
-    dbLen, dbBase, apexX, apexY, dbx, dby,
-    totalCross: totalCross,
-  };
+function scaleBy(d) {
+  scale = Math.max(0.3, Math.min(3.0, scale + d));
+  redrawCanvas();
+}
+function resetView() {
+  scale = 1.0; offX = 0; offY = 0;
+  redrawCanvas();
 }
 
-function drawSides(L, W, sideH, frameData) {
-  const {ox, oy, fw, fl} = frameData;
-  const sx = ox + fw + 50;
-  const sh = sideH * scale;
-
-  ctx.strokeStyle = TUBES.side.color;
-  ctx.lineWidth = 3;
-  ctx.strokeRect(sx, oy, fl, sh);
-
-  // Horizontal rails
-  const nH = sideH >= 500 ? 2 : 1;
-  ctx.lineWidth = 2;
-  for (let i = 1; i <= nH; i++) {
-    const hy = oy + (sh * i) / (nH + 1);
-    ctx.beginPath(); ctx.moveTo(sx, hy); ctx.lineTo(sx + fl, hy); ctx.stroke();
-  }
-
-  // Vertical posts
-  const totalVert = [...vertPositions];
-  if (!totalVert.some(p => p < 0.03)) totalVert.unshift(0);
-  if (!totalVert.some(p => p > 0.97)) totalVert.push(1);
-  totalVert.sort((a,b)=>a-b);
-
-  totalVert.forEach(frac => {
-    const vx = sx + fl * frac;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(vx, oy); ctx.lineTo(vx, oy + sh); ctx.stroke();
-  });
-
-  ctx.fillStyle = '#3498db';
-  ctx.font = '11px DejaVu Sans';
-  ctx.fillText(`${sideH}`, sx - 30, oy + sh/2);
-
-  return {sx, sh, totalVert};
-}
-
-function drawTent(L, W, tentH, frameData) {
-  if (tentH <= 0) return {totalArch:[]};
-  const {ox, oy, fw, fl} = frameData;
-  const tx = ox + fw + 50;
-  const th = tentH * scale;
-  const ty = oy - th - 10;
-
-  ctx.setLineDash([6,4]);
-  ctx.strokeStyle = TUBES.tent.color;
-  ctx.lineWidth = 2.5;
-  ctx.strokeRect(tx, ty, fl, th);
-  ctx.setLineDash([]);
-
-  // Horizontal rails
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(tx, ty + th/2); ctx.lineTo(tx + fl, ty + th/2); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + fl, ty); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(tx, ty + th); ctx.lineTo(tx + fl, ty + th); ctx.stroke();
-
-  // Arches
-  const totalArch = [...archPositions];
-  if (!totalArch.some(p => p < 0.03)) totalArch.unshift(0);
-  if (!totalArch.some(p => p > 0.97)) totalArch.push(1);
-  totalArch.sort((a,b)=>a-b);
-
-  totalArch.forEach(frac => {
-    const ax = tx + fl * frac;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(ax, ty); ctx.lineTo(ax, ty + th); ctx.stroke();
-  });
-
-  ctx.fillStyle = '#27ae60';
-  ctx.font = '11px DejaVu Sans';
-  ctx.fillText(`${tentH}`, tx - 30, ty + th/2);
-
-  return {tx, ty, th, totalArch};
-}
-
-function redraw() {
-  const {L, W, sideH, tentH, brand} = getParams();
-  canvas.width = canvas.width; // clear
-
-  // Grid
-  ctx.strokeStyle = '#f0f0f0';
-  ctx.lineWidth = 0.5;
-  for (let x = 0; x < canvas.width; x += 25*scale*2) {
-    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-  }
-  for (let y = 0; y < canvas.height; y += 25*scale*2) {
-    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
-  }
-
-  // Draw
-  const fd = drawFrame(L, W);
-  const sd = drawSides(L, W, sideH, fd);
-  const td = drawTent(L, W, tentH, fd);
-
-  // Labels
-  ctx.fillStyle = '#222';
-  ctx.font = 'bold 14px DejaVu Sans';
-  ctx.fillText(`Прицеп ${brand} ${(L/1000).toFixed(1)}×${(W/1000).toFixed(1)} м  |  Борт ${sideH} мм  |  Тент ${tentH||'нет'}`, offsetX, 25);
-
-  // Dimensions
-  ctx.strokeStyle = '#C0392B';
-  ctx.lineWidth = 0.8;
-  ctx.setLineDash([4,3]);
-  // W
-  ctx.beginPath(); ctx.moveTo(fd.ox, fd.oy - 12); ctx.lineTo(fd.ox + fd.fw, fd.oy - 12); ctx.stroke();
-  ctx.fillText(`${W}`, fd.ox + fd.fw/2 - 20, fd.oy - 16);
-  // L
-  ctx.beginPath(); ctx.moveTo(fd.ox - 15, fd.oy); ctx.lineTo(fd.ox - 15, fd.oy + fd.fl); ctx.stroke();
-  ctx.fillText(`${L}`, fd.ox - 55, fd.oy + fd.fl/2);
-  // Total
-  const totL = L + fd.dbLen;
-  ctx.fillText(`${totL.toFixed(0)} мм общая`, fd.apexX - 35, fd.apexY + 18);
-  // Drawbar len
-  ctx.fillText(`${fd.dbLen.toFixed(0)}`, fd.apexX + 12, fd.dby + (fd.apexY-fd.dby)/2);
-  ctx.setLineDash([]);
-
-  // ═══ CALC SPEC ═══
-  const nCross = fd.totalCross.length;
-  const nVert = sd.totalVert.length;
-  const nArch = td.totalArch ? td.totalArch.length : 0;
-  const nHSide = sideH >= 500 ? 2 : 1;
-
-  const frameMain = (L*2 + W*2)/1000;
-  const frameCenter = hasCenterBeam() ? L/1000 : 0;
-  const frameCross = (W * nCross)/1000;
-
-  const dbSides = Math.sqrt((W*0.9/2)*(W*0.9/2) + fd.dbLen*fd.dbLen) * 2 / 1000;
-  const dbCrossBar = W * 0.9 / 1000;
-  const dbCenter = Math.sqrt((W*0.9/2)*(W*0.9/2) + (fd.dbLen-150)*(fd.dbLen-150)) / 1000;  // center beam
-
-  // Side boards: 4 sides (2 long + 2 short)
-  // Long sides: nVert posts per side × sideH + nHSide rails × L
-  const sideLongPosts = nVert * (sideH/1000) * 2;
-  const sideShortPosts = (Math.floor(nVert * W/L) + 2) * (sideH/1000) * 2;
-  const sideLongRails = nHSide * (L/1000) * 2;
-  const sideShortRails = nHSide * (W/1000) * 2;
-  const sideMeters = sideLongPosts + sideShortPosts + sideLongRails + sideShortRails;
-
-  // Tent frame
-  const tentVert = tentH > 0 ? nArch * (tentH/1000) * 2 : 0;
-  const tentHoriz = tentH > 0 ? (L/1000)*3 + (W/1000)*2 : 0;
-  const tentFrontBack = tentH > 0 ? (tentH/1000 + W/1000)*4 : 0;
-  const tentMeters = tentVert + tentHoriz + tentFrontBack;
-
-  const items = [
-    {name:'Рама', tube:getFrameTube().name, meters: frameMain + frameCenter + frameCross, mass:0,
-     desc:`${frameMain.toFixed(1)}м периметр${frameCenter>0?' + '+frameCenter.toFixed(1)+'м центр':''} + ${frameCross.toFixed(1)}м поперечин (${nCross} шт)`},
-    {name:'Дышло', tube:'80×40×3', meters: dbSides + dbCrossBar + dbCenter, mass:0,
-     desc:`${dbSides.toFixed(1)}м стороны + ${dbCrossBar.toFixed(1)}м перемычка`},
-    {name:'Борта', tube:'25×25×1,5', meters: sideMeters, mass:0,
-     desc:`${nVert} стоек + ${nHSide} реек ×4 стороны, ${sideH}мм`},
-    {name:'Каркас тента', tube:'20×20×1,5', meters: tentMeters, mass:0,
-     desc: tentH > 0 ? `${nArch} дуг × 2 стороны + ${tentHoriz.toFixed(1)}м гориз.` : 'не используется'},
-  ];
-
-  items.forEach(it => {
-    const t = Object.values(TUBES).find(tb => tb.name === it.tube);
-    it.mass = it.meters * (t ? t.massPerM : 0);
-  });
-
-  let totM = 0, totKg = 0;
-  let html = '<table>';
-  items.forEach(it => {
-    if (it.meters <= 0) return;
-    totM += it.meters; totKg += it.mass;
-    html += `<tr><td><b>${it.name}</b></td><td>${it.tube}</td></tr>`;
-    html += `<tr><td colspan="2" style="color:#888">${it.desc}</td></tr>`;
-    html += `<tr><td>Метраж</td><td style="text-align:right">${it.meters.toFixed(1)} м</td></tr>`;
-    html += `<tr><td>Вес</td><td style="text-align:right">${it.mass.toFixed(1)} кг</td></tr>`;
-    html += `<tr><td colspan="2" style="height:3px"></td></tr>`;
-  });
-  html += '</table>';
-  document.getElementById('spec').innerHTML = html;
-  document.getElementById('total').innerHTML = `<table>
-    <tr><td>Метраж</td><td style="text-align:right;font-weight:bold">${totM.toFixed(1)} м</td></tr>
-    <tr><td>Вес металла</td><td style="text-align:right;font-weight:bold">${totKg.toFixed(1)} кг</td></tr>
-    <tr><td>~Стоимость</td><td style="text-align:right">~${(totKg*85).toFixed(0)} ₽</td></tr>
-  </table>`;
-
-  // Update toolbar info
-  const info = document.querySelector('.toolbar span:last-child');
-  if (info) info.textContent = `L=${L}мм W=${W}мм | поперечин:${nCross} стоек:${nVert} дуг:${nArch} | зум:${(scale*100).toFixed(0)}%`;
-}
-
-redraw();
+// ══════════════════════════════════════════════════════════
+init();
+recalc();
 </script>
 </body>
 </html>

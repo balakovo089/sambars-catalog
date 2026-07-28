@@ -792,12 +792,16 @@ function redrawCanvas() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // 3. Перемычка (сплошная) — ровно под передней балкой, на всю ширину
+  // 3. Перемычка — между точками пересечения боковых лучей с передним краем
+  // Вычисляем X-координаты пересечения боковых лучей с линией FRONT_Y
+  const leftX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_L - MID_X) / (ATTACH_Y - JOINT_Y);
+  const rightX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_R - MID_X) / (ATTACH_Y - JOINT_Y);
+  
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5*scale);
   ctx.beginPath();
-  ctx.moveTo(rX, FRONT_Y);
-  ctx.lineTo(rX + rW, FRONT_Y);
+  ctx.moveTo(leftX, FRONT_Y);
+  ctx.lineTo(rightX, FRONT_Y);
   ctx.stroke();
 
   // 4. Маркеры

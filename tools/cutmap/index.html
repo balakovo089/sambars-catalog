@@ -521,7 +521,7 @@ function redrawCanvas() {
   const frameL = L + bp.extraMM;
   const hasTent = tentH > 0;
   const tentMM = tentH * 10;
-  const boardH = bp.sideThick; // mm
+  const boardH = 300; // mm — высота борта ВСЕГДА 30 см
 
   canvas.width = canvas.width;
   const sc = baseScale * scale;
@@ -652,7 +652,7 @@ function redrawCanvas() {
   const bX = rX;
   const bY = curY;
   const bW = frameL * sc;  // length = frame length for side view
-  const bH = boardH * sc;
+  const bH = 300 * sc;  // высота борта 30 см
 
   // Board frame - outer rectangle
   ctx.strokeStyle = '#3498db';
@@ -691,13 +691,13 @@ function redrawCanvas() {
 
   // Dimensions
   drawDimArrow(bX, bY-8, bX+bW, bY-8, `${frameL} мм`, 'top');
-  drawDimArrow(bX-15, bY, bX-15, bY+bH, `${boardH} мм`, 'left');
+  drawDimArrow(bX-15, bY, bX-15, bY+bH, `300 мм`, 'left');
 
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
   ctx.fillText(`верт. стоек: ${sStep.n+1} шт (шаг ~${Math.round(2*(W+L)/sStep.n)} мм)`, bX, bY+bH+12);
-  ctx.fillText(`рамка: ${bp.sideProfile} | перемычки: ${bp.sideProfile} × ${sStep.n+1} шт × ${boardH} мм = ${(sStep.n+1)*boardH/1000} м`, bX, bY+bH+24);
+  ctx.fillText(`рамка: ${bp.sideProfile} | перемычки: ${bp.sideProfile} × ${sStep.n+1} шт × 300 мм = ${((sStep.n+1)*300/1000).toFixed(1)} м`, bX, bY+bH+24);
 
   curY = bY + bH + 36;
 
@@ -820,7 +820,7 @@ function redrawCanvas() {
   ctx.beginPath(); ctx.moveTo(bRight, bBot-3); ctx.lineTo(bRight+5, bBot-3); ctx.stroke();
 
   // Board labels
-  drawDim(bLeft-30, (bTop+bBot)/2, `${boardH} мм`, '#3498db');
+  drawDim(bLeft-30, (bTop+bBot)/2, `300 мм`, '#3498db');
 
   // Plywood
   ctx.fillStyle = 'rgba(52,152,219,0.1)';
@@ -869,7 +869,7 @@ function redrawCanvas() {
   const totalY = hasTent ? secY - tentMM*sc - 15 : secY;
   ctx.fillStyle = '#e0e0e0';
   ctx.font = `bold ${Math.max(12, 14)}px DejaVu Sans`;
-  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);
+  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт 300 мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);
 
   document.getElementById('zoomLabel').textContent = `${(scale*100).toFixed(0)}%`;
 }

@@ -647,9 +647,9 @@ function redrawCanvas() {
   curY = apexY + 30;
 
   // ─────────────────────────────────────────────
-  // 2. SIDE VIEW: БОРТА
+  // 2. SIDE VIEW: БОРТА (длинный + короткий)
   // ─────────────────────────────────────────────
-  drawLabel(margin, curY, '2. БОРТА (вид сбоку)', '#3498db');
+  drawLabel(margin, curY, '2. БОРТА (длинный и короткий)', '#3498db');
   curY += labelH + 5;
 
   const bX = rX;
@@ -657,53 +657,74 @@ function redrawCanvas() {
   const bW = frameL * sc;  // length = frame length for side view
   const bH = boardH * sc;  // высота борта
 
-  // Board frame - outer rectangle
+  // ── ДЛИННЫЙ БОРТ ──
   ctx.strokeStyle = '#3498db';
   ctx.lineWidth = 3;
   ctx.strokeRect(bX, bY, bW, bH);
-
-  // Plywood fill (translucent)
   ctx.fillStyle = 'rgba(52,152,219,0.08)';
   ctx.fillRect(bX+2, bY+2, bW-4, bH-4);
 
-  // Vertical posts (перемычки) — по новому правилу Олега
-  const jLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
-  const jShort = W < 1930 ? 1 : 2;
-  // Длинный борт: jLong перемычек на каждой из 2 длинных сторон
-  // Короткий борт: jShort перемычек на каждой из 2 коротких сторон
-  
-  ctx.strokeStyle = '#2980b9';
-  ctx.lineWidth = 1.5;
-  
-  // Рисуем только ДЛИННЫЙ борт на виде сбоку — jLong перемычек
-  const postPositions = [];
-  for (let i = 1; i <= jLong; i++) {
-    const vx = bX + (bW * i) / (jLong + 1);
-    postPositions.push(vx);
-    ctx.beginPath(); ctx.moveTo(vx, bY); ctx.lineTo(vx, bY+bH); ctx.stroke();
-  }
-
-  // Horizontal rails (top + bottom)
   ctx.strokeStyle = '#5dade2';
   ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(bX, bY+1); ctx.lineTo(bX+bW, bY+1); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(bX, bY+bH-1); ctx.lineTo(bX+bW, bY+bH-1); ctx.stroke();
 
-  // Dimensions
+  // Vertical posts (перемычки)
+  const jLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
+  const jShort = W < 1930 ? 1 : 2;
+  const totalJumpers = jLong * 2 + jShort * 2;
+  
+  ctx.strokeStyle = '#2980b9';
+  ctx.lineWidth = 1.5;
+  for (let i = 1; i <= jLong; i++) {
+    const vx = bX + (bW * i) / (jLong + 1);
+    ctx.beginPath(); ctx.moveTo(vx, bY); ctx.lineTo(vx, bY+bH); ctx.stroke();
+  }
+
   drawDimArrow(bX, bY-8, bX+bW, bY-8, `${frameL} мм`, 'top');
   drawDimArrow(bX-15, bY, bX-15, bY+bH, `${boardH} мм`, 'left');
 
-  // Annotations
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  // Annotations
-  const jumpStep = Math.round(L / (jLong + 1));
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`длинный борт: ${jLong} перемычек (шаг ~${jumpStep} мм) | короткий: ${jShort}`, bX, bY+bH+12);
-  ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.sideThick / 1000).toFixed(1)} м`, bX, bY+bH+24);
+  ctx.fillStyle = '#3498db';
+  ctx.font = 'bold 10px DejaVu Sans';
+  ctx.fillText(`ДЛИННЫЙ борт (×2): ${jLong} перемычек, шаг ~${Math.round(frameL/(jLong+1))} мм`, bX, bY+bH+12);
 
-  curY = bY + bH + 36;
+  curY = bY + bH + 26;
+
+  // ── КОРОТКИЙ БОРТ ──
+  const sbX = bX;
+  const sbY = curY;
+  const sbW = frameW * sc;
+  const sbH = boardH * sc;
+
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(sbX, sbY, sbW, sbH);
+  ctx.fillStyle = 'rgba(52,152,219,0.08)';
+  ctx.fillRect(sbX+2, sbY+2, sbW-4, sbH-4);
+
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(sbX, sbY+1); ctx.lineTo(sbX+sbW, sbY+1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sbX, sbY+sbH-1); ctx.lineTo(sbX+sbW, sbY+sbH-1); ctx.stroke();
+
+  ctx.strokeStyle = '#2980b9';
+  ctx.lineWidth = 1.5;
+  for (let i = 1; i <= jShort; i++) {
+    const vx = sbX + (sbW * i) / (jShort + 1);
+    ctx.beginPath(); ctx.moveTo(vx, sbY); ctx.lineTo(vx, sbY+sbH); ctx.stroke();
+  }
+
+  drawDimArrow(sbX, sbY-8, sbX+sbW, sbY-8, `${frameW} мм`, 'top');
+  drawDimArrow(sbX-15, sbY, sbX-15, sbY+sbH, `${boardH} мм`, 'left');
+
+  ctx.fillStyle = '#3498db';
+  ctx.font = 'bold 10px DejaVu Sans';
+  ctx.fillText(`КОРОТКИЙ борт (×2): ${jShort} перемычек, шаг ~${Math.round(frameW/(jShort+1))} мм`, sbX, sbY+sbH+12);
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.sideThick / 1000).toFixed(1)} м`, sbX, sbY+sbH+24);
+
+  curY = sbY + sbH + 36;
 
   // ─────────────────────────────────────────────
   // 3. TENT FRAME (каркас тента)

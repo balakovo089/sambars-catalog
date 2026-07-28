@@ -624,7 +624,7 @@ function redrawCanvas() {
   ctx.strokeStyle = '#e67e22';
   ctx.lineWidth = Math.max(4, 5);
   specialBeams.forEach(pos => {
-    const y = rY + (pos / frameL) * rL;
+    const y = rY + rL - (pos / frameL) * rL;  // от ПЕРЕДНЕГО края (дышло снизу)
     ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
   });
   
@@ -655,7 +655,7 @@ function redrawCanvas() {
   ctx.strokeStyle = '#7f8c8d';
   ctx.lineWidth = Math.max(2, 3);
   crossPositions.forEach(pos => {
-    const y = rY + (pos / frameL) * rL;
+    const y = rY + rL - (pos / frameL) * rL;  // от ПЕРЕДНЕГО края
     ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
   });
 

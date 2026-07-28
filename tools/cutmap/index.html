@@ -101,12 +101,8 @@ canvas{display:block;cursor:grab}
 <div class="main">
   <canvas id="c"></canvas>
   <div class="toolbar">
-    <span style="color:#888">Масштаб:</span>
-    <button onclick="scaleBy(-0.1)">−</button>
-    <button onclick="scaleBy(0.1)">+</button>
+    <span style="color:#888">🖱 Перетаскивайте схему</span>
     <button onclick="resetView()">Сброс</button>
-    <span class="sep"></span>
-    <span id="zoomLabel">100%</span>
   </div>
   <div class="legend">
     <span style="color:#5dade2">▬▬</span> Рама<br>
@@ -521,6 +517,7 @@ resizeCanvas();
 window.onresize = resizeCanvas;
 
 let baseScale = 0.25;
+// Zoom removed — all elements in single scale. Pan via offX/offY.
 
 function redrawCanvas() {
   const {brand, W, L, tentH, axles} = state;
@@ -532,7 +529,7 @@ function redrawCanvas() {
   const boardH = bp.boardH; // mm — высота борта всегда 30 см
 
   canvas.width = canvas.width;
-  const sc = baseScale * scale;
+  const sc = baseScale;  // fixed scale, no zoom
 
   // Grid
   ctx.strokeStyle = '#1e1e30';
@@ -964,8 +961,6 @@ function redrawCanvas() {
   ctx.fillStyle = '#e0e0e0';
   ctx.font = `bold ${Math.max(12, 14)}px DejaVu Sans`;
   ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);
-
-  document.getElementById('zoomLabel').textContent = `${(scale*100).toFixed(0)}%`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -973,7 +968,7 @@ function redrawCanvas() {
 // ══════════════════════════════════════════════════════════
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  scaleBy(e.deltaY < 0 ? 0.1 : -0.1);
+  // zoom disabled — all elements share same scale
 });
 
 canvas.addEventListener('mousedown', e => {
@@ -990,12 +985,8 @@ canvas.addEventListener('mousemove', e => {
 });
 window.addEventListener('mouseup', () => { dragging = false; });
 
-function scaleBy(d) {
-  scale = Math.max(0.3, Math.min(3.0, scale + d));
-  redrawCanvas();
-}
 function resetView() {
-  scale = 1.0; offX = 0; offY = 0;
+  offX = 0; offY = 0;
   redrawCanvas();
 }
 

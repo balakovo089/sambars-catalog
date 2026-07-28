@@ -749,7 +749,8 @@ function redrawCanvas() {
   ctx.fillStyle = '#888';
   ctx.fillText('▲ ЗАД', rX + rW/2 - 25, rY - 6);
 
-  // Drawbar — BELOW frame
+  // Drawbar dimensions
+  const dbSideLen = (L <= 2500) ? 1.80 : 2.00;  // same as recalc
   const dbLen = dbSideLen * 1000;  // длина бокового луча в мм
   const dbBase = frameW * 0.9;
   const dbx = rX + (rW - dbBase*sc)/2;

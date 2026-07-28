@@ -502,7 +502,7 @@ function updateMeta() {
   const bp = BRAND[brand];
   const frameW = W + bp.extraMM;
   const frameL = L + bp.extraMM;
-  const axlePos = (frameL/2 + 100);
+  const axlePos = (frameL/2 + 105);  // ось: центр + 55см (балка) - 44.5см = +10.5см
   document.getElementById('metaInfo').innerHTML =
     `<b>${brand}</b> ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м<br>
     Рама: ${frameW}×${frameL} мм | Ось от переда: ${axlePos.toFixed(0)} мм<br>
@@ -666,8 +666,8 @@ function redrawCanvas() {
   }
 
   if (axles === 1) {
-    // Одноосная: аморт. балка на 545 мм в зад от центра рамы
-    drawAxleSet(trueCenter - 545*sc, 'аморт 54.5см', '#e67e22');
+    // Одноосная: аморт. балка на 55 см в зад от центра рамы
+    drawAxleSet(trueCenter - 550*sc, 'аморт +55см', '#e67e22');
   } else {
     // Двухосная: передняя балка на +10см, задняя на +100см от центра
     drawAxleSet(trueCenter - 100*sc, 'аморт 1 +10см', '#e67e22');
@@ -705,7 +705,7 @@ function redrawCanvas() {
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
   let annoText = `поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм)`;
-  if (axles === 1) annoText += ` | аморт. балка: 54.5 см в зад от центра`;
+  if (axles === 1) annoText += ` | аморт. балка: 55 см в зад от центра`;
   if (axles === 2) annoText += ` | аморт. балки: +10 см и +100 см от центра`;
   ctx.fillText(annoText, rX, rY+rL+12);
   ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rL+24);

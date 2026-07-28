@@ -760,7 +760,7 @@ function redrawCanvas() {
 
   // Drawbar — BELOW frame, not in same plane
   // Center beam 120cm, side beams start at 15cm offset, run UNDER frame to sides
-  const sideStartOffset = 150*sc;  // 15 см от начала центр. луча
+  const sideStartOffset = 150*sc;  // 15 см ПЕРЕД краем рамы
   const drawbarYOffset = 10;       // визуальный отступ вниз (под рамой)
   const dbEdgeY = dby + drawbarYOffset;
   
@@ -769,7 +769,7 @@ function redrawCanvas() {
   const sideAttachY = dby - sideAttachDist * sc;
   
   const jointX = apexX;
-  const jointY = apexY + sideStartOffset + drawbarYOffset;
+  const jointY = dbEdgeY - 150*sc;  // на центр. луче, в 15 см ПЕРЕД рамой
   
   ctx.setLineDash([3,3]);
   ctx.strokeStyle = '#e74c3c';

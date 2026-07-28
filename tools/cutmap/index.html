@@ -793,9 +793,9 @@ function redrawCanvas() {
   ctx.setLineDash([]);
 
   // 3. Перемычка — между точками пересечения боковых лучей с передним краем
-  // Вычисляем X-координаты пересечения боковых лучей с линией FRONT_Y
   const leftX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_L - MID_X) / (ATTACH_Y - JOINT_Y);
   const rightX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_R - MID_X) / (ATTACH_Y - JOINT_Y);
+  console.log('Перемычка:', {leftX:leftX.toFixed(0), rightX:rightX.toFixed(0), width:(rightX-leftX).toFixed(0), frameW:rW.toFixed(0), midX:MID_X.toFixed(0), JOINT_Y:JOINT_Y.toFixed(0), FRONT_Y:FRONT_Y.toFixed(0), ATTACH_Y:ATTACH_Y.toFixed(0), ATTACH_L:ATTACH_L.toFixed(0), ATTACH_R:ATTACH_R.toFixed(0)});
   
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5*scale);

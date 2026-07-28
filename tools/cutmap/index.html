@@ -669,9 +669,9 @@ function redrawCanvas() {
     // Одноосная: аморт. балка на 545 мм в зад от центра рамы
     drawAxleSet(trueCenter - 545*sc, 'аморт 54.5см', '#e67e22');
   } else {
-    // Двухосная: передняя аморт. балка по центру, задняя на 101.5 см в зад
-    drawAxleSet(trueCenter, 'аморт 1 (центр)', '#e67e22');
-    drawAxleSet(trueCenter - 1015*sc, 'аморт 2 101.5см', '#c0392b');
+    // Двухосная: передняя балка на +10см от центра (как одноосная), задняя на +101.5см
+    drawAxleSet(trueCenter - 100*sc, 'аморт 1 +10см', '#e67e22');
+    drawAxleSet(trueCenter - 1015*sc, 'аморт 2 +101.5см', '#c0392b');
   }
 
   ctx.setLineDash([]);
@@ -702,13 +702,11 @@ function redrawCanvas() {
   drawDim(apexX+8, dby+(apexY-dby)/2, `${dbLen} мм`);
 
   // Annotations
-  const shockDist1 = axles === 1 ? Math.round(frameL/2 + 545) : Math.round(frameL/2);
-  const shockDist2 = axles === 2 ? Math.round(frameL/2 + 1015) : 0;
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
   let annoText = `поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм)`;
-  if (axles === 1) annoText += ` | аморт. балка: ${shockDist1} мм от переда`;
-  if (axles === 2) annoText += ` | аморт. балки: ${shockDist1} мм и ${shockDist2} мм от переда`;
+  if (axles === 1) annoText += ` | аморт. балка: 54.5 см в зад от центра`;
+  if (axles === 2) annoText += ` | аморт. балки: +10 см и +101.5 см от центра`;
   ctx.fillText(annoText, rX, rY+rL+12);
   ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rL+24);
   if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rL+36);

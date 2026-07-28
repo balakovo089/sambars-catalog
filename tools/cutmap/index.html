@@ -356,7 +356,7 @@ function recalc() {
     allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)});
   }
   if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
-  allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00]});
+  allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00, (frameW)/1000]});  // +перемычка
   allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
   if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile}`, pieces:[(frameW)/1000]});
   if (sTotal > 0) {
@@ -757,15 +757,24 @@ function redrawCanvas() {
   const apexX = rX + rW/2;
   const apexY = dby + dbLen * sc;
 
+  // Drawbar — BELOW frame, not in same plane
+  // Main drawbar triangle (under frame)
+  ctx.setLineDash([3,3]);  // dashed = под рамой
   ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = Math.max(4, 5*scale);
+  ctx.lineWidth = Math.max(4, 5);
   ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(dbx + dbBase*sc, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
   // Center beam
-  ctx.setLineDash([5,3]);
-  ctx.lineWidth = Math.max(2, 3*scale);
-  ctx.beginPath(); ctx.moveTo(apexX, apexY); ctx.lineTo(dbx + dbBase*sc/2, dby + 150*sc); ctx.stroke();
+  ctx.lineWidth = Math.max(2, 3);
+  ctx.beginPath(); ctx.moveTo(apexX, apexY); ctx.lineTo(dbx + dbBase*sc/2, dby); ctx.stroke();
   ctx.setLineDash([]);
+  
+  // Drawbar cross member — at front edge of frame, same profile as drawbar
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = Math.max(4, 5);
+  ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(dbx + dbBase*sc, dby); ctx.stroke();
+  
+  // Hitch circle
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath(); ctx.arc(apexX, apexY, 7, 0, Math.PI*2); ctx.fill();
 

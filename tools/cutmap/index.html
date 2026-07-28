@@ -729,6 +729,13 @@ function redrawCanvas() {
 
   ctx.setLineDash([]);
 
+  // ── Front/Rear labels ──
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 14px DejaVu Sans';
+  ctx.fillText('▼ ПЕРЕД (дышло)', rX + rW/2 - 70, rY + rL + 20);
+  ctx.fillStyle = '#888';
+  ctx.fillText('▲ ЗАД', rX + rW/2 - 25, rY - 6);
+
   // Drawbar
   const dbLen = 2000;
   const dbBase = frameW * 0.9;

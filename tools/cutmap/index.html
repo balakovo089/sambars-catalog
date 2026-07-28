@@ -506,8 +506,8 @@ function updateMeta() {
 // CANVAS DRAWING
 // ══════════════════════════════════════════════════════════
 function resizeCanvas() {
-  canvas.width = window.innerWidth - 380;
-  canvas.height = window.innerHeight;
+  canvas.width = Math.max(window.innerWidth - 380, 600);
+  canvas.height = Math.max(window.innerHeight, 900);
 }
 resizeCanvas();
 window.onresize = resizeCanvas;
@@ -521,117 +521,355 @@ function redrawCanvas() {
   const frameL = L + bp.extraMM;
   const hasTent = tentH > 0;
   const tentMM = tentH * 10;
+  const boardH = bp.sideThick; // mm
 
   canvas.width = canvas.width;
   const sc = baseScale * scale;
-  const ox = 30 + offX;
-  const oy = 80 + offY;
-  const fw = frameW * sc;
-  const fl = frameL * sc;
 
   // Grid
-  ctx.strokeStyle = '#222';
+  ctx.strokeStyle = '#1e1e30';
   ctx.lineWidth = 0.3;
-  for (let x = 0; x < canvas.width; x += 50*sc) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-  for (let y = 0; y < canvas.height; y += 50*sc) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
+  for (let x = 0; x < canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
+  for (let y = 0; y < canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
 
-  // ── TOP VIEW (Frame) ──
-  // Frame
-  ctx.strokeStyle = TUBES[bp.frameProfile]?.color || '#5dade2';
-  ctx.lineWidth = Math.max(6*scale, 3);
-  ctx.strokeRect(ox, oy, fw, fl);
+  // ═══════════════════════════════════════════════
+  // LAYOUT: 4 views arranged vertically
+  // ═══════════════════════════════════════════════
+  const margin = 20;
+  const labelH = 18;
+  let curY = 10 + offY;
 
-  // Center beam
+  const drawLabel = (x, y, text, color) => {
+    ctx.fillStyle = color || '#e94560';
+    ctx.font = `bold 13px DejaVu Sans`;
+    ctx.fillText(text, x, y + 14);
+  };
+
+  const drawDim = (x, y, text, color) => {
+    ctx.fillStyle = color || '#f39c12';
+    ctx.font = '10px DejaVu Sans';
+    ctx.fillText(text, x, y);
+  };
+
+  const drawDimArrow = (x1, y1, x2, y2, text, pos) => {
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 0.8;
+    ctx.setLineDash([3,2]);
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#f39c12';
+    ctx.font = '9px DejaVu Sans';
+    const mx = (x1+x2)/2, my = (y1+y2)/2;
+    if (pos === 'top') ctx.fillText(text, mx-15, my-4);
+    else if (pos === 'left') ctx.fillText(text, mx-60, my+3);
+    else ctx.fillText(text, mx+5, my+10);
+  };
+
+  // ─────────────────────────────────────────────
+  // 1. TOP VIEW: РАМА + ДЫШЛО (вид сверху)
+  // ─────────────────────────────────────────────
+  drawLabel(margin, curY, '1. РАМА (вид сверху)', '#e94560');
+  curY += labelH + 5;
+
+  const rX = margin + 60 + offX;
+  const rY = curY;
+  const rW = frameW * sc;
+  const rL = frameL * sc;
+
+  // Frame rectangle
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = Math.max(5, 6*scale);
+  ctx.strokeRect(rX, rY, rW, rL);
+
+  // Center beam (Sambars/Bizon)
   if (brand !== 'Барсук') {
-    ctx.lineWidth = Math.max(4*scale, 2);
-    ctx.beginPath(); ctx.moveTo(ox+fw/2, oy); ctx.lineTo(ox+fw/2, oy+fl); ctx.stroke();
+    ctx.strokeStyle = '#5dade2';
+    ctx.lineWidth = Math.max(2, 3*scale);
+    ctx.setLineDash([8,4]);
+    ctx.beginPath(); ctx.moveTo(rX+rW/2, rY); ctx.lineTo(rX+rW/2, rY+rL); ctx.stroke();
+    ctx.setLineDash([]);
   }
 
   // Cross members
   const cross = calcStep(frameL, 600);
   ctx.strokeStyle = '#7f8c8d';
-  ctx.lineWidth = Math.max(3*scale, 2);
+  ctx.lineWidth = Math.max(2, 3*scale);
   for (let i = 0; i <= cross.n; i++) {
-    const y = oy + (fl * i) / cross.n;
-    ctx.beginPath(); ctx.moveTo(ox, y); ctx.lineTo(ox+fw, y); ctx.stroke();
+    const y = rY + (rL * i) / cross.n;
+    ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
   }
 
-  // ── Drawbar ──
-  const dbLen = 2000; // мм
+  // Corner gussets
+  if (brand !== 'Барсук') {
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 1;
+    const gs = 25;
+    [[rX,rY,1,1],[rX+rW,rY,-1,1],[rX,rY+rL,1,-1],[rX+rW,rY+rL,-1,-1]].forEach(([cx,cy,sx,sy]) => {
+      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*gs,cy+sy*gs); ctx.stroke();
+    });
+  }
+
+  // Drawbar
+  const dbLen = 2000;
   const dbBase = frameW * 0.9;
-  const dbx = ox + (fw - dbBase*sc)/2;
-  const dby = oy + fl;
-  const apexX = ox + fw/2;
+  const dbx = rX + (rW - dbBase*sc)/2;
+  const dby = rY + rL;
+  const apexX = rX + rW/2;
   const apexY = dby + dbLen * sc;
 
   ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = Math.max(5*scale, 3);
+  ctx.lineWidth = Math.max(4, 5*scale);
   ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(dbx + dbBase*sc, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
   // Center beam
-  ctx.setLineDash([6,3]);
-  ctx.lineWidth = Math.max(3*scale, 2);
+  ctx.setLineDash([5,3]);
+  ctx.lineWidth = Math.max(2, 3*scale);
   ctx.beginPath(); ctx.moveTo(apexX, apexY); ctx.lineTo(dbx + dbBase*sc/2, dby + 150*sc); ctx.stroke();
   ctx.setLineDash([]);
-  // Hitch circle
   ctx.fillStyle = '#e74c3c';
-  ctx.beginPath(); ctx.arc(apexX, apexY, 8, 0, Math.PI*2); ctx.fill();
-
-  // ── Side view ──
-  const svX = ox + fw + 60;
-  const svY = oy + fl + 40;
-  const svLen = frameL * sc;
-  const svH = bp.sideThick * sc;
-
-  ctx.strokeStyle = '#3498db';
-  ctx.lineWidth = Math.max(3*scale, 2);
-  ctx.strokeRect(svX, svY, svLen, svH);
-
-  // Side posts
-  const sStep = calcStep(2*(W+L), 800);
-  for (let i = 0; i <= sStep.n; i++) {
-    if (i === 0 || i === sStep.n) {
-      const vx = svX + (svLen * i) / sStep.n;
-      ctx.beginPath(); ctx.moveTo(vx, svY); ctx.lineTo(vx, svY+svH); ctx.stroke();
-    }
-  }
-
-  // ── Tent (if present) ──
-  if (hasTent) {
-    const tY = svY - tentMM*sc - 5;
-    const tH = tentMM * sc;
-    ctx.setLineDash([4,3]);
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = Math.max(2*scale, 1.5);
-    ctx.strokeRect(svX, tY, svLen, tH);
-    ctx.setLineDash([]);
-
-    const archCount = 1 + (frameL - 800 > 0 ? calcStep(frameL - 800, 700).n : 0);
-    for (let i = 0; i < archCount; i++) {
-      let ax;
-      if (i === 0) ax = svX + 800*sc;
-      else {
-        const rem = frameL - 800;
-        const archStep = calcStep(rem, 700);
-        ax = svX + 800*sc + (rem * (i-1) / Math.max(archStep.n-1||1, 1)) * sc;
-      }
-      ctx.beginPath(); ctx.moveTo(ax, tY); ctx.lineTo(ax, tY+tH); ctx.stroke();
-    }
-  }
-
-  // ── Labels ──
-  ctx.fillStyle = '#e0e0e0';
-  ctx.font = `${Math.max(12*scale, 10)}px DejaVu Sans`;
-  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${bp.sideThick} мм | Тент ${tentH} см | Осей ${axles}`, ox, 20);
+  ctx.beginPath(); ctx.arc(apexX, apexY, 7, 0, Math.PI*2); ctx.fill();
 
   // Dimensions
-  ctx.fillStyle = '#e94560';
-  ctx.font = '11px DejaVu Sans';
-  ctx.fillText(`${frameW}`, ox + fw/2 - 20, oy - 6);
-  ctx.fillText(`${frameL}`, ox - 50, oy + fl/2);
-  ctx.fillText(`${dbLen}`, apexX + 12, dby + (apexY - dby)/2);
-  ctx.fillText(`Борт ${bp.sideThick}`, svX - 40, svY + svH/2 + 3);
-  if (hasTent) ctx.fillText(`Тент ${tentH}`, svX - 42, tY + tH/2 + 3);
+  drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');
+  drawDimArrow(rX-15, rY, rX-15, rY+rL, `${frameL} мм`, 'left');
+  drawDim(apexX+8, dby+(apexY-dby)/2, `${dbLen} мм`);
+
+  // Annotations
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм)`, rX, rY+rL+12);
+  ctx.fillText(`профиль: ${bp.frameProfile}`, rX, rY+rL+24);
+  if (brand !== 'Барсук') ctx.fillText(`+ центр. балка + косынки (4 шт)`, rX+130, rY+rL+24);
+
+  curY = apexY + 30;
+
+  // ─────────────────────────────────────────────
+  // 2. SIDE VIEW: БОРТА
+  // ─────────────────────────────────────────────
+  drawLabel(margin, curY, '2. БОРТА (вид сбоку)', '#3498db');
+  curY += labelH + 5;
+
+  const bX = rX;
+  const bY = curY;
+  const bW = frameL * sc;  // length = frame length for side view
+  const bH = boardH * sc;
+
+  // Board frame - outer rectangle
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(bX, bY, bW, bH);
+
+  // Plywood fill (translucent)
+  ctx.fillStyle = 'rgba(52,152,219,0.08)';
+  ctx.fillRect(bX+2, bY+2, bW-4, bH-4);
+
+  // Vertical posts (перемычки)
+  const sStep = calcStep(2*(W+L), 800);
+  ctx.strokeStyle = '#2980b9';
+  ctx.lineWidth = 1.5;
+  const postPositions = [];
+  for (let i = 0; i <= sStep.n; i++) {
+    const vx = bX + (bW * i) / sStep.n;
+    postPositions.push(vx);
+    ctx.beginPath(); ctx.moveTo(vx, bY); ctx.lineTo(vx, bY+bH); ctx.stroke();
+
+    // Post label
+    if (i > 0) {
+      const prevX = bX + (bW * (i-1)) / sStep.n;
+      const stepDist = Math.round((2*(W+L) / sStep.n));
+      ctx.fillStyle = '#666';
+      ctx.font = '8px DejaVu Sans';
+      ctx.fillText(`~${stepDist}`, prevX+2, bY-2);
+    }
+  }
+
+  // Horizontal rails (top + bottom)
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(bX, bY+1); ctx.lineTo(bX+bW, bY+1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bX, bY+bH-1); ctx.lineTo(bX+bW, bY+bH-1); ctx.stroke();
+
+  // Dimensions
+  drawDimArrow(bX, bY-8, bX+bW, bY-8, `${frameL} мм`, 'top');
+  drawDimArrow(bX-15, bY, bX-15, bY+bH, `${boardH} мм`, 'left');
+
+  // Annotations
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`верт. стоек: ${sStep.n+1} шт (шаг ~${Math.round(2*(W+L)/sStep.n)} мм)`, bX, bY+bH+12);
+  ctx.fillText(`рамка: ${bp.sideProfile} | перемычки: ${bp.sideProfile} × ${sStep.n+1} шт × ${boardH} мм = ${(sStep.n+1)*boardH/1000} м`, bX, bY+bH+24);
+
+  curY = bY + bH + 36;
+
+  // ─────────────────────────────────────────────
+  // 3. TENT FRAME (каркас тента)
+  // ─────────────────────────────────────────────
+  if (hasTent) {
+    drawLabel(margin, curY, '3. КАРКАС ТЕНТА (вид сбоку)', '#27ae60');
+    curY += labelH + 5;
+
+    const tX = bX;
+    const tY = curY;
+    const tW = frameL * sc;
+    const tH = tentMM * sc;
+
+    // Outer frame
+    ctx.setLineDash([4,3]);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(tX, tY, tW, tH);
+    ctx.setLineDash([]);
+
+    // Side rails (top + middle + bottom)
+    ctx.strokeStyle = '#1e8449';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(tX, tY); ctx.lineTo(tX+tW, tY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tX, tY+tH/2); ctx.lineTo(tX+tW, tY+tH/2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tX, tY+tH); ctx.lineTo(tX+tW, tY+tH); ctx.stroke();
+
+    // Arches (дуги)
+    const archCount = 1 + (frameL - 800 > 0 ? calcStep(frameL - 800, 700).n : 0);
+    const firstArchDist = 800;
+    const remainingArch = frameL - 800;
+    const archStep = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
+
+    for (let i = 0; i < archCount; i++) {
+      let ax;
+      if (i === 0) {
+        ax = tX + firstArchDist * sc;
+      } else {
+        const prev = remainingArch > 0 ? (remainingArch / Math.max(archStep.n, 1)) : 0;
+        ax = tX + firstArchDist * sc + (prev * i) * sc;
+      }
+      ctx.strokeStyle = '#27ae60';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.moveTo(ax, tY); ctx.lineTo(ax, tY+tH); ctx.stroke();
+
+      // Spacer dots
+      ctx.fillStyle = '#f39c12';
+      ctx.beginPath(); ctx.arc(ax, tY+tH, 3, 0, Math.PI*2); ctx.fill();
+
+      // Label
+      if (i === 0) {
+        ctx.fillStyle = '#888';
+        ctx.font = '8px DejaVu Sans';
+        ctx.fillText(`${firstArchDist}`, tX+2, tY-3);
+      }
+    }
+
+    // Aero slope indicator (first arch is 30cm lower)
+    ctx.setLineDash([2,3]);
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 1;
+    const firstArchX = tX + firstArchDist * sc;
+    const slopeTop = tY - 300*sc;
+    ctx.beginPath(); ctx.moveTo(tX, slopeTop); ctx.lineTo(firstArchX, tY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Dimensions
+    drawDimArrow(tX, tY-8, tX+tW, tY-8, `${frameL} мм`, 'top');
+    drawDimArrow(tX-15, tY, tX-15, tY+tH, `${tentMM} мм`, 'left');
+
+    // Annotations
+    ctx.fillStyle = '#888';
+    ctx.font = '9px DejaVu Sans';
+    ctx.fillText(`дуг: ${archCount} шт (1-я на ${firstArchDist} мм, остальные с шагом ${archStep.step.toFixed(0)} мм)`, tX, tY+tH+12);
+    ctx.fillText(`профиль дуг: 20×20×1.5 | бок.рамки: 20×20×1.5 × 2 × ${(frameL/1000).toFixed(1)} м | проставки: 25×25×2 × ${archCount*2} шт × 10 см`, tX, tY+tH+24);
+    ctx.fillText(`аэро скос: 1-я дуга на 30 см ниже | ПВХ: ${bp.tentPVC} (${bp.tentClr})`, tX, tY+tH+36);
+
+    curY = tY + tH + 48;
+  }
+
+  // ─────────────────────────────────────────────
+  // 4. FRONT CROSS-SECTION (разрез спереди)
+  // ─────────────────────────────────────────────
+  const frontLabel = hasTent ? '4. РАЗРЕЗ СПЕРЕДИ (рама + борт + тент)' : '3. РАЗРЕЗ СПЕРЕДИ (рама + борт)';
+  drawLabel(margin, curY, frontLabel, '#9b59b6');
+  curY += labelH + 5;
+
+  const secX = rX + 40;
+  const secY = curY;
+  const secW = frameW * sc;
+  const crossH = 60; // fixed height for cross section
+
+  // Frame bottom bar
+  ctx.strokeStyle = '#5dade2';
+  ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(secX, secY+crossH-10); ctx.lineTo(secX+secW, secY+crossH-10); ctx.stroke();
+
+  // Frame label
+  drawDim(secX+secW/2-30, secY+crossH+15, `Рама: ${bp.frameProfile}`, '#5dade2');
+
+  // Board frame (vertical posts)
+  let boardVOffset = 10;
+  const bLeft = secX + boardVOffset;
+  const bRight = secX + secW - boardVOffset;
+  const bTop = secY;
+  const bBot = secY + crossH - 10;
+
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(bLeft, bTop); ctx.lineTo(bLeft, bBot); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, bTop); ctx.lineTo(bRight, bBot); ctx.stroke();
+
+  // Board horizontal rails
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(bLeft-5, bTop+3); ctx.lineTo(bLeft, bTop+3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, bTop+3); ctx.lineTo(bRight+5, bTop+3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bLeft-5, bBot-3); ctx.lineTo(bLeft, bBot-3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, bBot-3); ctx.lineTo(bRight+5, bBot-3); ctx.stroke();
+
+  // Board labels
+  drawDim(bLeft-30, (bTop+bBot)/2, `${boardH} мм`, '#3498db');
+
+  // Plywood
+  ctx.fillStyle = 'rgba(52,152,219,0.1)';
+  ctx.fillRect(bLeft, bTop+3, bRight-bLeft, bBot-bTop-6);
+  drawDim(secX+secW/2-35, secY+crossH-10+27, `Фанера 9 мм с двух сторон`, '#888');
+
+  // Axle indicator
+  const axleDepth = crossH/2;
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(secX-20, secY+crossH+30); ctx.lineTo(secX+secW+20, secY+crossH+30); ctx.stroke();
+  ctx.fillStyle = '#e74c3c';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`Ось: ${bp.axleProfile} (${(frameW+200)} мм, +20 см шире рамы)`, secX+secW/2-100, secY+crossH+42);
+
+  // Tent arch cross section (if tent)
+  if (hasTent) {
+    const archTop = secY - tentMM*sc;
+    const archLeft = bLeft;
+    const archRight = bRight;
+
+    ctx.setLineDash([4,3]);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 2;
+    // Arch: U-shape
+    ctx.beginPath();
+    ctx.moveTo(archLeft, secY);
+    ctx.lineTo(archLeft, archTop);
+    ctx.lineTo(archRight, archTop);
+    ctx.lineTo(archRight, secY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Arch labels
+    drawDim(archLeft-30, (archTop+secY)/2, `${tentMM} мм`, '#27ae60');
+    drawDim(secX+secW/2-40, archTop-8, `Дуга: 20×20×1.5`, '#27ae60');
+  }
+
+  // Width dimension
+  ctx.fillStyle = '#f39c12';
+  ctx.font = '10px DejaVu Sans';
+  ctx.fillText(`${W} мм (заявленная)`, secX+secW/2-40, secY+crossH-10-5+crossH/2-20);
+  ctx.fillText(`${frameW} мм (рама)`, secX+secW/2-35, secY+crossH+62);
+
+  // Total
+  const totalY = hasTent ? secY - tentMM*sc - 15 : secY;
+  ctx.fillStyle = '#e0e0e0';
+  ctx.font = `bold ${Math.max(12, 14)}px DejaVu Sans`;
+  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);
 
   document.getElementById('zoomLabel').textContent = `${(scale*100).toFixed(0)}%`;
 }

@@ -759,31 +759,31 @@ function redrawCanvas() {
   const apexY = dby + dbLen * sc;
 
   // Drawbar — BELOW frame, not in same plane
-  // Center beam 120cm, side beams start at 15cm offset, run to frame sides
+  // Center beam 120cm, side beams start at 15cm offset, run UNDER frame to sides
   const sideStartOffset = 150*sc;  // 15 см от начала центр. луча
+  const drawbarYOffset = 10;       // визуальный отступ вниз (под рамой)
+  const dbEdgeY = dby + drawbarYOffset;
   
-  // Main drawbar triangle (under frame)
+  // Side beams (dashed) — from frame sides to hitch, 15cm offset
   ctx.setLineDash([3,3]);
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5);
-  // Side beams: from frame sides to hitch area
-  ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY + sideStartOffset); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(dbx + dbBase*sc, dby); ctx.lineTo(apexX, apexY + sideStartOffset); ctx.stroke();
-  // Center beam: from hitch to cross member
+  ctx.beginPath(); ctx.moveTo(dbx, dbEdgeY); ctx.lineTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(dbx + dbBase*sc, dbEdgeY); ctx.lineTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.stroke();
+  // Center beam (dashed): hitch → 15cm offset → cross member at frame edge
   ctx.lineWidth = Math.max(2, 3);
-  ctx.setLineDash([2,2]);
-  ctx.beginPath(); ctx.moveTo(apexX, apexY); ctx.lineTo(apexX, apexY + sideStartOffset); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(apexX, apexY + sideStartOffset); ctx.lineTo(dbx + dbBase*sc/2, dby); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(apexX, apexY + drawbarYOffset); ctx.lineTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(apexX, apexY + sideStartOffset + drawbarYOffset); ctx.lineTo(dbx + dbBase*sc/2, dbEdgeY); ctx.stroke();
   ctx.setLineDash([]);
   
-  // Drawbar cross member — at front edge of frame, same profile as drawbar
+  // Cross member at front edge (SOLID — visible at frame edge)
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5);
   ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(dbx + dbBase*sc, dby); ctx.stroke();
   
   // Hitch circle
   ctx.fillStyle = '#e74c3c';
-  ctx.beginPath(); ctx.arc(apexX, apexY, 7, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(apexX, apexY + drawbarYOffset, 7, 0, Math.PI*2); ctx.fill();
 
   // Dimensions
   drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');

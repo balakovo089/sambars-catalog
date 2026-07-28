@@ -94,6 +94,9 @@ canvas{display:block;cursor:grab}
   <h3>🔩 БОЛТОВАЯ КАРТА</h3>
   <div class="section" id="boltMap"></div>
 
+  <h3>🔧 КРОНШТЕЙНЫ</h3>
+  <div class="section" id="bracketSpec"></div>
+
   <h3>⚖️ СВОДКА</h3>
   <div class="summary" id="summary"></div>
 </div>
@@ -387,6 +390,7 @@ function recalc() {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
   renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, sPerimeter);
+  renderBrackets(bp, state);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state);
   updateMeta();
   redrawCanvas();
@@ -473,6 +477,21 @@ function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, sPerim) {
     <tr><td>Замки самосвала</td><td>—</td><td class="num">2</td></tr>
   </table>`;
   document.getElementById('boltMap').innerHTML = html;
+}
+
+function renderBrackets(bp, st) {
+  const a = st.axles;
+  const html = `<table>
+    <tr><th>Деталь</th><th>Кол-во</th><th>Расположение</th></tr>
+    <tr><td>Кронштейны рессор</td><td class="num">${a*4} шт</td><td>2 на каждую рессору, расстояние между крайними 670 мм</td></tr>
+    <tr><td>Пятки рессор</td><td class="num">${a*2} шт</td><td>за задним кронштейном, 60×60 мм</td></tr>
+    <tr><td>Кронштейны амортизаторов</td><td class="num">${a*4} шт</td><td>2 на каждую ось: на оси и на аморт. балке</td></tr>
+    <tr><td>Кронштейны крыльев</td><td class="num">${a*4} шт</td><td>2 на каждое пластиковое крыло</td></tr>
+    <tr><td>Косынки (Самбарс)</td><td class="num">${st.brand === 'Барсук' ? 0 : 4} шт</td><td>по внутренним углам рамы</td></tr>
+    <tr><td>Проставки дуг (тент)</td><td class="num">${st.tentH > 0 ? (1 + Math.max(0, calcStep(st.L + BRAND[st.brand].extraMM - 800, 700).n))*2 : 0} шт</td><td>25×25×2, длина 100 мм</td></tr>
+  </table>`;
+  const el = document.getElementById('bracketSpec');
+  if (el) el.innerHTML = html;
 }
 
 function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st) {
@@ -635,10 +654,10 @@ function redrawCanvas() {
   // shockY — позиция АМОРТ. БАЛКИ. Ось находится на 445 мм ПЕРЕД ней (к дышлу).
   function drawAxleSet(shockY, label, color) {
     const axleY = shockY + 445*sc;      // ось на 445 мм перед аморт. балкой
-    const springFront = axleY + 335*sc;  // передний кронштейн = к дышлу = +Y
-    const springRear = axleY - 335*sc;   // задний кронштейн = от дышла = -Y
+    const springFront = axleY + 335*sc;  // передний кронштейн рессоры = к дышлу
+    const springRear = axleY - 335*sc;   // задний кронштейн рессоры = от дышла
 
-    // Axle center
+    // Axle center (dashed)
     ctx.setLineDash([4,3]);
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
@@ -647,19 +666,30 @@ function redrawCanvas() {
     ctx.font = 'bold 8px DejaVu Sans';
     ctx.fillText('ось', rX+rW+28, axleY+3);
 
-    // Spring brackets (yellow markers)
-    const brMarkerX = rX + rW/2 - 30*sc;
+    // Spring brackets — rectangles 60mm wide, 2 per spring (front + rear)
+    const brW = 60*sc;
+    const brH = 20*sc;  // visual height
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#f39c12';
     [springFront, springRear].forEach(sy => {
-      ctx.fillStyle = '#f39c12';
-      ctx.font = '7px DejaVu Sans';
-      ctx.fillText('▎', brMarkerX-10, sy+3);
+      // Draw two brackets (left and right side of frame)
+      ctx.fillRect(rX + 10, sy, brW, brH);
+      ctx.fillRect(rX + rW - 10 - brW, sy, brW, brH);
     });
 
-    // Shock beam (orange, thick)
-    ctx.setLineDash([]);
+    // Shock beam (orange)
     ctx.strokeStyle = '#e67e22';
     ctx.lineWidth = 4;
     ctx.beginPath(); ctx.moveTo(rX, shockY); ctx.lineTo(rX+rW, shockY); ctx.stroke();
+
+    // Shock absorber brackets — on the shock beam, 150mm from frame edges
+    const shockBrW = 30*sc;
+    const shockBrH = 15*sc;
+    ctx.fillStyle = '#e74c3c';
+    ctx.fillRect(rX + 150*sc, shockY - shockBrH/2, shockBrW, shockBrH);
+    ctx.fillRect(rX + rW - 150*sc - shockBrW, shockY - shockBrH/2, shockBrW, shockBrH);
+
+    // Labels
     ctx.fillStyle = '#e67e22';
     ctx.font = 'bold 8px DejaVu Sans';
     ctx.fillText(label, rX+rW+4, shockY+3);
@@ -704,9 +734,9 @@ function redrawCanvas() {
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  let annoText = `поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм)`;
-  if (axles === 1) annoText += ` | аморт. балка: 55 см в зад от центра`;
-  if (axles === 2) annoText += ` | аморт. балки: +10 см и +100 см от центра`;
+  let annoText = `поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм) | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
+  if (axles === 1) annoText += ` | аморт. балка: +55 см`;
+  if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
   ctx.fillText(annoText, rX, rY+rL+12);
   ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rL+24);
   if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rL+36);

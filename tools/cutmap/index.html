@@ -301,8 +301,11 @@ function recalc() {
   // Sides
   const sPerimeter = 2*(W + L)/1000;
   const sFrame = 2 * sPerimeter; // top + bottom rails
-  const sStep = calcStep(2*(W+L), 800);
-  const sJumpers = sStep.n * (bp.sideThick/1000);  // высота перемычек = высота борта
+  // Перемычки: jLong/jShort вычисляются ниже
+  const jumpLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
+  const jumpShort = W < 1930 ? 1 : 2;
+  const totalJumpers = jumpLong * 2 + jumpShort * 2;
+  const sJumpers = totalJumpers * (bp.sideThick / 1000);
   const sTotal = sFrame + sJumpers;
 
   // Tent frame
@@ -356,7 +359,7 @@ function recalc() {
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00]});
   if (sTotal > 0) {
     const sidePieces = [sPerimeter, sPerimeter]; // top + bottom
-    for (let i = 0; i < sStep.n; i++) sidePieces.push(bp.sideThick/1000);
+    for (let i = 0; i < totalJumpers; i++) sidePieces.push(bp.sideThick/1000);
     allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
   }
   if (tentFrameM > 0) {
@@ -663,24 +666,21 @@ function redrawCanvas() {
   ctx.fillStyle = 'rgba(52,152,219,0.08)';
   ctx.fillRect(bX+2, bY+2, bW-4, bH-4);
 
-  // Vertical posts (перемычки)
-  const sStep = calcStep(2*(W+L), 800);
+  // Vertical posts (перемычки) — по новому правилу Олега
+  const jLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
+  const jShort = W < 1930 ? 1 : 2;
+  // Длинный борт: jLong перемычек на каждой из 2 длинных сторон
+  // Короткий борт: jShort перемычек на каждой из 2 коротких сторон
+  
   ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 1.5;
+  
+  // Рисуем только ДЛИННЫЙ борт на виде сбоку — jLong перемычек
   const postPositions = [];
-  for (let i = 0; i <= sStep.n; i++) {
-    const vx = bX + (bW * i) / sStep.n;
+  for (let i = 1; i <= jLong; i++) {
+    const vx = bX + (bW * i) / (jLong + 1);
     postPositions.push(vx);
     ctx.beginPath(); ctx.moveTo(vx, bY); ctx.lineTo(vx, bY+bH); ctx.stroke();
-
-    // Post label
-    if (i > 0) {
-      const prevX = bX + (bW * (i-1)) / sStep.n;
-      const stepDist = Math.round((2*(W+L) / sStep.n));
-      ctx.fillStyle = '#666';
-      ctx.font = '8px DejaVu Sans';
-      ctx.fillText(`~${stepDist}`, prevX+2, bY-2);
-    }
   }
 
   // Horizontal rails (top + bottom)
@@ -696,8 +696,12 @@ function redrawCanvas() {
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`верт. стоек: ${sStep.n+1} шт (шаг ~${Math.round(2*(W+L)/sStep.n)} мм)`, bX, bY+bH+12);
-  ctx.fillText(`рамка: ${bp.sideProfile} | перемычки: ${bp.sideProfile} × ${sStep.n+1} шт × ${boardH} мм = ${((sStep.n+1)*boardH/1000).toFixed(1)} м`, bX, bY+bH+24);
+  // Annotations
+  const jumpStep = Math.round(L / (jLong + 1));
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`длинный борт: ${jLong} перемычек (шаг ~${jumpStep} мм) | короткий: ${jShort}`, bX, bY+bH+12);
+  ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.sideThick / 1000).toFixed(1)} м`, bX, bY+bH+24);
 
   curY = bY + bH + 36;
 

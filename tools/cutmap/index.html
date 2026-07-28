@@ -764,19 +764,37 @@ function redrawCanvas() {
   const drawbarYOffset = 10;       // визуальный отступ вниз (под рамой)
   const dbEdgeY = dby + drawbarYOffset;
   
-  // Side beams (dashed) — from 15cm point to frame sides
+  // Side beams — go UNDER frame to SIDE rails (not front edge!)
+  // Calculate where they attach to side rails using Pythagoras
+  const halfW = frameW/2;
+  const sideAttachDist = Math.sqrt(Math.pow(dbSideLen*1000, 2) - Math.pow(halfW, 2)); // mm along frame
+  const sideAttachY = dby - sideAttachDist * sc;  // how far BACK from front edge
+  
+  const jointX = apexX;
+  const jointY = apexY + sideStartOffset + drawbarYOffset;
+  
   ctx.setLineDash([3,3]);
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5);
-  const jointX = apexX;
-  const jointY = apexY + sideStartOffset + drawbarYOffset;
-  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx, dbEdgeY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx + dbBase*sc, dbEdgeY); ctx.stroke();
-  // Center beam (dashed): hitch → 15cm joint point → cross member at frame edge
+  // Side beams: from 15cm joint → to side rails (UNDER frame)
+  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(rX, sideAttachY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(rX + rW, sideAttachY); ctx.stroke();
+  
+  // Center beam: hitch → 15cm joint → cross member at front edge
   ctx.lineWidth = Math.max(2, 3);
   ctx.beginPath(); ctx.moveTo(apexX, apexY + drawbarYOffset); ctx.lineTo(jointX, jointY); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx + dbBase*sc/2, dbEdgeY); ctx.stroke();
   ctx.setLineDash([]);
+  
+  // Side rail attachment markers
+  ctx.fillStyle = '#e74c3c';
+  [rX, rX+rW].forEach(sx => {
+    ctx.fillRect(sx-3, sideAttachY-3, 6, 6);
+  });
+  ctx.fillStyle = '#888';
+  ctx.font = '8px DejaVu Sans';
+  ctx.fillText(`крепление к лонжерону`, rX+rW+5, sideAttachY+3);
+  ctx.fillText(`${(sideAttachDist/1000).toFixed(1)}м от переда`, rX+rW+5, sideAttachY+14);
   
   // Joint point marker (15cm from hitch)
   ctx.fillStyle = '#fff';

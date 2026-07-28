@@ -263,12 +263,15 @@ function updateWLOptions(brand) {
 }
 
 function onParamChange() {
+  const prevBrand = state.brand;
   state.brand = document.getElementById('brand').value;
+  if (prevBrand !== state.brand) {
+    updateWLOptions(state.brand);
+  }
   state.W = parseInt(document.getElementById('W').value);
   state.L = parseInt(document.getElementById('L').value);
   state.tentH = parseInt(document.getElementById('tentH').value) || 0;
   state.axles = parseInt(document.getElementById('axles').value);
-  updateWLOptions(state.brand);
   recalc();
 }
 

@@ -764,11 +764,9 @@ function redrawCanvas() {
   const drawbarYOffset = 10;       // визуальный отступ вниз (под рамой)
   const dbEdgeY = dby + drawbarYOffset;
   
-  // Side beams — go UNDER frame to SIDE rails (not front edge!)
-  // Calculate where they attach to side rails using Pythagoras
-  const halfW = frameW/2;
-  const sideAttachDist = Math.sqrt(Math.pow(dbSideLen*1000, 2) - Math.pow(halfW, 2)); // mm along frame
-  const sideAttachY = dby - sideAttachDist * sc;  // how far BACK from front edge
+  // Side beams — go UNDER frame to side rails at ~22cm from front edge
+  const sideAttachDist = 220;  // mm from front edge (по словам Олега: 21-23 см)
+  const sideAttachY = dby - sideAttachDist * sc;
   
   const jointX = apexX;
   const jointY = apexY + sideStartOffset + drawbarYOffset;
@@ -794,7 +792,7 @@ function redrawCanvas() {
   ctx.fillStyle = '#888';
   ctx.font = '8px DejaVu Sans';
   ctx.fillText(`крепление к лонжерону`, rX+rW+5, sideAttachY+3);
-  ctx.fillText(`${(sideAttachDist/1000).toFixed(1)}м от переда`, rX+rW+5, sideAttachY+14);
+  ctx.fillText(`~22 см от переда`, rX+rW+5, sideAttachY+14);
   
   // Joint point marker (15cm from hitch)
   ctx.fillStyle = '#fff';

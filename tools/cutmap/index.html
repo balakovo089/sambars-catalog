@@ -632,20 +632,20 @@ function redrawCanvas() {
   ctx.fillText('центр рамы', rX+rW+22, trueCenter+3);
 
   // Нарисовать комплект подвески (аморт.балка + кронштейны) для каждой оси
-  // axleY — центр оси. springFront ближе к дышлу (+Y), springRear дальше от дышла (-Y)
-  function drawAxleSet(axleY, label, color) {
+  // shockY — позиция АМОРТ. БАЛКИ. Ось находится на 445 мм ПЕРЕД ней (к дышлу).
+  function drawAxleSet(shockY, label, color) {
+    const axleY = shockY + 445*sc;      // ось на 445 мм перед аморт. балкой
     const springFront = axleY + 335*sc;  // передний кронштейн = к дышлу = +Y
     const springRear = axleY - 335*sc;   // задний кронштейн = от дышла = -Y
-    const shockBeamY = axleY - 335*sc - 60*sc - 50*sc; // аморт. балка за задним кронштейном
 
     // Axle center
     ctx.setLineDash([4,3]);
     ctx.strokeStyle = color;
     ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(rX-30, axleY); ctx.lineTo(rX+rW+30, axleY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rX-25, axleY); ctx.lineTo(rX+rW+25, axleY); ctx.stroke();
     ctx.fillStyle = color;
     ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText(label, rX+rW+32, axleY+3);
+    ctx.fillText('ось', rX+rW+28, axleY+3);
 
     // Spring brackets (yellow markers)
     const brMarkerX = rX + rW/2 - 30*sc;
@@ -655,23 +655,23 @@ function redrawCanvas() {
       ctx.fillText('▎', brMarkerX-10, sy+3);
     });
 
-    // Shock beam (orange)
+    // Shock beam (orange, thick)
     ctx.setLineDash([]);
     ctx.strokeStyle = '#e67e22';
     ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(rX, shockBeamY); ctx.lineTo(rX+rW, shockBeamY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rX, shockY); ctx.lineTo(rX+rW, shockY); ctx.stroke();
     ctx.fillStyle = '#e67e22';
     ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('аморт', rX+rW+4, shockBeamY+3);
+    ctx.fillText(label, rX+rW+4, shockY+3);
   }
 
   if (axles === 1) {
-    const axleCenter = trueCenter - 100*sc;  // одноосная: центр оси на 10см в ЗАД (вверх)
-    drawAxleSet(axleCenter, 'ось +10см ↖', '#e74c3c');
+    // Одноосная: аморт. балка на 545 мм в зад от центра рамы
+    drawAxleSet(trueCenter - 545*sc, 'аморт 54.5см', '#e67e22');
   } else {
-    // Двухосная: передняя ось по центру рамы, задняя на 101.5см в зад
-    drawAxleSet(trueCenter, 'ось 1 (центр)', '#e74c3c');
-    drawAxleSet(trueCenter - 1015*sc, 'ось 2 +101.5см', '#c0392b');
+    // Двухосная: передняя аморт. балка по центру, задняя на 101.5 см в зад
+    drawAxleSet(trueCenter, 'аморт 1 (центр)', '#e67e22');
+    drawAxleSet(trueCenter - 1015*sc, 'аморт 2 101.5см', '#c0392b');
   }
 
   ctx.setLineDash([]);
@@ -710,8 +710,8 @@ function redrawCanvas() {
   if (axles === 1) annoText += ` | аморт. балка: ${shockDist1} мм от переда`;
   if (axles === 2) annoText += ` | аморт. балки: ${shockDist1} мм и ${shockDist2} мм от переда`;
   ctx.fillText(annoText, rX, rY+rL+12);
-  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile}`, rX, rY+rL+24);
-  if (brand !== 'Барсук') ctx.fillText(`+ центр. балка + косынки (4 шт) | рессоры ${bp.springs}-лист.`, rX+210, rY+rL+24);
+  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rL+24);
+  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rL+36);
 
   curY = apexY + 30;
 

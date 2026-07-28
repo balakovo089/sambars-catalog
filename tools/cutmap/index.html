@@ -778,12 +778,17 @@ function redrawCanvas() {
   ctx.beginPath(); ctx.moveTo(jointX, jointY); ctx.lineTo(dbx + dbBase*sc/2, dbEdgeY); ctx.stroke();
   ctx.setLineDash([]);
   
-  // Joint point marker (15cm from hitch — side beams start here)
+  // Joint point marker (15cm from hitch)
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(jointX, jointY, 7, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath(); ctx.arc(jointX, jointY, 5, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 8px DejaVu Sans';
-  ctx.fillText('15см', jointX + 8, jointY + 3);
+  ctx.fillText('15см', jointX + 10, jointY + 3);
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`центр. луч 120см | боковые ${dbSideLen*100}см`, rX + rW/2 - 90, apexY + drawbarYOffset - 5);
   
   // Cross member at front edge (SOLID — visible at frame edge)
   ctx.strokeStyle = '#e74c3c';
@@ -797,8 +802,10 @@ function redrawCanvas() {
   // Dimensions
   drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');
   drawDimArrow(rX-15, rY, rX-15, rY+rL, `${frameL} мм`, 'left');
+  // Centre beam: 1200mm from hitch to cross member
+  drawDim(apexX-55, apexY + drawbarYOffset + (dbEdgeY - (apexY + drawbarYOffset))/2, `1200 мм`);
+  // Side beam length
   drawDim(apexX+8, dby+(apexY-dby)/2, `${dbLen} мм`);
-  drawDim(apexX-40, apexY + sideStartOffset/2, `15 см`);
 
   // Annotations
   ctx.fillStyle = '#888';

@@ -763,7 +763,7 @@ function redrawCanvas() {
   
   const HITCH_Y = apexY + DRAW_Y_OFF;          // точка фаркопа
   const JOINT_Y = HITCH_Y - 150*sc;             // 15 см ОТ hitch К РАМЕ (вверх по canvas)
-  const FRONT_Y = dby + DRAW_Y_OFF;             // передний край рамы (под рамой)
+  const FRONT_Y = dby;                           // передний край рамы — ровно!
   const ATTACH_Y = dby - 220*sc;                // крепление к лонжеронам: 22 см внутри
   const MID_X = rX + rW/2;
   
@@ -792,12 +792,12 @@ function redrawCanvas() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // 3. Перемычка (сплошная): между точками крепления у переднего края
+  // 3. Перемычка (сплошная) — ровно под передней балкой, на всю ширину
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5*scale);
   ctx.beginPath();
-  ctx.moveTo(crossL, FRONT_Y);
-  ctx.lineTo(crossR, FRONT_Y);
+  ctx.moveTo(rX, FRONT_Y);
+  ctx.lineTo(rX + rW, FRONT_Y);
   ctx.stroke();
 
   // 4. Маркеры

@@ -149,19 +149,19 @@ const CATALOG = [
 // ══════════════════════════════════════════════════════════
 const BRAND = {
   'Барсук': {
-    frameProfile:'60×40×2', extraMM:60, sideProfile:'25×25×2', sideThick:30,
+    frameProfile:'60×40×2', extraMM:60, sideProfile:'25×25×2', sideThick:300,
     drawbarProfile:'60×60×2', axleProfile:'50×50×3', springs:3,
     tentPVC:'ПВХ 500 г/м²', tentClr:'серый', espander:6, wheels:'R13',
     frontFlap:'наглухо', rearFlap:'ремни'
   },
   'Самбарс': {
-    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
+    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:350,
     drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:5,
     tentPVC:'ПВХ 650 г/м²', tentClr:'графитовый', espander:8, wheels:'R14',
     frontFlap:'поворотки', rearFlap:'поворотки'
   },
   'Бизон': {
-    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
+    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:350,
     drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:7,
     tentPVC:'ПВХ 650 г/м²', tentClr:'графитовый', espander:8, wheels:'R14',
     frontFlap:'поворотки', rearFlap:'поворотки'
@@ -302,7 +302,7 @@ function recalc() {
   const sPerimeter = 2*(W + L)/1000;
   const sFrame = 2 * sPerimeter; // top + bottom rails
   const sStep = calcStep(2*(W+L), 800);
-  const sJumpers = sStep.n * (300/1000);
+  const sJumpers = sStep.n * (bp.sideThick/1000);  // высота перемычек = высота борта
   const sTotal = sFrame + sJumpers;
 
   // Tent frame
@@ -322,7 +322,7 @@ function recalc() {
 
   // Plywood
   const floorArea = (W/1000) * (L/1000);
-  const sideArea = sPerimeter * 0.30;
+  const sideArea = sPerimeter * (bp.sideThick/1000);
   const sheetArea125 = 3.125;
   const sheetArea150 = 4.50;
   const floorSheets = W <= 1250 ? Math.ceil(floorArea / sheetArea125) :
@@ -356,7 +356,7 @@ function recalc() {
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00]});
   if (sTotal > 0) {
     const sidePieces = [sPerimeter, sPerimeter]; // top + bottom
-    for (let i = 0; i < sStep.n; i++) sidePieces.push(0.30);
+    for (let i = 0; i < sStep.n; i++) sidePieces.push(bp.sideThick/1000);
     allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
   }
   if (tentFrameM > 0) {
@@ -445,7 +445,7 @@ function renderTent(area, bp, sPerimeter, hasTent) {
     <tr><td>Люверсы 27 мм</td><td>${Math.ceil(perimeter/0.5)} шт</td></tr>
     <tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
     <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
-    <tr><td>Срок службы</td><td>~${brand === 'Барсук' ? 2 : 7} лет</td></tr>
+    <tr><td>Срок службы</td><td>~${state.brand === 'Барсук' ? 2 : 7} лет</td></tr>
   </table>`;
   document.getElementById('tentPlan').innerHTML = html;
 }
@@ -521,7 +521,7 @@ function redrawCanvas() {
   const frameL = L + bp.extraMM;
   const hasTent = tentH > 0;
   const tentMM = tentH * 10;
-  const boardH = 300; // mm — высота борта ВСЕГДА 30 см
+  const boardH = bp.sideThick; // mm (30cm Барсук, 35cm Самбарс)
 
   canvas.width = canvas.width;
   const sc = baseScale * scale;
@@ -652,7 +652,7 @@ function redrawCanvas() {
   const bX = rX;
   const bY = curY;
   const bW = frameL * sc;  // length = frame length for side view
-  const bH = 300 * sc;  // высота борта 30 см
+  const bH = boardH * sc;  // высота борта
 
   // Board frame - outer rectangle
   ctx.strokeStyle = '#3498db';
@@ -691,13 +691,13 @@ function redrawCanvas() {
 
   // Dimensions
   drawDimArrow(bX, bY-8, bX+bW, bY-8, `${frameL} мм`, 'top');
-  drawDimArrow(bX-15, bY, bX-15, bY+bH, `300 мм`, 'left');
+  drawDimArrow(bX-15, bY, bX-15, bY+bH, `${boardH} мм`, 'left');
 
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
   ctx.fillText(`верт. стоек: ${sStep.n+1} шт (шаг ~${Math.round(2*(W+L)/sStep.n)} мм)`, bX, bY+bH+12);
-  ctx.fillText(`рамка: ${bp.sideProfile} | перемычки: ${bp.sideProfile} × ${sStep.n+1} шт × 300 мм = ${((sStep.n+1)*300/1000).toFixed(1)} м`, bX, bY+bH+24);
+  ctx.fillText(`рамка: ${bp.sideProfile} | перемычки: ${bp.sideProfile} × ${sStep.n+1} шт × ${boardH} мм = ${((sStep.n+1)*boardH/1000).toFixed(1)} м`, bX, bY+bH+24);
 
   curY = bY + bH + 36;
 
@@ -820,7 +820,7 @@ function redrawCanvas() {
   ctx.beginPath(); ctx.moveTo(bRight, bBot-3); ctx.lineTo(bRight+5, bBot-3); ctx.stroke();
 
   // Board labels
-  drawDim(bLeft-30, (bTop+bBot)/2, `300 мм`, '#3498db');
+  drawDim(bLeft-30, (bTop+bBot)/2, `${boardH} мм`, '#3498db');
 
   // Plywood
   ctx.fillStyle = 'rgba(52,152,219,0.1)';
@@ -869,7 +869,7 @@ function redrawCanvas() {
   const totalY = hasTent ? secY - tentMM*sc - 15 : secY;
   ctx.fillStyle = '#e0e0e0';
   ctx.font = `bold ${Math.max(12, 14)}px DejaVu Sans`;
-  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт 300 мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);
+  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);
 
   document.getElementById('zoomLabel').textContent = `${(scale*100).toFixed(0)}%`;
 }

@@ -58,25 +58,11 @@ canvas{display:block;cursor:grab}
   <label>Модель из каталога</label>
   <select id="modelSelect" onchange="onModelChange()"></select>
 
-  <div class="meta-info" id="metaInfo"></div>
-
-  <h3>📐 ПАРАМЕТРЫ</h3>
-  <label>Бренд</label>
-  <select id="brand" onchange="onParamChange()">
-    <option value="Барсук">Барсук</option>
-    <option value="Самбарс">Самбарс</option>
-  </select>
-  <label>Ширина, мм</label>
-  <select id="W" onchange="onParamChange()"></select>
-  <label>Длина, мм</label>
-  <select id="L" onchange="onParamChange()"></select>
-  <label>Тент, см</label>
-  <select id="tentH" onchange="onParamChange()"></select>
   <label>Осей</label>
-  <select id="axles" onchange="onParamChange()">
-    <option value="1">1</option>
-    <option value="2">2</option>
+  <select id="axles" onchange="onAxleChange()">
   </select>
+
+  <div class="meta-info" id="metaInfo"></div>
 
   <h3>📊 МЕТАЛЛОПРОКАТ</h3>
   <div class="section" id="metalSpec"></div>
@@ -207,6 +193,41 @@ function init() {
 }
 
 // ══════════════════════════════════════════════════════════
+// MODEL SELECTION
+// ══════════════════════════════════════════════════════════
+let currentModelIdx = 9;
+
+function onModelChange() {
+  const idx = parseInt(document.getElementById('modelSelect').value);
+  currentModelIdx = idx;
+  const m = CATALOG[idx];
+  
+  state.brand = m.brand;
+  state.W = m.w;
+  state.L = m.l;
+  state.tentH = m.tent || 0;
+  
+  // Populate axles dropdown
+  const axSel = document.getElementById('axles');
+  axSel.innerHTML = '';
+  m.ax.forEach(a => {
+    const opt = document.createElement('option');
+    opt.value = a;
+    opt.textContent = a;
+    axSel.appendChild(opt);
+  });
+  axSel.value = m.ax[0];
+  state.axles = m.ax[0];
+  
+  recalc();
+}
+
+function onAxleChange() {
+  state.axles = parseInt(document.getElementById('axles').value);
+  recalc();
+}
+
+// ══════════════════════════════════════════════════════════
 // HELPERS
 // ══════════════════════════════════════════════════════════
 function calcStep(total, divisor) {
@@ -220,7 +241,6 @@ function roundXlysts(metalM) {
 }
 
 function cut6m(pieces) {
-  // Bin-packing pieces into 6m stocks (greedy)
   const sorted = [...pieces].sort((a,b) => b - a);
   const stocks = [];
   for (const p of sorted) {
@@ -231,51 +251,6 @@ function cut6m(pieces) {
     if (!placed) stocks.push({used: p, items: [p]});
   }
   return stocks;
-}
-
-// ══════════════════════════════════════════════════════════
-// MODEL SELECTION
-// ══════════════════════════════════════════════════════════
-function onModelChange() {
-  const idx = parseInt(document.getElementById('modelSelect').value);
-  const m = CATALOG[idx];
-  document.getElementById('brand').value = m.brand;
-  document.getElementById('tentH').value = m.tent;
-  document.getElementById('axles').value = m.ax[0];
-
-  // Set W/L options
-  updateWLOptions(m.brand);
-  document.getElementById('W').value = m.w;
-  document.getElementById('L').value = m.l;
-
-  onParamChange();
-}
-
-function updateWLOptions(brand) {
-  const wSel = document.getElementById('W');
-  const lSel = document.getElementById('L');
-  wSel.innerHTML = ''; lSel.innerHTML = '';
-
-  const widths = brand === 'Барсук' ? [1250, 1500] :
-                 brand === 'Самбарс' ? [1250, 1500, 1700, 1930] : [2000];
-  const lengths = brand === 'Барсук' ? [2000, 2500, 3000, 3500] :
-                  brand === 'Самбарс' ? [2000, 2500, 3000, 3500, 4000, 4500] : [3500, 4000];
-
-  widths.forEach(w => { const o = document.createElement('option'); o.value = w; o.textContent = (w/1000).toFixed(2)+'м'; wSel.appendChild(o); });
-  lengths.forEach(l => { const o = document.createElement('option'); o.value = l; o.textContent = (l/1000).toFixed(1)+'м'; lSel.appendChild(o); });
-}
-
-function onParamChange() {
-  const prevBrand = state.brand;
-  state.brand = document.getElementById('brand').value;
-  if (prevBrand !== state.brand) {
-    updateWLOptions(state.brand);
-  }
-  state.W = parseInt(document.getElementById('W').value);
-  state.L = parseInt(document.getElementById('L').value);
-  state.tentH = parseInt(document.getElementById('tentH').value) || 0;
-  state.axles = parseInt(document.getElementById('axles').value);
-  recalc();
 }
 
 // ══════════════════════════════════════════════════════════

@@ -266,8 +266,22 @@ function recalc() {
   const frameW = W + bp.extraMM;
   const frameL = L + bp.extraMM;
   const fPerimeter = 2*(frameW + frameL)/1000;
-  const cross = calcStep(frameL, 600);
-  const crossM = cross.n * frameW / 1000;
+  // Cross members — with shock beams counted as cross members
+  const specialBeamsR = axles === 1 ? [frameL/2 + 550] : [frameL/2 + 100, frameL/2 + 1000];
+  specialBeamsR.sort((a,b) => a-b);
+  
+  let totalCross = 0;
+  const segs = [];
+  let pr = 0;
+  for (const sp of specialBeamsR) { segs.push({start:pr, end:sp}); pr = sp; }
+  segs.push({start:pr, end:frameL});
+  segs.forEach(seg => {
+    const segLen = seg.end - seg.start;
+    if (segLen < 200) return;
+    const n = Math.max(0, Math.round(segLen / 600) - 1);
+    if (n > 0) totalCross += n;
+  });
+  const crossM = totalCross * frameW / 1000;
   const centerM = (brand !== 'Барсук') ? frameL/1000 : 0;
 
   // Drawbar
@@ -333,7 +347,7 @@ function recalc() {
 
   let allProfilePieces = [
     {label:`Рама ${frameProfile}`, pieces:[fpLong, fpLong, fpShort, fpShort]},
-    {label:`Поперечины 40×20×2`, pieces:Array(cross.n).fill(fpCross)},
+    {label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)},
   ];
   if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, 2.00, 2.00]});
@@ -592,14 +606,58 @@ function redrawCanvas() {
     ctx.setLineDash([]);
   }
 
-  // Cross members
-  const cross = calcStep(frameL, 600);
-  ctx.strokeStyle = '#7f8c8d';
-  ctx.lineWidth = Math.max(2, 3*scale);
-  for (let i = 0; i <= cross.n; i++) {
-    const y = rY + (rL * i) / cross.n;
-    ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
+  // Cross members + shock beams in same plane
+  // Shock beams REPLACE regular cross members — no 40×20 next to them
+  // Divide frame into segments between special beams, place cross members evenly
+  
+  // Special beam positions (mm from front edge of frame)
+  const specialBeams = [];
+  if (axles === 1) {
+    specialBeams.push(frameL/2 + 550);
+  } else {
+    specialBeams.push(frameL/2 + 100);
+    specialBeams.push(frameL/2 + 1000);
   }
+  specialBeams.sort((a,b) => a-b);
+  
+  // Draw shock beams (frame profile, not 40×20)
+  ctx.strokeStyle = '#e67e22';
+  ctx.lineWidth = Math.max(4, 5);
+  specialBeams.forEach(pos => {
+    const y = rY + (pos / frameL) * rL;
+    ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
+  });
+  
+  // Regular cross members in segments between special beams
+  const segments = [];
+  let prev = 0;
+  for (const sp of specialBeams) {
+    segments.push({start: prev, end: sp});
+    prev = sp;
+  }
+  segments.push({start: prev, end: frameL});
+  
+  let totalCross = 0;
+  const crossPositions = [];
+  segments.forEach(seg => {
+    const segLen = seg.end - seg.start;
+    if (segLen < 200) return;
+    const n = Math.max(0, Math.round(segLen / 600) - 1);
+    if (n <= 0) return;
+    const step = segLen / (n + 1);
+    for (let i = 1; i <= n; i++) {
+      crossPositions.push(seg.start + step * i);
+    }
+    totalCross += n;
+  });
+  
+  // Draw regular cross members (40×20)
+  ctx.strokeStyle = '#7f8c8d';
+  ctx.lineWidth = Math.max(2, 3);
+  crossPositions.forEach(pos => {
+    const y = rY + (pos / frameL) * rL;
+    ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
+  });
 
   // Corner gussets
   if (brand !== 'Барсук') {
@@ -652,22 +710,12 @@ function redrawCanvas() {
       ctx.fillRect(rX + rW - 10 - brW, sy, brW, brH);
     });
 
-    // Shock beam (orange)
-    ctx.strokeStyle = '#e67e22';
-    ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(rX, shockY); ctx.lineTo(rX+rW, shockY); ctx.stroke();
-
     // Shock absorber brackets — on the shock beam, 150mm from frame edges
     const shockBrW = 30*sc;
     const shockBrH = 15*sc;
     ctx.fillStyle = '#e74c3c';
     ctx.fillRect(rX + 150*sc, shockY - shockBrH/2, shockBrW, shockBrH);
     ctx.fillRect(rX + rW - 150*sc - shockBrW, shockY - shockBrH/2, shockBrW, shockBrH);
-
-    // Labels
-    ctx.fillStyle = '#e67e22';
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText(label, rX+rW+4, shockY+3);
   }
 
   if (axles === 1) {
@@ -709,7 +757,7 @@ function redrawCanvas() {
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  let annoText = `поперечин: ${cross.n} шт (шаг ${(frameL/cross.n).toFixed(0)} мм) | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
+  let annoText = `поперечин 40×20: ${totalCross} шт | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
   ctx.fillText(annoText, rX, rY+rL+12);

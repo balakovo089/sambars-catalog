@@ -563,7 +563,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const frontH = (aero ? tMM - 300 + hemMM : tMM + hemMM)/1000;
   const frontM2 = (fW/1000) * frontH;
   const rearH = (tMM + hemMM + 240)/1000;  // задний: +120 верх +120 низ
-  const rearM2 = (fW/1000) * rearH;
+  const rearM2 = ((fW + 240)/1000) * rearH;  // высота тоже +240
   const overlaps = 1.08;
   const totalM2 = ((mainM2 + frontM2 + rearM2) * overlaps).toFixed(2);
   // Нижний периметр (люверсы 10 мм, эспандер)
@@ -580,7 +580,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td>Основное полотно (крыша+бока)</td><td class="num">${mainW.toFixed(2)}×${mainH.toFixed(2)} = ${mainM2.toFixed(2)} м2</td></tr>
     <tr><td>  в т.ч. подворот ${hemMM} мм</td><td class="num">по низу боковин</td></tr>
     <tr><td>Передний клапан${aero ? ' (скос -30 см)' : ''}</td><td class="num">${(fW/1000).toFixed(2)}×${(frontH/1000).toFixed(2)} = ${frontM2.toFixed(2)} м2</td></tr>
-    <tr><td>Задний клапан</td><td class="num">${(fW/1000).toFixed(2)}×${(tMM/1000).toFixed(2)} = ${rearM2.toFixed(2)} м2</td></tr>
+    <tr><td>Задний клапан (+120 верх/низ)</td><td class="num">${((fW+240)/1000).toFixed(2)}×${rearH.toFixed(2)} = ${rearM2.toFixed(2)} м²</td></tr>
     <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b> (×${overlaps})</td><td class="num"><b>${totalM2}</b> м2</td></tr>
     <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
   </table>
@@ -1668,11 +1668,11 @@ function redrawCanvas() {
     ctx.fillText(`ПЕРЕД${aero?' -30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
     drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW} мм`, 'left');
 
-    // Задний клапан (развёрнут, +120 верх +120 низ = +240 к ширине)
+    // Задний клапан (развёрнут, +120 верх +120 низ → высота frameW+240)
     const rFlapW = (tentMM + 220 + 240) * tScale;
-    const rFlapH = frameW * tScale;
+    const rFlapH = (frameW + 240) * tScale;  // +120 верх +120 низ
     const rFlapX = tLayoutX - rFlapW - flapGap;
-    const rFlapY = fold1Y;
+    const rFlapY = fold1Y - 120*tScale;  // верх на 120 мм выше крыши
     const rFlapHemX = rFlapX + hemH;  // подворот 220 мм от левого края
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
@@ -1684,9 +1684,9 @@ function redrawCanvas() {
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    // Вертикальная линия — подворот 220 мм
+    // Вертикальная — подворот 220 мм
     ctx.moveTo(rFlapHemX, rFlapY); ctx.lineTo(rFlapHemX, rFlapY + rFlapH);
-    // Горизонтальные — 120 мм от верха и низа
+    // Горизонтальные на 120 мм от верха/низа → совпадают с fold1Y/fold2Y
     ctx.moveTo(rFlapX, rFlapY + 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + 120*tScale);
     ctx.moveTo(rFlapX, rFlapY + rFlapH - 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + rFlapH - 120*tScale);
     ctx.stroke();
@@ -1698,7 +1698,7 @@ function redrawCanvas() {
     ctx.fillStyle = '#f39c12';
     ctx.font = 'bold 8px DejaVu Sans';
     ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 + 4);
-    drawDimArrow(rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, `${frameW} мм`, 'left');
+    drawDimArrow(rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, `${frameW+240} мм`, 'left');
     drawDimArrow(rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, `${tentMM+460} мм`, 'top');
 
     ctx.fillStyle = '#888';

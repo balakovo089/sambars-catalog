@@ -324,18 +324,30 @@ function recalc() {
   const floorArea = (W/1000) * (L/1000);
   const sideArea = sPerimeter * (bp.boardH/1000);
   
-  // Пол: узкий лист (1250×2500) только на W=1250, широкий (1500×3000) на W≥1500
-  let floorSheets, hasFloorSeam = false;
+  // Пол: узкий (1250×2500) на w=1250 вдоль и w=1700/1930 поперёк, широкий (1500×3000) на w=1500
+  let floorSheets, hasFloorSeam = false, floorSheetType, floorSeams = 0;
   if (W <= 1250) {
-    // Узкий лист 1250×2500
+    // Узкий лист вдоль: 2500 мм по длине
+    floorSheetType = '1250×2500 (вдоль)';
     floorSheets = L <= 2500 ? 1 : 2;
     hasFloorSeam = L > 2500;
-  } else {
-    // Широкий лист 1500×3000
+    if (hasFloorSeam) floorSeams = 1;
+  } else if (W <= 1500) {
+    // Широкий лист вдоль: 3000 мм по длине
+    floorSheetType = '1500×3000 (вдоль)';
     floorSheets = L <= 3000 ? 1 : 2;
     hasFloorSeam = L > 3000;
+    if (hasFloorSeam) floorSeams = 1;
+  } else {
+    // w=1700/1930: узкий лист ПОПЕРЁК — 2500 мм в ширину, 1250 мм вдоль
+    floorSheetType = '1250×2500 (поперёк)';
+    const alongStep = 1250; // длина куска вдоль прицепа
+    floorSheets = Math.ceil(L / alongStep);
+    floorSeams = floorSheets - 1;  // стык между каждыми соседними листами
+    hasFloorSeam = floorSeams > 0;
   }
   state.hasFloorSeam = hasFloorSeam;
+  state.floorSeams = floorSeams;
   // Борта: всегда узкий лист
   const sideSheets = Math.ceil(sideArea / 3.125);
 
@@ -368,13 +380,15 @@ function recalc() {
     allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)});
   }
   if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
-  // Доп. перемычка под шов фанеры пола
+  // Доп. перемычки под швы фанеры пола (по одной на каждый стык)
   if (hasFloorSeam) {
     const extraCrossM = (frameW/1000);
-    if (brand !== 'Барсук') {
-      allProfilePieces.push({label:`Перемычка под шов пола 40×20×2 (2 половинки)`, pieces:[extraCrossM/2, extraCrossM/2]});
-    } else {
-      allProfilePieces.push({label:`Перемычка под шов пола 40×20×2`, pieces:[extraCrossM]});
+    for (let s = 0; s < floorSeams; s++) {
+      if (brand !== 'Барсук') {
+        allProfilePieces.push({label:`Перемычка под шов пола 40×20×2 (2 половинки)`, pieces:[extraCrossM/2, extraCrossM/2]});
+      } else {
+        allProfilePieces.push({label:`Перемычка под шов пола 40×20×2`, pieces:[extraCrossM]});
+      }
     }
   }
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, dbSideLen, dbSideLen, (frameW)/1000]});  // центр + 2 бока + перемычка
@@ -398,7 +412,7 @@ function recalc() {
   // ═══ RENDER ═══
   renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);
   renderCutPlan(allProfilePieces);
-  renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam);
+  renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
   if (hasTent) {
     document.getElementById('tentPlanBlock').style.display = 'block';
     renderTent(tentArea, bp, sPerimeter, hasTent);
@@ -407,7 +421,7 @@ function recalc() {
   }
   renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, sPerimeter);
   renderBrackets(bp, state);
-  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state);
+  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
   updateMeta();
   redrawCanvas();
 }
@@ -450,23 +464,32 @@ function renderCutPlan(pieces) {
   document.getElementById('cutPlan').innerHTML = html;
 }
 
-function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam) {
-  const floorSheetType = W <= 1250 ? '1250×2500' : '1500×3000';
-  const seamNote = hasFloorSeam ? ` + доп. перемычка 40×20×2` : '';
+function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType) {
+  const seamNote = hasFloorSeam ? ` (${floorSeams} швов + доп. перемычки 40×20×2)` : '';
   
-  // Визуальный раскрой (как для металла)
-  let html = '<div class="cut-block"><b>ПОЛ</b> — ' + floorSheetType + seamNote;
-  const fW = W <= 1250 ? 1250 : 1500;
-  const fL = W <= 1250 ? 2500 : 3000;
+  // Визуальный раскрой
+  let html = `<div class="cut-block"><b>ПОЛ</b> — ${floorSheetType} | ${floorSheets} лист(а)${seamNote}`;
+  
   if (floorSheets === 1) {
+    const fW = W <= 1250 ? 1250 : W <= 1500 ? 1500 : 1250;
+    const fL = W <= 1250 ? 2500 : W <= 1500 ? 3000 : 2500;
     const usedPct = ((W * L) / (fW * fL) * 100).toFixed(0);
     html += `<div class="cut-bar"><div class="cut-seg" style="width:${usedPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м</div><div class="cut-seg cut-waste" style="width:${100-parseInt(usedPct)}%">обрезь</div></div>`;
+  } else if (W > 1500) {
+    // Поперёк: несколько листов 1250 мм вдоль
+    html += `<div class="cut-bar">`;
+    const segPct = (1250 / L * 100).toFixed(0);
+    for (let i = 0; i < floorSheets; i++) {
+      html += `<div class="cut-seg" style="width:${segPct}%;background:${i%2===0?'#e94560':'#f39c12'}">лист ${i+1}</div>`;
+    }
+    html += `</div><span class="sub">стыки каждые 1250 мм (${floorSeams} шт)</span>`;
   } else {
+    // Вдоль: основной + добор
     const mainL = W <= 1250 ? 2500 : 3000;
     const extraL = L - mainL;
     const mainPct = (mainL / L * 100).toFixed(0);
     const extraPct = (extraL / L * 100).toFixed(0);
-    html += `<div class="cut-bar"><div class="cut-seg" style="width:${mainPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(mainL/1000).toFixed(1)} м</div><div class="cut-seg" style="width:${extraPct}%;background:#f39c12">+${(extraL/1000).toFixed(2)} м</div></div><span class="sub">шов на ${(mainL/1000).toFixed(1)} м от заднего края</span>`;
+    html += `<div class="cut-bar"><div class="cut-seg" style="width:${mainPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(mainL/1000).toFixed(1)} м</div><div class="cut-seg" style="width:${extraPct}%;background:#f39c12">+${(extraL/1000).toFixed(2)} м</div></div><span class="sub">шов на ${(mainL/1000).toFixed(1)} м</span>`;
   }
   html += '</div>';
 
@@ -536,7 +559,7 @@ function renderBrackets(bp, st) {
   if (el) el.innerHTML = html;
 }
 
-function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st) {
+function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetType) {
   let totalMetal = 0, totalMass = 0;
   pieces.forEach(grp => {
     const tm = grp.pieces.reduce((a,b)=>a+b,0);
@@ -551,7 +574,7 @@ function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st) {
     <tr><td>Металла всего</td><td class="val">${totalMetal.toFixed(1)} м</td></tr>
     <tr><td>Вес металла</td><td class="val">${totalMass.toFixed(1)} кг</td></tr>
     <tr><td>Хлыстов 6м</td><td class="val">~${xlysts} шт</td></tr>
-    <tr><td>Фанера</td><td class="val">${fSheets + sSheets} листов</td></tr>
+    <tr><td>Фанера</td><td class="val">${fSheets + sSheets} листов<br><span class="sub">пол: ${floorSheetType}</span></td></tr>
     <tr><td>Тент</td><td class="val">${tentArea > 0 ? tentArea.toFixed(1)+' м²' : '—'}</td></tr>
     <tr><td>Колёса</td><td class="val">${bp.wheels} ×${st.axles*2}</td></tr>
     <tr><td>Рессоры</td><td class="val">${bp.springs}-лист ×${st.axles*2}</td></tr>
@@ -915,7 +938,7 @@ function redrawCanvas() {
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ' + 1 под шов пола' : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
+  let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ` + ${state.floorSeams} под швы пола` : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
   ctx.fillText(annoText, rX, rY+rL+12);

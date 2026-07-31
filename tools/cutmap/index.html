@@ -1014,12 +1014,11 @@ function redrawCanvas() {
     ctx.stroke();
 
     // Вертикальные стойки рамки — столько же сколько дуг, на тех же позициях
-    let archCount, archPositions = [];
+    let archPositions = [];
     if (hasAeroSkos) {
-      // Со скосом: первая дуга на 800 мм, остальные через ~700 мм
+      // Со скосом: передняя дуга (0), вторая на 800 мм, остальные через ~700 мм
       const remainingArch = frameL - 800;
       const rs = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
-      archCount = 2 + rs.n;  // передняя + задняя + промежуточные
       archPositions.push(0);          // передний край (укороченная)
       archPositions.push(800);        // первая после скоса
       for (let i = 1; i <= rs.n; i++) archPositions.push(800 + i * rs.step);
@@ -1027,12 +1026,12 @@ function redrawCanvas() {
     } else {
       // Без скоса: все дуги равномерно, включая края
       const s = calcStep(frameL, 700);
-      archCount = s.n + 1;  // включая переднюю и заднюю
       const step = frameL / (s.n + 1);
       archPositions.push(0);  // передний край
       for (let i = 1; i <= s.n; i++) archPositions.push(i * step);
       archPositions.push(frameL);  // задний край
     }
+    const archCount = archPositions.length;
 
     ctx.strokeStyle = '#1e8449';
     ctx.lineWidth = 1.5;

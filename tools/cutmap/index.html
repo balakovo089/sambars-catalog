@@ -1567,11 +1567,17 @@ function redrawCanvas() {
     ctx.beginPath(); ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
     ctx.setLineDash([]);
 
-    // Скос на переднем краю (стык КРЫША / ПЕРЕДНИЙ БОК)
+    // Скос на переднем краю: верхний бок, крыша и нижний бок — все под скос
     if (aero) {
       ctx.setLineDash([2,2]);
       ctx.strokeStyle = '#f39c12';
       ctx.lineWidth = 1.5;
+      // Верхний край верхнего бока (передний срез)
+      ctx.beginPath();
+      ctx.moveTo(tLayoutX, tLayoutY + 300*tScale);
+      ctx.lineTo(tLayoutX + 800*tScale, tLayoutY);
+      ctx.stroke();
+      // Стык КРЫША / НИЖНИЙ БОК (передний срез)
       ctx.beginPath();
       ctx.moveTo(tLayoutX, fold2Y + 300*tScale);
       ctx.lineTo(tLayoutX + 800*tScale, fold2Y);
@@ -1579,7 +1585,7 @@ function redrawCanvas() {
       ctx.setLineDash([]);
       ctx.fillStyle = '#f39c12';
       ctx.font = '7px DejaVu Sans';
-      ctx.fillText('скос −30', tLayoutX + 5, fold2Y + 150*tScale);
+      ctx.fillText('скос −30', tLayoutX + 5, tLayoutY + 150*tScale);
     }
 
     // Подписи секций

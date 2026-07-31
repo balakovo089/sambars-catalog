@@ -1674,11 +1674,10 @@ function redrawCanvas() {
     const rFlapX = tLayoutX - rFlapW - flapGap;
     const rFlapY = fold1Y;
     const rFlapHemX = rFlapX + hemH;  // подворот 220 мм от левого края
-    ctx.fillStyle = 'rgba(46, 204, 113, 0.5)';
+    ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
-    // DEBUG яркий
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 2;
     ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
     // Подворот вертикально (красный пунктир)
     ctx.setLineDash([5,5]);

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Спецификации прицепов — Самбарс v28.07</title>
+<title>Спецификации прицепов - Самбарс v28.07</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DejaVu Sans',Arial,sans-serif;background:#1a1a2e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
@@ -93,7 +93,7 @@ canvas{display:block;cursor:grab}
 <div class="main">
   <canvas id="c"></canvas>
   <div class="toolbar">
-    <span style="color:#888">🖱 Перетаскивайте | ⚙ Колёсико — вверх/вниз</span>
+    <span style="color:#888">🖱 Перетаскивайте | ⚙ Колёсико - вверх/вниз</span>
     <button onclick="resetView()">Сброс</button>
   </div>
   <div class="legend">
@@ -144,21 +144,21 @@ const BRAND = {
     frameProfile:'60×40×2', extraMM:60, sideProfile:'20×20×1.5', sideThick:30,
     boardH:300,
     drawbarProfile:'60×60×2', axleProfile:'50×50×3', springs:3,
-    tentPVC:'ПВХ 500 г/м²', tentClr:'серый', espander:6, wheels:'R13',
+    tentPVC:'ПВХ 500 г/м2', tentClr:'серый', espander:6, wheels:'R13',
     frontFlap:'наглухо', rearFlap:'ремни'
   },
   'Самбарс': {
     frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
     boardH:300,
     drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:5,
-    tentPVC:'ПВХ 650 г/м²', tentClr:'графитовый', espander:8, wheels:'R14',
+    tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
     frontFlap:'поворотки', rearFlap:'поворотки'
   },
   'Бизон': {
     frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
     boardH:300,
     drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:7,
-    tentPVC:'ПВХ 650 г/м²', tentClr:'графитовый', espander:8, wheels:'R14',
+    tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
     frontFlap:'поворотки', rearFlap:'поворотки'
   }
 };
@@ -192,7 +192,7 @@ function init() {
   CATALOG.forEach((m,i) => {
     const opt = document.createElement('option');
     opt.value = i;
-    opt.textContent = `#${m.num} ${m.model} тент ${m.tent||'—'}см`;
+    opt.textContent = `#${m.num} ${m.model} тент ${m.tent||'-'}см`;
     sel.appendChild(opt);
   });
   sel.value = '9'; // Самбарс 1.5×3.0 default
@@ -208,12 +208,12 @@ function onModelChange() {
   const idx = parseInt(document.getElementById('modelSelect').value);
   currentModelIdx = idx;
   const m = CATALOG[idx];
-  
+
   state.brand = m.brand;
   state.W = m.w;
   state.L = m.l;
   state.tentH = m.tent || 0;
-  
+
   // Populate axles dropdown
   const axSel = document.getElementById('axles');
   axSel.innerHTML = '';
@@ -225,7 +225,7 @@ function onModelChange() {
   });
   axSel.value = m.ax[0];
   state.axles = m.ax[0];
-  
+
   recalc();
 }
 
@@ -273,10 +273,10 @@ function recalc() {
   const frameW = W + bp.extraMM;
   const frameL = L + bp.extraMM;
   const fPerimeter = 2*(frameW + frameL)/1000;
-  // Cross members — with shock beams counted as cross members
+  // Cross members - with shock beams counted as cross members
   const specialBeamsR = axles === 1 ? [frameL/2 + 550] : [frameL/2 + 100, frameL/2 + 1000];
   specialBeamsR.sort((a,b) => a-b);
-  
+
   let totalCross = 0;
   const segs = [];
   let pr = 0;
@@ -328,7 +328,7 @@ function recalc() {
   // Plywood
   const floorArea = (W/1000) * (L/1000);
   const sideArea = sPerimeter * (bp.boardH/1000);
-  
+
   // Пол: узкий (1250×2500) на w=1250 вдоль и w=1700/1930 поперёк, широкий (1500×3000) на w=1500
   let floorSheets, hasFloorSeam = false, floorSheetType, floorSeams = 0;
   if (W <= 1250) {
@@ -344,7 +344,7 @@ function recalc() {
     hasFloorSeam = L > 3000;
     if (hasFloorSeam) floorSeams = 1;
   } else {
-    // w=1700/1930: узкий лист ПОПЕРЁК — 2500 мм в ширину, 1250 мм вдоль
+    // w=1700/1930: узкий лист ПОПЕРЁК - 2500 мм в ширину, 1250 мм вдоль
     floorSheetType = '1250×2500 (поперёк)';
     const alongStep = 1250; // длина куска вдоль прицепа
     floorSheets = Math.ceil(L / alongStep);
@@ -390,7 +390,7 @@ function recalc() {
   let allProfilePieces = [
     {label:`Рама ${frameProfile}`, pieces:[fpLong, fpLong, fpShort, fpShort]},
   ];
-  // Поперечины: для Самбарса — двойное количество половинок (слева и справа от центр. балки)
+  // Поперечины: для Самбарса - двойное количество половинок (слева и справа от центр. балки)
   if (brand !== 'Барсук') {
     allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross * 2).fill(fpCrossHalf)});
   } else {
@@ -409,7 +409,7 @@ function recalc() {
     }
   }
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, dbSideLen, dbSideLen, (frameW)/1000]});  // центр + 2 бока + перемычка
-  // Аморт. балки — как перемычки: на Самбарсе/Бизоне делятся центр. балкой на половинки
+  // Аморт. балки - как перемычки: на Самбарсе/Бизоне делятся центр. балкой на половинки
   if (brand !== 'Барсук') {
     allProfilePieces.push({label:`Аморт. балка ${frameProfile} (2 половинки)`, pieces:[fpCrossHalf, fpCrossHalf]});
     if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile} (2 половинки)`, pieces:[fpCrossHalf, fpCrossHalf]});
@@ -433,7 +433,7 @@ function recalc() {
     const archPieceM = (frameW + 240) / 1000;  // frameW + 40 зазор + 2×100 ножки
     const arches = Array(tentArchCount).fill(archPieceM);
     allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:[...frameRails, ...framePosts, ...arches]});
-    // Проставки 25×25×2 — отдельный профиль
+    // Проставки 25×25×2 - отдельный профиль
     allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(tentArchCount * 2).fill(0.10)});
   }
   allProfilePieces.push({label:`Ось ${axleProfile}`, pieces:Array(axles).fill((frameW + 200)/1000)});
@@ -489,7 +489,7 @@ function renderCutPlan(pieces) {
   let html = '';
   for (const grp of pieces) {
     const stocks = cut6m(grp.pieces);
-    html += `<div class="cut-block"><b>${grp.label}</b> — ${stocks.length} хлыст(ов)`;
+    html += `<div class="cut-block"><b>${grp.label}</b> - ${stocks.length} хлыст(ов)`;
     stocks.forEach((s, i) => {
       html += `<div class="cut-bar">`;
       const colors = ['#e94560','#3498db','#27ae60','#f39c12','#9b59b6','#1abc9c','#e67e22','#2ecc71'];
@@ -508,10 +508,10 @@ function renderCutPlan(pieces) {
 
 function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType) {
   const seamNote = hasFloorSeam ? ` (${floorSeams} швов + доп. перемычки 40×20×2)` : '';
-  
+
   // Визуальный раскрой
-  let html = `<div class="cut-block"><b>ПОЛ</b> — ${floorSheetType} | ${floorSheets} лист(а)${seamNote}`;
-  
+  let html = `<div class="cut-block"><b>ПОЛ</b> - ${floorSheetType} | ${floorSheets} лист(а)${seamNote}`;
+
   if (floorSheets === 1) {
     const fW = W <= 1250 ? 1250 : W <= 1500 ? 1500 : 1250;
     const fL = W <= 1250 ? 2500 : W <= 1500 ? 3000 : 2500;
@@ -535,9 +535,9 @@ function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand
   }
   html += '</div>';
 
-  // Борта — всегда узкий лист
+  // Борта - всегда узкий лист
   const sidePcs = Math.ceil(sideArea / 3.125);
-  html += `<div class="cut-block"><b>БОРТА</b> — узкий лист 1250×2500 | ${sidePcs} лист(а) — ${brand === 'Барсук' ? 'обрезки, швы на перемычках' : 'цельные, без швов'}</div>`;
+  html += `<div class="cut-block"><b>БОРТА</b> - узкий лист 1250×2500 | ${sidePcs} лист(а) - ${brand === 'Барсук' ? 'обрезки, швы на перемычках' : 'цельные, без швов'}</div>`;
 
   html += `<div class="summary" style="margin-top:6px"><table>
     <tr><td>Пол</td><td class="val">${floorSheets} лист(а) ${floorSheetType}</td></tr>
@@ -550,14 +550,17 @@ function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand
 function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const isBarsuk = st.brand === 'Барсук';
   const aero = tH >= 120;
-  // Основное полотно: крыша + боковины (единая деталь)
+  const hemMM = 220;  // подворот: 100 мм выше каркаса + 120 мм подгиб
+  // Основное полотно: крыша + боковины (единая деталь), с подворотом на боках
   const mainW = fL/1000;
-  const mainH = (fW + 2*tMM)/1000;
+  const sideH = (tMM + hemMM)/1000;  // боковина с подворотом
+  const roofH = fW/1000;
+  const mainH = sideH + roofH + sideH;
   const mainM2 = mainW * mainH;
-  // Клапаны (припаиваются)
-  const frontH = aero ? tMM - 300 : tMM;
-  const frontM2 = (fW/1000) * (frontH/1000);
-  const rearM2 = (fW/1000) * (tMM/1000);
+  // Клапаны (припаиваются), тоже с подворотом
+  const frontH = (aero ? tMM - 300 + hemMM : tMM + hemMM)/1000;
+  const frontM2 = (fW/1000) * frontH;
+  const rearM2 = (fW/1000) * ((tMM + hemMM)/1000);
   const overlaps = 1.08;
   const totalM2 = ((mainM2 + frontM2 + rearM2) * overlaps).toFixed(2);
   // Нижний периметр (люверсы 10 мм, эспандер)
@@ -571,10 +574,11 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
 
   let html = `<table>
     <tr><td colspan="2"><b>Раскрой (2 детали + клапаны)</b></td></tr>
-    <tr><td>Основное полотно (крыша+бока)</td><td class="num">${mainW.toFixed(2)}×${mainH.toFixed(2)} = ${mainM2.toFixed(2)} м²</td></tr>
-    <tr><td>Передний клапан${aero ? ' (скос −30 см)' : ''}</td><td class="num">${(fW/1000).toFixed(2)}×${(frontH/1000).toFixed(2)} = ${frontM2.toFixed(2)} м²</td></tr>
-    <tr><td>Задний клапан</td><td class="num">${(fW/1000).toFixed(2)}×${(tMM/1000).toFixed(2)} = ${rearM2.toFixed(2)} м²</td></tr>
-    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b> (×${overlaps})</td><td class="num"><b>${totalM2}</b> м²</td></tr>
+    <tr><td>Основное полотно (крыша+бока)</td><td class="num">${mainW.toFixed(2)}×${mainH.toFixed(2)} = ${mainM2.toFixed(2)} м2</td></tr>
+    <tr><td>  в т.ч. подворот ${hemMM} мм</td><td class="num">по низу боковин</td></tr>
+    <tr><td>Передний клапан${aero ? ' (скос -30 см)' : ''}</td><td class="num">${(fW/1000).toFixed(2)}×${(frontH/1000).toFixed(2)} = ${frontM2.toFixed(2)} м2</td></tr>
+    <tr><td>Задний клапан</td><td class="num">${(fW/1000).toFixed(2)}×${(tMM/1000).toFixed(2)} = ${rearM2.toFixed(2)} м2</td></tr>
+    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b> (×${overlaps})</td><td class="num"><b>${totalM2}</b> м2</td></tr>
     <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
   </table>
   <table style="margin-top:8px">
@@ -646,7 +650,7 @@ function renderConsumables(c) {
   const html = `<table>
     <tr><td>Резов (пилов)</td><td class="num"><b>${c.cuts}</b></td></tr>
     <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td></tr>
-    <tr><td>Газ CO₂</td><td class="num">${c.gas} кг</td></tr>
+    <tr><td>Газ CO2</td><td class="num">${c.gas} кг</td></tr>
     <tr><td>Диски отрезные 125×1.2</td><td class="num">${c.cutDiscs} шт</td></tr>
     <tr><td>Диски лепестковые</td><td class="num">${c.grindDiscs} шт</td></tr>
     <tr><td>Перчатки</td><td class="num">${c.gloves} пар</td></tr>
@@ -672,7 +676,7 @@ function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetTyp
     <tr><td>Вес металла</td><td class="val">${totalMass.toFixed(1)} кг</td></tr>
     <tr><td>Хлыстов 6м</td><td class="val">~${xlysts} шт</td></tr>
     <tr><td>Фанера</td><td class="val">${fSheets + sSheets} листов<br><span class="sub">пол: ${floorSheetType}</span></td></tr>
-    <tr><td>Тент</td><td class="val">${tentArea > 0 ? tentArea.toFixed(1)+' м²' : '—'}</td></tr>
+    <tr><td>Тент</td><td class="val">${tentArea > 0 ? tentArea.toFixed(1)+' м2' : '-'}</td></tr>
     <tr><td>Колёса</td><td class="val">${bp.wheels} ×${st.axles*2}</td></tr>
     <tr><td>Рессоры</td><td class="val">${bp.springs}-лист ×${st.axles*2}</td></tr>
   </table>`;
@@ -687,7 +691,7 @@ function updateMeta() {
   document.getElementById('metaInfo').innerHTML =
     `<b>${brand}</b> ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м<br>
     Рама: ${frameW}×${frameL} мм | Ось от переда: ${axlePos.toFixed(0)} мм<br>
-    Борт: ${bp.boardH} мм | Тент: ${tentH||'—'} см | Осей: ${axles}`;
+    Борт: ${bp.boardH} мм | Тент: ${tentH||'-'} см | Осей: ${axles}`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -701,7 +705,7 @@ resizeCanvas();
 window.onresize = resizeCanvas;
 
 let baseScale = 0.30;  // крупнее чтобы было видно детали
-// Zoom removed — all elements in single scale. Pan via offX/offY.
+// Zoom removed - all elements in single scale. Pan via offX/offY.
 
 function redrawCanvas() {
   const {brand, W, L, tentH, axles} = state;
@@ -710,7 +714,7 @@ function redrawCanvas() {
   const frameL = L + bp.extraMM;
   const hasTent = tentH > 0;
   const tentMM = tentH * 10;
-  const boardH = bp.boardH; // mm — высота борта всегда 30 см
+  const boardH = bp.boardH; // mm - высота борта всегда 30 см
 
   canvas.width = canvas.width;
   const sc = baseScale;  // fixed scale, no zoom
@@ -780,9 +784,9 @@ function redrawCanvas() {
   }
 
   // Cross members + shock beams in same plane
-  // Shock beams REPLACE regular cross members — no 40×20 next to them
+  // Shock beams REPLACE regular cross members - no 40×20 next to them
   // Divide frame into segments between special beams, place cross members evenly
-  
+
   // Special beam positions (mm from front edge of frame)
   const specialBeams = [];
   if (axles === 1) {
@@ -792,7 +796,7 @@ function redrawCanvas() {
     specialBeams.push(frameL/2 + 1000);
   }
   specialBeams.sort((a,b) => a-b);
-  
+
   // Draw shock beams (frame profile, не 40×20)
   ctx.strokeStyle = '#e67e22';
   ctx.lineWidth = Math.max(4, 5);
@@ -806,7 +810,7 @@ function redrawCanvas() {
       ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW, y); ctx.stroke();
     }
   });
-  
+
   // Regular cross members in segments between special beams
   const segments = [];
   let prev = 0;
@@ -815,7 +819,7 @@ function redrawCanvas() {
     prev = sp;
   }
   segments.push({start: prev, end: frameL});
-  
+
   let totalCross = 0;
   const crossPositions = [];
   segments.forEach(seg => {
@@ -829,8 +833,8 @@ function redrawCanvas() {
     }
     totalCross += n;
   });
-  
-  // Draw regular cross members (40×20) — on Sambars, two halves per position
+
+  // Draw regular cross members (40×20) - on Sambars, two halves per position
   ctx.strokeStyle = '#7f8c8d';
   ctx.lineWidth = Math.max(2, 3);
   crossPositions.forEach(pos => {
@@ -870,7 +874,7 @@ function redrawCanvas() {
   ctx.fillText('центр рамы', rX+rW+22, trueCenter+3);
 
   // Нарисовать комплект подвески (аморт.балка + кронштейны) для каждой оси
-  // shockY — позиция АМОРТ. БАЛКИ. Ось находится на 445 мм ПЕРЕД ней (к дышлу).
+  // shockY - позиция АМОРТ. БАЛКИ. Ось находится на 445 мм ПЕРЕД ней (к дышлу).
   function drawAxleSet(shockY, label, color) {
     const axleY = shockY + 445*sc;      // ось на 445 мм перед аморт. балкой
     const springFront = axleY + 335*sc;  // передний кронштейн рессоры = к дышлу
@@ -885,7 +889,7 @@ function redrawCanvas() {
     ctx.font = 'bold 8px DejaVu Sans';
     ctx.fillText('ось', rX+rW+28, axleY+3);
 
-    // Spring brackets — rectangles 60mm wide, 2 per spring (front + rear)
+    // Spring brackets - rectangles 60mm wide, 2 per spring (front + rear)
     const brW = 60*sc;
     const brH = 20*sc;  // visual height
     ctx.setLineDash([]);
@@ -896,7 +900,7 @@ function redrawCanvas() {
       ctx.fillRect(rX + rW - 10 - brW, sy, brW, brH);
     });
 
-    // Shock absorber brackets — on the shock beam, 150mm from frame edges
+    // Shock absorber brackets - on the shock beam, 150mm from frame edges
     const shockBrW = 30*sc;
     const shockBrH = 15*sc;
     ctx.fillStyle = '#e74c3c';
@@ -945,7 +949,7 @@ function redrawCanvas() {
       ctx.beginPath(); ctx.arc(bx, cy, 2, 0, Math.PI*2); ctx.fill();
     }
   });
-  // Амортизаторные балки — тоже перемычки, в них тоже крепится пол
+  // Амортизаторные балки - тоже перемычки, в них тоже крепится пол
   specialBeams.forEach(pos => {
     const sy = rY + rL - (pos / frameL) * rL;
     totalFloorBolts += boltsPerCross;
@@ -976,17 +980,17 @@ function redrawCanvas() {
   const apexY = dby + dbLen * sc;   // hitch позиция
 
   const DRAW_Y_OFF = 10;
-  // Side beam attachment points — к ВНУТРЕННЕЙ стенке лонжерона
+  // Side beam attachment points - к ВНУТРЕННЕЙ стенке лонжерона
   const ATTACH_INSET = bp.frameProfile.includes('60×60') ? 30 : 25;  // отступ от края рамы
   const ATTACH_L = rX + ATTACH_INSET*sc;
   const ATTACH_R = rX + rW - ATTACH_INSET*sc;
-  
+
   const HITCH_Y = apexY + DRAW_Y_OFF;          // точка фаркопа
   const JOINT_Y = HITCH_Y - 150*sc;             // 15 см ОТ hitch К РАМЕ (вверх по canvas)
-  const FRONT_Y = dby;                           // передний край рамы — ровно!
+  const FRONT_Y = dby;                           // передний край рамы - ровно!
   const ATTACH_Y = dby - 220*sc;                // крепление к лонжеронам: 22 см внутри
   const MID_X = rX + rW/2;
-  
+
   const crossL = ATTACH_L;                      // перемычка: от левого до правого луча
   const crossR = ATTACH_R;
 
@@ -1012,10 +1016,10 @@ function redrawCanvas() {
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // 3. Перемычка — между точками пересечения боковых лучей с передним краем
+  // 3. Перемычка - между точками пересечения боковых лучей с передним краем
   const leftX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_L - MID_X) / (ATTACH_Y - JOINT_Y);
   const rightX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_R - MID_X) / (ATTACH_Y - JOINT_Y);
-  
+
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5*scale);
   ctx.beginPath();
@@ -1024,13 +1028,13 @@ function redrawCanvas() {
   ctx.stroke();
 
   // 4. Маркеры
-  // Hitch — красный круг
+  // Hitch - красный круг
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath();
   ctx.arc(MID_X, HITCH_Y, 7, 0, Math.PI*2);
   ctx.fill();
 
-  // Joint — бело-красный круг с "15см"
+  // Joint - бело-красный круг с "15см"
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(MID_X, JOINT_Y, 7, 0, Math.PI*2);
@@ -1043,7 +1047,7 @@ function redrawCanvas() {
   ctx.font = 'bold 8px DejaVu Sans';
   ctx.fillText('15см', MID_X + 10, JOINT_Y + 3);
 
-  // Кронштейны самосвала — пластины 120×60×5 мм (на дышле + ответные на раме)
+  // Кронштейны самосвала - пластины 120×60×5 мм (на дышле + ответные на раме)
   const brL = 120 * sc;  // длина пластины 120 мм
   const brW = 60 * sc;   // ширина пластины 60 мм
   [ATTACH_L, ATTACH_R].forEach(sx => {
@@ -1054,7 +1058,7 @@ function redrawCanvas() {
     ctx.lineWidth = 1.8;
     ctx.setLineDash([]);
     ctx.strokeRect(sx - brL/2, ATTACH_Y - brW/2, brL, brW);
-    
+
     // Болт М12×80 (жёлтый кружок с белым центром)
     ctx.fillStyle = '#f1c40f';
     ctx.beginPath();
@@ -1064,7 +1068,7 @@ function redrawCanvas() {
     ctx.beginPath();
     ctx.arc(sx, ATTACH_Y, 2.5, 0, Math.PI*2);
     ctx.fill();
-    
+
     // Подпись кронштейна
     ctx.fillStyle = '#e74c3c';
     ctx.font = 'bold 8px DejaVu Sans';
@@ -1124,7 +1128,7 @@ function redrawCanvas() {
   const jLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
   const jShort = W < 1930 ? 1 : 2;
   const totalJumpers = jLong * 2 + jShort * 2;
-  
+
   ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 1.5;
   for (let i = 1; i <= jLong; i++) {
@@ -1191,7 +1195,7 @@ function redrawCanvas() {
   curY = sbY + sbH + 36;
 
   // ─────────────────────────────────────────────
-  // 3. TENT FRAME (каркас тента — вид сбоку)
+  // 3. TENT FRAME (каркас тента - вид сбоку)
   // ─────────────────────────────────────────────
   if (hasTent) {
     drawLabel(margin, curY, '3. КАРКАС ТЕНТА (вид сбоку)', '#27ae60');
@@ -1239,7 +1243,7 @@ function redrawCanvas() {
     }
     ctx.stroke();
 
-    // Вертикальные стойки рамки — столько же сколько дуг, на тех же позициях
+    // Вертикальные стойки рамки - столько же сколько дуг, на тех же позициях
     let archPositions = [];
     if (hasAeroSkos) {
       // Со скосом: передняя дуга (0), вторая на 800 мм, остальные через ~700 мм
@@ -1274,12 +1278,12 @@ function redrawCanvas() {
     if (hasAeroSkos) {
       ctx.fillStyle = '#f39c12';
       ctx.font = '8px DejaVu Sans';
-      ctx.fillText('−300', tX - 28, tY + 150*sc);
+      ctx.fillText('-300', tX - 28, tY + 150*sc);
       ctx.fillText('800 мм', tX + 350*sc, tY + tH/2 + 10);
       ctx.fillText('аэро скос', tX + 300*sc, tY + 120*sc);
     }
 
-    // Дуги (Π-образные перемычки) — на тех же позициях что и стойки
+    // Дуги (Π-образные перемычки) - на тех же позициях что и стойки
     archPositions.forEach((pos, i) => {
       const ax = tX + pos * sc;
       const archTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
@@ -1300,7 +1304,7 @@ function redrawCanvas() {
       ctx.setLineDash([]);
     });
 
-    // Аэро скос — наклонная верхняя труба рамки на первых 800 мм
+    // Аэро скос - наклонная верхняя труба рамки на первых 800 мм
     if (hasAeroSkos) {
       ctx.setLineDash([2,3]);
       ctx.strokeStyle = '#f39c12';
@@ -1322,7 +1326,7 @@ function redrawCanvas() {
     ctx.font = '9px DejaVu Sans';
     ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт, высота ${boardH}+${tentMM}=${totalFrameH} мм | стоек = дуг: ${archCount} шт`, tX, tY+tH+12);
     ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+24);
-    ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка −300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
+    ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка -300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
     // Болты тента: М6, такой же шаг как борта→рама
     const tentBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
     for (let i = 0; i < tentBoltN; i++) {
@@ -1351,7 +1355,7 @@ function redrawCanvas() {
   const boardVisH = boardH * sc;       // высота борта 300 мм
 
   // ── ВЕРТИКАЛЬНАЯ КОМПОНОВКА ──
-  // Рамка тента = борт (300 мм) + тент (tentMM) — начинается от рамы ВВЕРХ
+  // Рамка тента = борт (300 мм) + тент (tentMM) - начинается от рамы ВВЕРХ
   // Тент над бортом = tentMM, борт внутри нижней части
   let tentTopY = curY;                  // верх рамки тента (и дуги)
   let frameY;                            // уровень рамы
@@ -1407,7 +1411,7 @@ function redrawCanvas() {
 
     drawDimArrow(tbLeft, tentTopY - 10, tbRight, tentTopY - 10, `${frameW+40} мм`, 'top');
     drawDim(secX + secW/2 - 50, tentTopY - 22, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
-    // Высота тента — от верха борта до верха рамки
+    // Высота тента - от верха борта до верха рамки
     drawDimArrow(tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, `тент ${tentH} см`, 'left');
   }
 
@@ -1548,11 +1552,14 @@ function redrawCanvas() {
     // Расположение: сверху задний бок → крыша (со скосом спереди) → передний бок
     const mainW = frameL * tScale;
     const sideH = tentMM * tScale;
+    const hemH = 220 * tScale;            // подворот 220 мм
     const roofH = frameW * tScale;
-    const mainH = sideH + roofH + sideH;  // задний бок + крыша + передний бок
-    const fold1Y = tLayoutY + sideH;       // сгиб: задний бок / крыша
-    const fold2Y = fold1Y + roofH;          // сгиб: крыша / передний бок
-    
+    const mainH = (sideH + hemH) + roofH + (sideH + hemH);
+    const fold1Y = tLayoutY + sideH + hemH;       // сгиб: задний бок / крыша
+    const fold2Y = fold1Y + roofH;                 // сгиб: крыша / передний бок
+    const hem1Y = tLayoutY + sideH;                // граница подворота верхнего бока
+    const hem2Y = fold2Y + sideH + hemH;           // низ основного полотна
+
     // Основное полотно — полный прямоугольник (крыша НЕ режется)
     ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';
     ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
@@ -1560,7 +1567,7 @@ function redrawCanvas() {
     ctx.lineWidth = 2.5;
     ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
 
-    // Линии сгиба
+    // Линии сгиба КРЫША/БОК
     ctx.setLineDash([3,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1;
@@ -1569,13 +1576,26 @@ function redrawCanvas() {
     ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
     ctx.setLineDash([]);
 
-    // Линии скоса на боковинах (крыша не режется — полная ширина mainW)
+    // Подвороты (пунктир, 220 мм снизу боковин)
+    ctx.setLineDash([1,3]);
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(tLayoutX, hem1Y); ctx.lineTo(tLayoutX + mainW, hem1Y); ctx.stroke();
+    ctx.moveTo(tLayoutX, hem2Y - hemH); ctx.lineTo(tLayoutX + mainW, hem2Y - hemH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#888';
+    ctx.font = '7px DejaVu Sans';
+    ctx.fillText('подворот 220', tLayoutX + 4, hem1Y - 3);
+    ctx.fillText('подворот 220', tLayoutX + 4, hem2Y - 3);
+
+    // Линии скоса на боковинах (крыша не режется - полная ширина mainW)
     if (aero) {
       ctx.setLineDash([2,2]);
       ctx.strokeStyle = '#f39c12';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      // Верхний бок: от переднего края (−300) к сгибу на 800 мм
+      // Верхний бок: от переднего края (-300) к сгибу на 800 мм
       ctx.moveTo(tLayoutX + mainW, fold1Y - 300*tScale);
       ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y);
       // Нижний бок: от сгиба на 800 мм к переднему краю (+300)
@@ -1585,7 +1605,7 @@ function redrawCanvas() {
       ctx.setLineDash([]);
       ctx.fillStyle = '#f39c12';
       ctx.font = '7px DejaVu Sans';
-      ctx.fillText('скос −30', tLayoutX + mainW - 600*tScale, fold1Y - 150*tScale);
+      ctx.fillText('скос -30', tLayoutX + mainW - 600*tScale, fold1Y - 150*tScale);
     }
 
     // Подписи секций
@@ -1618,7 +1638,7 @@ function redrawCanvas() {
     ctx.setLineDash([]);
     ctx.fillStyle = '#f39c12';
     ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText(`ПЕРЕД${aero?' −30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
+    ctx.fillText(`ПЕРЕД${aero?' -30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
     drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW} мм`, 'left');
 
     // Задний клапан (припаян к крыше слева, развёрнут)

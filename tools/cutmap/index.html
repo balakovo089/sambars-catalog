@@ -1014,10 +1014,21 @@ function redrawCanvas() {
     ctx.stroke();
 
     // Вертикальные стойки рамки — столько же сколько дуг, на тех же позициях
-    const archCount = 1 + (frameL - 800 > 0 ? calcStep(frameL - 800, 700).n : 0);
-    const firstArchDist = 800;
-    const remainingArch = frameL - 800;
-    const archStep = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
+    let archCount, firstArchDist, remainingArch, archStep;
+    if (hasAeroSkos) {
+      // Со скосом: первая дуга на 800 мм, остальные через ~700 мм
+      firstArchDist = 800;
+      remainingArch = frameL - 800;
+      archCount = 1 + (remainingArch > 0 ? calcStep(remainingArch, 700).n : 0);
+      archStep = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
+    } else {
+      // Без скоса: все дуги равномерно, без специального отступа
+      const s = calcStep(frameL, 700);
+      archCount = s.n;
+      firstArchDist = frameL / (s.n + 1);  // равномерный шаг
+      remainingArch = frameL - firstArchDist;
+      archStep = {n: Math.max(0, s.n - 1), step: firstArchDist};
+    }
 
     ctx.strokeStyle = '#1e8449';
     ctx.lineWidth = 1.5;

@@ -456,7 +456,7 @@ function recalc() {
   renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
   if (hasTent) {
     document.getElementById('tentPlanBlock').style.display = 'block';
-    renderTent(tentArea, bp, sPerimeter, hasTent);
+    renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
   } else {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
@@ -547,18 +547,52 @@ function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand
   document.getElementById('plywoodPlan').innerHTML = html;
 }
 
-function renderTent(area, bp, sPerimeter, hasTent) {
-  const perimeter = sPerimeter + 4*(state.tentH*10)/1000;
-  const louvers10 = Math.ceil(perimeter / 0.15);
+function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
+  const isBarsuk = st.brand === 'Барсук';
+  const aero = tH >= 120;
+  // Площади деталей (мм → м)
+  const roofM = (fW/1000) * (fL/1000);  // крыша
+  const sidesM = 2 * (fL/1000) * (tMM/1000);  // боковины ×2
+  const frontMM = fW;  // ширина переднего клапана = ширина рамы
+  const frontH = aero ? tMM - 300 : tMM;  // передний клапан ниже при скосе
+  const frontM = (frontMM/1000) * (frontH/1000);
+  const rearM = (fW/1000) * (tMM/1000);  // задний клапан
+  const overlaps = 1.10;  // нахлёсты и подвороты
+  const totalM2 = ((roofM + sidesM + frontM + rearM) * overlaps).toFixed(2);
+  // Нижний периметр (для люверсов 10 мм и эспандера)
+  const lowerPerimeter = 2*(fL/1000) + 2*fW/1000;  // по низу: 2 бока + перед + зад
+  const louvers10 = Math.ceil(lowerPerimeter / 0.15);
+  const espanderM = (lowerPerimeter * 1.1).toFixed(1);
+  // Люверсы на клапанах (27 мм Барсук, 32 мм Самбарс)
+  const valveLouvers = (isBarsuk ? 4 : 6) * 2;  // ~4-6 на клапан × 2 клапана
+  // Поворотки (только Самбарс)
+  const turnBuckles = isBarsuk ? 0 : Math.ceil((2*fL + 2*fW) / 500) * 2;
+  // Ремешки (только Барсук, задний клапан)
+  const straps = isBarsuk ? 4 : 0;
+
   let html = `<table>
-    <tr><td>Материал</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
-    <tr><td>Площадь</td><td><b>${area.toFixed(1)} м²</b></td></tr>
-    <tr><td>Эспандер ${bp.espander} мм</td><td>${(perimeter*1.1).toFixed(1)} м</td></tr>
-    <tr><td>Люверсы 10 мм</td><td>${louvers10} шт</td></tr>
-    <tr><td>Люверсы 27 мм</td><td>${Math.ceil(perimeter/0.5)} шт</td></tr>
-    <tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
+    <tr><td colspan="2"><b>Раскрой по деталям</b></td></tr>
+    <tr><td>Крыша</td><td class="num">${roofM.toFixed(2)} м²</td></tr>
+    <tr><td>Боковины ×2</td><td class="num">${sidesM.toFixed(2)} м²</td></tr>
+    <tr><td>Передний клапан${aero ? ' (скос −30 см)' : ''}</td><td class="num">${frontM.toFixed(2)} м²</td></tr>
+    <tr><td>Задний клапан</td><td class="num">${rearM.toFixed(2)} м²</td></tr>
+    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b> (×${overlaps} нахлёст)</td><td class="num"><b>${totalM2}</b> м²</td></tr>
+    <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
+  </table>
+  <table style="margin-top:8px">
+    <tr><td colspan="2"><b>Фурнитура</b></td></tr>
+    <tr><td>Эспандер ${bp.espander} мм</td><td class="num">${espanderM} м</td></tr>
+    <tr><td>Люверсы 10 мм</td><td class="num">${louvers10} шт</td></tr>
+    <tr><td>Люверсы ${isBarsuk ? 27 : 32} мм</td><td class="num">${valveLouvers} шт</td></tr>`;
+  if (!isBarsuk) {
+    html += `<tr><td>Поворотки</td><td class="num">${turnBuckles} шт</td></tr>`;
+  }
+  if (isBarsuk) {
+    html += `<tr><td>Ремешки + скобы</td><td class="num">${straps} компл</td></tr>`;
+  }
+  html += `<tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
     <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
-    <tr><td>Срок службы</td><td>~${state.brand === 'Барсук' ? 2 : 7} лет</td></tr>
+    <tr><td>Срок службы</td><td>~${isBarsuk ? 2 : 7} лет</td></tr>
   </table>`;
   document.getElementById('tentPlan').innerHTML = html;
 }
@@ -1503,6 +1537,106 @@ function redrawCanvas() {
   ctx.fillText(`${W} мм (заявл.) | ${frameW} мм (рама)`, secX + secW/2 - 70, boardTopY - 8);
 
   curY = rearY + postVisH + 30;
+
+  // ─────────────────────────────────────────────
+  // ТЕНТ (раскрой деталей)
+  // ─────────────────────────────────────────────
+  if (hasTent) {
+    drawLabel(margin, curY, '5. ТЕНТ (раскрой деталей)', '#e74c3c');
+    curY += labelH + 5;
+
+    const tLayoutX = rX + 30;
+    const tLayoutY = curY;
+    const aero = tentH >= 120;
+    const gap = 15;  // зазор между деталями
+
+    // Масштаб для деталей (чтобы влезли)
+    const tScale = sc * 0.8;
+
+    // Крыша (сверху)
+    const roofW = frameL * tScale;
+    const roofH = frameW * tScale;
+    ctx.fillStyle = 'rgba(231, 76, 60, 0.15)';
+    ctx.fillRect(tLayoutX, tLayoutY, roofW, roofH);
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(tLayoutX, tLayoutY, roofW, roofH);
+    ctx.fillStyle = '#e74c3c';
+    ctx.font = 'bold 9px DejaVu Sans';
+    ctx.fillText('КРЫША', tLayoutX + roofW/2 - 22, tLayoutY + roofH/2 + 4);
+    drawDimArrow(tLayoutX, tLayoutY + roofH + 4, tLayoutX + roofW, tLayoutY + roofH + 4, `${frameL} мм`, 'top');
+    drawDimArrow(tLayoutX - 15, tLayoutY, tLayoutX - 15, tLayoutY + roofH, `${frameW} мм`, 'left');
+
+    // Боковина (справа от крыши)
+    const sideX = tLayoutX + roofW + gap;
+    const sideW = frameL * tScale;
+    const sideH = tentMM * tScale;
+    ctx.fillStyle = 'rgba(231, 76, 60, 0.1)';
+    ctx.fillRect(sideX, tLayoutY, sideW, sideH);
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 2;
+    // Скос на боковине
+    if (aero) {
+      ctx.beginPath();
+      ctx.moveTo(sideX, tLayoutY + 300*tScale);
+      ctx.lineTo(sideX + 800*tScale, tLayoutY);
+      ctx.lineTo(sideX + sideW, tLayoutY);
+      ctx.lineTo(sideX + sideW, tLayoutY + sideH);
+      ctx.lineTo(sideX, tLayoutY + sideH);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      // Штриховка скоса
+      ctx.setLineDash([2,2]);
+      ctx.strokeStyle = '#f39c12';
+      ctx.beginPath();
+      ctx.moveTo(sideX, tLayoutY);
+      ctx.lineTo(sideX + 800*tScale, tLayoutY + 300*tScale);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#f39c12';
+      ctx.font = '7px DejaVu Sans';
+      ctx.fillText('−300', sideX + 2, tLayoutY + 150*tScale);
+    } else {
+      ctx.strokeRect(sideX, tLayoutY, sideW, sideH);
+    }
+    ctx.fillStyle = '#e74c3c';
+    ctx.font = 'bold 9px DejaVu Sans';
+    ctx.fillText('БОК ×2', sideX + sideW/2 - 22, tLayoutY + sideH/2 + 4);
+    drawDimArrow(sideX - 15, tLayoutY, sideX - 15, tLayoutY + sideH, `${tentMM} мм`, 'left');
+
+    // Передний клапан (под крышей)
+    const fFlapX = tLayoutX + 30;
+    const fFlapY = tLayoutY + roofH + gap;
+    const fFlapW = frameW * tScale;
+    const fFlapH = (aero ? tentMM - 300 : tentMM) * tScale;
+    ctx.fillStyle = 'rgba(241, 196, 15, 0.2)';
+    ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 9px DejaVu Sans';
+    ctx.fillText(`ПЕРЕД (${bp.frontFlap})${aero ? ' −30см' : ''}`, fFlapX + fFlapW/2 - 50, fFlapY + fFlapH/2 + 4);
+    drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${aero ? tentMM-300 : tentMM} мм`, 'left');
+
+    // Задний клапан
+    const rFlapX = fFlapX + fFlapW + gap;
+    const rFlapY = fFlapY;
+    const rFlapW = frameW * tScale;
+    const rFlapH = tentMM * tScale;
+    ctx.fillStyle = 'rgba(241, 196, 15, 0.2)';
+    ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 9px DejaVu Sans';
+    ctx.fillText(`ЗАД (${bp.rearFlap})`, rFlapX + rFlapW/2 - 35, rFlapY + rFlapH/2 + 4);
+    drawDimArrow(rFlapX + rFlapW + 4, rFlapY, rFlapX + rFlapW + 4, rFlapY + rFlapH, `${tentMM} мм`, 'left');
+
+    curY = Math.max(fFlapY + fFlapH, rFlapY + rFlapH) + 30;
+  }
 
   // Total
   const totalY = boardTopY - 15;

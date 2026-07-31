@@ -375,19 +375,6 @@ function recalc() {
   const rivetsFloor = Math.ceil(2*(frameW + frameL) / 300);  // пол→лонжероны
   const rivetsSides = Math.ceil(sPerimeter * 3);  // фанера бортов→рамка
 
-  // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
-  // Нормы по данным: проволока 0.8мм для труб 2-3мм, полуавтомат CO2
-  const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);
-  const consumables = {
-    cuts: totalCuts,
-    wire: (totalCuts * 0.007).toFixed(3),        // кг проволоки (~7 г на рез → 2 шва по 3-4 г)
-    gas: (totalCuts * 0.007).toFixed(3),          // кг CO2 (~1:1 к проволоке)
-    cutDiscs: Math.ceil(totalCuts / 18),           // отрезных дисков (125×1.2: ~18 резов на диск)
-    grindDiscs: Math.ceil(totalCuts / 55),         // лепестковых дисков (~0.15 шт/м шва, ~55 резов на диск)
-    gloves: Math.max(1, Math.ceil(totalCuts / 100)),  // пар перчаток
-    kragi: Math.max(1, Math.ceil(totalCuts / 200)),   // пар краг
-  };
-
   // ═══ CUT PLANS ═══
   // Metal pieces for cutting
   const frameProfile = bp.frameProfile;
@@ -450,6 +437,18 @@ function recalc() {
     allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(tentArchCount * 2).fill(0.10)});
   }
   allProfilePieces.push({label:`Ось ${axleProfile}`, pieces:Array(axles).fill((frameW + 200)/1000)});
+
+  // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
+  const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);
+  const consumables = {
+    cuts: totalCuts,
+    wire: (totalCuts * 0.007).toFixed(3),
+    gas: (totalCuts * 0.007).toFixed(3),
+    cutDiscs: Math.ceil(totalCuts / 18),
+    grindDiscs: Math.ceil(totalCuts / 55),
+    gloves: Math.max(1, Math.ceil(totalCuts / 100)),
+    kragi: Math.max(1, Math.ceil(totalCuts / 200)),
+  };
 
   // ═══ RENDER ═══
   renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);

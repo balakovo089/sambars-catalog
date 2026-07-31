@@ -323,12 +323,20 @@ function recalc() {
   // Plywood
   const floorArea = (W/1000) * (L/1000);
   const sideArea = sPerimeter * (bp.boardH/1000);
-  const sheetArea125 = 3.125;
-  const sheetArea150 = 4.50;
-  const floorSheets = W <= 1250 ? Math.ceil(floorArea / sheetArea125) :
-                      W <= 1500 ? Math.ceil(floorArea / sheetArea150) :
-                      Math.ceil(floorArea / sheetArea125);
-  const sideSheets = Math.ceil(sideArea / sheetArea125);
+  
+  // Пол: узкий лист (1250×2500) только на W=1250, широкий (1500×3000) на W≥1500
+  let floorSheets, hasFloorSeam = false;
+  if (W <= 1250) {
+    // Узкий лист 1250×2500
+    floorSheets = L <= 2500 ? 1 : 2;
+    hasFloorSeam = L > 2500;
+  } else {
+    // Широкий лист 1500×3000
+    floorSheets = L <= 3000 ? 1 : 2;
+    hasFloorSeam = L > 3000;
+  }
+  // Борта: всегда узкий лист
+  const sideSheets = Math.ceil(sideArea / 3.125);
 
   // Bolts
   const sBoltStep = calcStep(2*(W+L), 800);
@@ -359,6 +367,15 @@ function recalc() {
     allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)});
   }
   if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
+  // Доп. перемычка под шов фанеры пола
+  if (hasFloorSeam) {
+    const extraCrossM = (frameW/1000);
+    if (brand !== 'Барсук') {
+      allProfilePieces.push({label:`Перемычка под шов пола 40×20×2 (2 половинки)`, pieces:[extraCrossM/2, extraCrossM/2]});
+    } else {
+      allProfilePieces.push({label:`Перемычка под шов пола 40×20×2`, pieces:[extraCrossM]});
+    }
+  }
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, dbSideLen, dbSideLen, (frameW)/1000]});  // центр + 2 бока + перемычка
   allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
   if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile}`, pieces:[(frameW)/1000]});
@@ -380,7 +397,7 @@ function recalc() {
   // ═══ RENDER ═══
   renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);
   renderCutPlan(allProfilePieces);
-  renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W);
+  renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam);
   if (hasTent) {
     document.getElementById('tentPlanBlock').style.display = 'block';
     renderTent(tentArea, bp, sPerimeter, hasTent);
@@ -432,12 +449,13 @@ function renderCutPlan(pieces) {
   document.getElementById('cutPlan').innerHTML = html;
 }
 
-function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W) {
-  const sheetSize = W <= 1500 ? '125×250 см' : '150×300 см';
+function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam) {
+  const floorSheetType = W <= 1250 ? 'узкий 1250×2500' : 'широкий 1500×3000';
+  const seamNote = hasFloorSeam ? ` (шов + доп. перемычка 40×20×2)` : '';
   let html = `<table>
     <tr><th>Назначение</th><th>Площадь</th><th>Листов</th></tr>
-    <tr><td>Пол (фанера 9 мм с сеткой)</td><td>${floorArea.toFixed(2)} м²</td><td><b>${floorSheets}</b> ${sheetSize}</td></tr>
-    <tr><td>Борта (фанера 9 мм вл.)</td><td>${sideArea.toFixed(2)} м²</td><td><b>${sideSheets}</b> 125×250 см</td></tr>
+    <tr><td>Пол (фанера 9 мм с сеткой)</td><td>${floorArea.toFixed(2)} м²</td><td><b>${floorSheets}</b> ${floorSheetType}${seamNote}</td></tr>
+    <tr><td>Борта (фанера 9 мм вл.)</td><td>${sideArea.toFixed(2)} м²</td><td><b>${sideSheets}</b> узкий 1250×2500<br><span class="sub">${brand === 'Барсук' ? 'обрезки, швы на перемычках' : 'цельные, без швов'}</span></td></tr>
     <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО фанеры</b></td><td></td><td><b>${floorSheets + sideSheets}</b> листов</td></tr>
   </table>`;
   document.getElementById('plywoodPlan').innerHTML = html;
@@ -876,7 +894,7 @@ function redrawCanvas() {
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  let annoText = `поперечин 40×20: ${totalCross} шт | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
+  let annoText = `поперечин 40×20: ${totalCross} шт${hasFloorSeam ? ' + 1 под шов пола' : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
   ctx.fillText(annoText, rX, rY+rL+12);

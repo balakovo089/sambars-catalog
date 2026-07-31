@@ -1045,147 +1045,92 @@ function redrawCanvas() {
   }
 
   // ─────────────────────────────────────────────
-  // 4. FRONT CROSS-SECTION (разрез спереди)
+  // Cross-section: спереди/сзади (одинаковый вид)
   // ─────────────────────────────────────────────
-  const frontLabel = hasTent ? '4. РАЗРЕЗ СПЕРЕДИ (рама + борт + тент)' : '3. РАЗРЕЗ СПЕРЕДИ (рама + борт)';
-  drawLabel(margin, curY, frontLabel, '#9b59b6');
+  const xsLabelNum = hasTent ? '4' : '3';
+  drawLabel(margin, curY, `${xsLabelNum}. РАЗРЕЗ СПЕРЕДИ/СЗАДИ (рама + борт + тент + задняя рамка)`, '#9b59b6');
   curY += labelH + 5;
 
-  const secX = rX + 40;
+  const secX = rX + 60;
   const secY = curY;
   const secW = frameW * sc;
-  const crossH = 60; // fixed height for cross section
+  const boardVisH = boardH * sc;       // высота борта визуальная
+  const rearVisH = 180 * sc;           // высота задней рамки
+  const frameY = secY + boardVisH;     // уровень рамы (ниже бортов)
 
-  // Frame bottom bar
-  ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = 6;
-  ctx.beginPath(); ctx.moveTo(secX, secY+crossH-10); ctx.lineTo(secX+secW, secY+crossH-10); ctx.stroke();
-
-  // Frame label
-  drawDim(secX+secW/2-30, secY+crossH+15, `Рама: ${bp.frameProfile}`, '#5dade2');
-
-  // Board frame (vertical posts)
-  let boardVOffset = 10;
-  const bLeft = secX + boardVOffset;
-  const bRight = secX + secW - boardVOffset;
-  const bTop = secY;
-  const bBot = secY + crossH - 10;
-
-  ctx.strokeStyle = '#3498db';
-  ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(bLeft, bTop); ctx.lineTo(bLeft, bBot); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, bTop); ctx.lineTo(bRight, bBot); ctx.stroke();
-
-  // Board horizontal rails
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(bLeft-5, bTop+3); ctx.lineTo(bLeft, bTop+3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, bTop+3); ctx.lineTo(bRight+5, bTop+3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bLeft-5, bBot-3); ctx.lineTo(bLeft, bBot-3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, bBot-3); ctx.lineTo(bRight+5, bBot-3); ctx.stroke();
-
-  // Board labels
-  drawDim(bLeft-30, (bTop+bBot)/2, `${boardH} мм`, '#3498db');
-
-  // Plywood
-  ctx.fillStyle = 'rgba(52,152,219,0.1)';
-  ctx.fillRect(bLeft, bTop+3, bRight-bLeft, bBot-bTop-6);
-  drawDim(secX+secW/2-35, secY+crossH-10+27, `Фанера 9 мм с двух сторон`, '#888');
-
-  // Axle indicator
-  const axleDepth = crossH/2;
-  ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(secX-20, secY+crossH+30); ctx.lineTo(secX+secW+20, secY+crossH+30); ctx.stroke();
-  ctx.fillStyle = '#e74c3c';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`Ось: ${bp.axleProfile} (${(frameW+200)} мм, +20 см шире рамы)`, secX+secW/2-100, secY+crossH+42);
-
-  // Tent arch cross section (if tent)
+  // ── ТЕНТ (над бортами) ──
   if (hasTent) {
     const archTop = secY - tentMM*sc;
-    const archLeft = bLeft;
-    const archRight = bRight;
-
+    const bLeft = secX + 10;
+    const bRight = secX + secW - 10;
     ctx.setLineDash([4,3]);
     ctx.strokeStyle = '#27ae60';
     ctx.lineWidth = 2;
-    // Arch: U-shape
     ctx.beginPath();
-    ctx.moveTo(archLeft, secY);
-    ctx.lineTo(archLeft, archTop);
-    ctx.lineTo(archRight, archTop);
-    ctx.lineTo(archRight, secY);
+    ctx.moveTo(bLeft, secY);
+    ctx.lineTo(bLeft, archTop);
+    ctx.lineTo(bRight, archTop);
+    ctx.lineTo(bRight, secY);
     ctx.stroke();
     ctx.setLineDash([]);
-
-    // Arch labels
-    drawDim(archLeft-30, (archTop+secY)/2, `${tentMM} мм`, '#27ae60');
-    drawDim(secX+secW/2-40, archTop-8, `Дуга: 20×20×1.5`, '#27ae60');
+    drawDim(bLeft - 30, (archTop + secY)/2, `${tentMM} мм`, '#27ae60');
+    drawDim(secX + secW/2 - 40, archTop - 8, `Дуга: 20×20×1.5`, '#27ae60');
   }
 
-  // Width dimension
-  ctx.fillStyle = '#f39c12';
-  ctx.font = '10px DejaVu Sans';
-  ctx.fillText(`${W} мм (заявленная)`, secX+secW/2-40, secY+crossH-10-5+crossH/2-20);
-  ctx.fillText(`${frameW} мм (рама)`, secX+secW/2-35, secY+crossH+62);
+  // ── БОРТА ──
+  const bLeft = secX + 10;
+  const bRight = secX + secW - 10;
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(bLeft, secY); ctx.lineTo(bLeft, frameY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, secY); ctx.lineTo(bRight, frameY); ctx.stroke();
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(bLeft - 5, secY + 3); ctx.lineTo(bLeft, secY + 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, secY + 3); ctx.lineTo(bRight + 5, secY + 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bLeft - 5, frameY - 3); ctx.lineTo(bLeft, frameY - 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, frameY - 3); ctx.lineTo(bRight + 5, frameY - 3); ctx.stroke();
+  ctx.fillStyle = 'rgba(52,152,219,0.1)';
+  ctx.fillRect(bLeft, secY + 3, bRight - bLeft, frameY - secY - 6);
+  drawDim(bLeft - 30, (secY + frameY)/2, `${boardH} мм`, '#3498db');
+  drawDim(secX + secW/2 - 45, frameY + 2, `Фанера 9 мм`, '#888');
 
-  curY = secY + crossH + 80;
-
-  // ─────────────────────────────────────────────
-  // 5. ЗАДНЯЯ РАМКА (вид сзади)
-  // ─────────────────────────────────────────────
-  const rearLabelNum = hasTent ? '5' : '4';
-  drawLabel(margin, curY, `${rearLabelNum}. ЗАДНЯЯ РАМКА (вид сзади)`, '#f39c12');
-  curY += labelH + 5;
-
-  const rfX = rX + 40;
-  const rfY = curY;
-  const rfW = frameW * sc;           // ширина = ширина рамы
-  const postH = 180 * sc;            // высота стоек 180 мм
-  const postW = 40 * sc;             // ширина профиля 40 мм
-  const postD = 20 * sc;             // глубина профиля 20 мм
-
-  // Задняя поперечина рамы (верх)
+  // ── РАМА ──
   ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = 5;
-  ctx.beginPath(); ctx.moveTo(rfX, rfY); ctx.lineTo(rfX + rfW, rfY); ctx.stroke();
-  ctx.fillStyle = '#888';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText('задняя поперечина рамы', rfX + rfW/2 - 50, rfY - 4);
+  ctx.lineWidth = 6;
+  ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
+  drawDim(secX + secW/2 - 30, frameY + 14, `Рама: ${bp.frameProfile}`, '#5dade2');
 
-  // Стойки (вертикальные, 40×20×2, 180 мм)
+  // ── ЗАДНЯЯ РАМКА (под рамой) ──
+  const rearY = frameY;                // начинается от уровня рамы вниз
+  const postW = 20 * sc;               // толщина стойки (20 мм — сторона профиля 40×20 которую видим)
+  const postVisH = 180 * sc;           // высота стоек 180 мм
+
+  // Стойки
   ctx.fillStyle = '#e67e22';
-  ctx.fillRect(rfX, rfY, postD, postH);
-  ctx.fillRect(rfX + rfW - postD, rfY, postD, postH);
+  ctx.fillRect(secX, rearY, postW, postVisH);
+  ctx.fillRect(secX + secW - postW, rearY, postW, postVisH);
   ctx.strokeStyle = '#d35400';
   ctx.lineWidth = 1;
-  ctx.strokeRect(rfX, rfY, postD, postH);
-  ctx.strokeRect(rfX + rfW - postD, rfY, postD, postH);
+  ctx.strokeRect(secX, rearY, postW, postVisH);
+  ctx.strokeRect(secX + secW - postW, rearY, postW, postVisH);
 
-  // Перемычка (горизонтальная, 40×20×2, низ)
-  const crossY = rfY + postH - postW;
+  // Перемычка (горизонтальная внизу, 40 мм высота профиля)
+  const crossBarH = 40 * sc;
+  const crossBarY = rearY + postVisH - crossBarH;
   ctx.fillStyle = '#e67e22';
-  ctx.fillRect(rfX, crossY, rfW, postW);
+  ctx.fillRect(secX, crossBarY, secW, crossBarH);
   ctx.strokeStyle = '#d35400';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(rfX, crossY, rfW, postW);
+  ctx.strokeRect(secX, crossBarY, secW, crossBarH);
 
-  // Подписи стоек и перемычки
-  ctx.fillStyle = '#e67e22';
-  ctx.font = 'bold 8px DejaVu Sans';
-  ctx.fillText('40×20×2', rfX - 42, rfY + postH/2 + 3);
-  ctx.fillText('40×20×2', rfX + rfW + 5, rfY + postH/2 + 3);
-  ctx.fillText('40×20×2', rfX + rfW/2 - 25, crossY + postW + 10);
+  // Размеры задней рамки
+  drawDimArrow(secX + secW + 8, rearY, secX + secW + 8, rearY + postVisH, '180 мм', 'left');
+  drawDim(secX + secW/2 - 40, crossBarY + crossBarH + 10, `40×20×2`, '#e67e22');
 
-  // Размеры
-  drawDimArrow(rfX - 20, rfY, rfX - 20, rfY + postH, '180', 'left');
-  drawDimArrow(rfX, crossY + postW + 6, rfX + rfW, crossY + postW + 6, `${frameW} мм`, 'top');
-
-  // Пластина под гос. номер (400×180 мм, по центру)
+  // ── ПЛАСТИНА ГОС. НОМЕРА (по центру) ──
   const plateW = 400 * sc;
   const plateH = 180 * sc;
-  const plateX = rfX + (rfW - plateW) / 2;
-  const plateY = rfY + (postH - plateH) / 2;
+  const plateX = secX + (secW - plateW) / 2;
+  const plateY = rearY + (postVisH - plateH) / 2;
   ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
   ctx.fillRect(plateX, plateY, plateW, plateH);
   ctx.strokeStyle = '#f39c12';
@@ -1195,72 +1140,62 @@ function redrawCanvas() {
   ctx.setLineDash([]);
   ctx.fillStyle = '#f39c12';
   ctx.font = '8px DejaVu Sans';
-  ctx.fillText('400×180×1', plateX + plateW/2 - 30, plateY + plateH/2 + 3);
-  ctx.fillText('гос. номер', plateX + plateW/2 - 28, plateY + plateH/2 - 5);
+  ctx.fillText('400×180×1', plateX + plateW/2 - 28, plateY + plateH/2 + 3);
+  ctx.fillText('гос. номер', plateX + plateW/2 - 26, plateY + plateH/2 - 6);
 
-  // Кронштейны подфарников (П-образные, 180×200×140 мм)
-  const ltW = 200 * sc;   // длина кронштейна
-  const ltH = 180 * sc;   // высота
-  const ltD = 140 * sc;   // глубина
-  // Левый кронштейн (между левой стойкой и пластиной номера)
-  const ltLX = rfX + postD + 10;
-  const ltRX = plateX - ltW - 10;
-  // Правый кронштейн
-  const rtLX = plateX + plateW + 10;
-  const rtRX = rfX + rfW - postD - 10;
+  // ── КРОНШТЕЙНЫ ПОДФАРНИКОВ (П-образные, между стойкой и пластиной номера) ──
+  const ltW = 200 * sc;
+  const ltH = 180 * sc;
+  const ltCenterY = rearY + postVisH/2;
 
-  // Центрируем кронштейны в доступном пространстве
-  // Левый: между rfX+postD и plateX
-  const leftGap = plateX - (rfX + postD);
-  const ltLCenterX = rfX + postD + leftGap/2;
-  const ltLCenterY = rfY + postH/2;
-
-  const rightGap = (rfX + rfW - postD) - (plateX + plateW);
+  // Левый: между левой стойкой и пластиной номера
+  const leftGap = plateX - (secX + postW);
+  const ltLCenterX = secX + postW + leftGap/2;
+  // Правый: между пластиной номера и правой стойкой
+  const rightGap = (secX + secW - postW) - (plateX + plateW);
   const ltRCenterX = plateX + plateW + rightGap/2;
-  const ltRCenterY = rfY + postH/2;
 
-  // Рисуем П-образный кронштейн (вид сзади — видим П-форму)
-  function drawPBracket(cx, cy, w, h, d) {
-    // w = длина (200), h = высота (180), d = глубина (140)
-    // П-образный: верх открыт, три стороны
+  function drawPBracket(cx, cy, w, h) {
     const left = cx - w/2;
     const top = cy - h/2;
-    
     ctx.fillStyle = 'rgba(155, 89, 182, 0.15)';
     ctx.fillRect(left, top, w, h);
     ctx.strokeStyle = '#9b59b6';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(left, top, w, h);
-    // Внутренний прямоугольник (полость)
     ctx.fillStyle = 'rgba(155, 89, 182, 0.1)';
-    ctx.fillRect(left + 5, top + 5, w - 10, h - 10);
+    ctx.fillRect(left + 3, top + 3, w - 6, h - 6);
     ctx.strokeStyle = '#9b59b6';
     ctx.setLineDash([2, 2]);
-    ctx.strokeRect(left + 5, top + 5, w - 10, h - 10);
+    ctx.strokeRect(left + 3, top + 3, w - 6, h - 6);
     ctx.setLineDash([]);
-    
-    // Подпись
     ctx.fillStyle = '#9b59b6';
-    ctx.font = '6px DejaVu Sans';
-    ctx.fillText(`${w/sc|0}×${h/sc|0}×${d/sc|0}`, left + 2, top - 2);
+    ctx.font = '7px DejaVu Sans';
+    ctx.fillText('180×200×140', left + 2, top - 3);
   }
 
-  drawPBracket(ltLCenterX, ltLCenterY, ltW, ltH, ltD);
-  drawPBracket(ltRCenterX, ltRCenterY, ltW, ltH, ltD);
+  drawPBracket(ltLCenterX, ltCenterY, ltW, ltH);
+  drawPBracket(ltRCenterX, ltCenterY, ltW, ltH);
 
-  // Подписи кронштейнов
-  ctx.fillStyle = '#9b59b6';
-  ctx.font = 'bold 8px DejaVu Sans';
-  ctx.fillText('подфарник', ltLCenterX - 25, ltLCenterY + ltH/2 + 12);
-  ctx.fillText('подфарник', ltRCenterX - 25, ltRCenterY + ltH/2 + 12);
-
-  // Метраж
-  const rearMetal = (postH/sc/1000 * 2 + rfW/sc/1000).toFixed(2);
+  // ── ПОДПИСИ ──
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`профиль 40×20×2: ${rearMetal} м | пластина номера: 400×180×1 мм | кронштейны фонарей: 2 шт П-обр. 180×200×140×1 мм`, rfX, rfY + postH + 14);
+  ctx.fillText(`Ось: ${bp.axleProfile} | Рессоры: ${bp.springs}-лист. ×${axles*2}`, secX, frameY - 4);
+  ctx.fillStyle = '#e67e22';
+  ctx.font = 'bold 8px DejaVu Sans';
+  ctx.fillText('40×20×2', secX - 42, rearY + postVisH/2 + 3);
+  ctx.fillText('40×20×2', secX + secW + 5, rearY + postVisH/2 + 3);
+  const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`Задняя рамка: 2 стойки 180 мм + перемычка ${frameW} мм = ${rearMetalM} м (40×20×2) | пластина номера 400×180×1 | подфарники 2×П-обр. 180×200×140×1`, secX, rearY + postVisH + 14);
 
-  curY = rfY + postH + 34;
+  // Ширина
+  ctx.fillStyle = '#f39c12';
+  ctx.font = '10px DejaVu Sans';
+  ctx.fillText(`${W} мм (заявл.) | ${frameW} мм (рама)`, secX + secW/2 - 70, secY - 10);
+
+  curY = rearY + postVisH + 30;
 
   // Total
   const totalY = hasTent ? secY - tentMM*sc - 15 : secY;

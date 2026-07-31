@@ -978,96 +978,72 @@ function redrawCanvas() {
     const tH = tentMM * sc;              // высота боковой рамки = высота тента
     const hasAeroSkos = tentH >= 120;    // аэро скос только ≥120 см
 
-    // Боковая рамка (прямоугольник: верхняя + нижняя труба + перемычки)
+    // ── Боковая рамка: рисуем контур без лишнего металла над скосом ──
     ctx.fillStyle = 'rgba(39, 174, 96, 0.1)';
-    ctx.fillRect(tX, tY, tW, tH);
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
-    // Нижняя труба — горизонтальная
-    ctx.beginPath(); ctx.moveTo(tX, tY+tH); ctx.lineTo(tX+tW, tY+tH); ctx.stroke();
-
-    // Верхняя труба — с аэро скосом или без
     ctx.beginPath();
     if (hasAeroSkos) {
-      // Скос: от tX (высота H-300) → tX+800 (высота H) → горизонтально до конца
+      // Полигон: низ горизонтально, верх с наклоном 0-800 мм
+      ctx.moveTo(tX, tY + tH);                    // низ-лево
+      ctx.lineTo(tX + tW, tY + tH);               // низ-право
+      ctx.lineTo(tX + tW, tY);                    // верх-право
+      ctx.lineTo(tX + 800*sc, tY);                // верх после скоса
+      ctx.lineTo(tX, tY + 300*sc);                // верх скоса (передняя стойка)
+      ctx.closePath();
+    } else {
+      ctx.rect(tX, tY, tW, tH);
+    }
+    ctx.fill();
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Нижняя труба (жирная)
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(tX, tY + tH); ctx.lineTo(tX + tW, tY + tH); ctx.stroke();
+    // Верхняя труба (жирная)
+    ctx.beginPath();
+    if (hasAeroSkos) {
       ctx.moveTo(tX, tY + 300*sc);
       ctx.lineTo(tX + 800*sc, tY);
       ctx.lineTo(tX + tW, tY);
     } else {
-      // Без скоса: горизонтально
       ctx.moveTo(tX, tY);
       ctx.lineTo(tX + tW, tY);
     }
     ctx.stroke();
 
-    // Контур рамки (боковые стороны)
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
-    ctx.strokeRect(tX, tY, tW, tH);
-
-    // Вертикальные перемычки рамки
-    if (hasAeroSkos) {
-      // Передняя стойка — укороченная (H-300)
-      ctx.strokeStyle = '#1e8449';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(tX, tY + tH);                    // низ: полная высота
-      ctx.lineTo(tX, tY + 300*sc);                // верх: на 300 мм ниже
-      ctx.stroke();
-      ctx.fillStyle = '#888';
-      ctx.font = '7px DejaVu Sans';
-      ctx.fillText('−300', tX - 25, tY + 300*sc + 10);
-
-      // Вторая стойка — на 800 мм, полной высоты
-      const post2X = tX + 800 * sc;
-      ctx.strokeStyle = '#1e8449';
-      ctx.beginPath();
-      ctx.moveTo(post2X, tY + tH);
-      ctx.lineTo(post2X, tY);
-      ctx.stroke();
-      ctx.fillText('800', tX + 350*sc, tY + tH/2);
-
-      // Остальные стойки
-      const remainingL = frameL - 800;
-      if (remainingL > 0) {
-        const postStep = calcStep(remainingL, 700);
-        for (let i = 1; i <= postStep.n; i++) {
-          const px = post2X + (i / (postStep.n + 1)) * (remainingL * sc);
-          ctx.beginPath();
-          ctx.moveTo(px, tY + tH);
-          ctx.lineTo(px, tY);
-          ctx.stroke();
-        }
-      }
-    } else {
-      // Без скоса: равномерно
-      const framePostStep = calcStep(frameL, 700);
-      const framePostN = Math.max(0, framePostStep.n - 1);
-      ctx.strokeStyle = '#1e8449';
-      ctx.lineWidth = 1.5;
-      for (let i = 1; i <= framePostN; i++) {
-        const px = tX + (i / (framePostN + 1)) * tW;
-        ctx.beginPath();
-        ctx.moveTo(px, tY + tH);
-        ctx.lineTo(px, tY);
-        ctx.stroke();
-      }
-    }
-
-    // Дуги (П-образные перемычки)
+    // Вертикальные стойки рамки — столько же сколько дуг, на тех же позициях
     const archCount = 1 + (frameL - 800 > 0 ? calcStep(frameL - 800, 700).n : 0);
     const firstArchDist = 800;
     const remainingArch = frameL - 800;
     const archStep = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
 
+    ctx.strokeStyle = '#1e8449';
+    ctx.lineWidth = 1.5;
     for (let i = 0; i < archCount; i++) {
-      let ax;
-      if (i === 0) {
-        ax = tX + firstArchDist * sc;  // первая дуга всегда на 800 мм
-      } else {
-        const prev = remainingArch > 0 ? (remainingArch / Math.max(archStep.n, 1)) : 0;
-        ax = tX + firstArchDist * sc + (prev * i) * sc;
-      }
+      const ax = (i === 0) ? tX + firstArchDist * sc
+        : tX + firstArchDist * sc + (remainingArch / Math.max(archStep.n, 1) * i) * sc;
+      const postTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
+      ctx.beginPath();
+      ctx.moveTo(ax, tY + tH);      // низ: всегда полная высота
+      ctx.lineTo(ax, postTopY);      // верх: полная или −300 для первой при скосе
+      ctx.stroke();
+    }
+
+    // Подписи для аэро скоса
+    if (hasAeroSkos) {
+      ctx.fillStyle = '#f39c12';
+      ctx.font = '8px DejaVu Sans';
+      ctx.fillText('−300', tX - 28, tY + 150*sc);
+      ctx.fillText('800 мм', tX + 350*sc, tY + tH/2 + 10);
+      ctx.fillText('аэро скос', tX + 300*sc, tY + 120*sc);
+    }
+
+    // Дуги (Π-образные перемычки) — на тех же позициях что и стойки
+    for (let i = 0; i < archCount; i++) {
+      const ax = (i === 0) ? tX + firstArchDist * sc
+        : tX + firstArchDist * sc + (remainingArch / Math.max(archStep.n, 1) * i) * sc;
 
       // Все дуги на полной высоте tY (скос уже закончился на 800 мм)
       ctx.strokeStyle = '#27ae60';
@@ -1107,8 +1083,7 @@ function redrawCanvas() {
     // Аннотации
     ctx.fillStyle = '#888';
     ctx.font = '9px DejaVu Sans';
-    const railMLength = (frameL/1000 * 4).toFixed(1);
-    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, верх+низ ${(frameL/1000*2).toFixed(1)} м × 2 шт = ${railMLength} м | стойки: ~каждые 700 мм`, tX, tY+tH+12);
+    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, верх+низ ${(frameL/1000*2).toFixed(1)} м × 2 шт = ${(frameL/1000*4).toFixed(1)} м | стоек = дуг: ${archCount} шт`, tX, tY+tH+12);
     ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+24);
     ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка −300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
 

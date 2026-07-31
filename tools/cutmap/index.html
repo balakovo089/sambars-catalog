@@ -353,12 +353,24 @@ function recalc() {
   // Борта: всегда узкий лист
   const sideSheets = Math.ceil(sideArea / 3.125);
 
-  // Bolts
-  const sBoltStep = calcStep(2*(W+L), 800);
-  const sBoltsCount = Math.max(sBoltStep.n, 8);
-  const floorBolts = Math.ceil(floorArea * 4) + Math.ceil(sPerimeter / 0.3);
+  // ═══ BOLTS ═══
+  // М8 борт→рама: отступ 250 мм, шаг ~800 мм
+  const sMidLen = frameL - 2*250;
+  const boltsPerLongSide = Math.max(2, Math.round(sMidLen / 800) + 1);
+  const sMidLenShort = Math.max(0, frameW - 2*250);
+  const boltsPerShortSide = Math.max(2, Math.round(sMidLenShort / 800) + 1);
+  const sBoltsCount = (boltsPerLongSide + boltsPerShortSide) * 2;  // 2 длинных + 2 коротких
+  // М6 пол→перемычки: шаг ~350 мм по ширине
+  const boltsPerCross = Math.max(2, Math.round(frameW / 350));
+  const totalCrossBeams = totalCross + specialBeamsR.length + floorSeams;
+  const floorBolts = boltsPerCross * totalCrossBeams;
+  // М6 каркас тента→борта: как М8 но М6, ×2 рамки
+  const tentBolts = hasTent ? Math.max(2, Math.round(sMidLen / 800) + 1) * 2 : 0;
+  // Ось/подвеска
   const axleBolts = axles * 8;
-  const tentBolts = hasTent ? Math.ceil(frameL/800) * 2 : 0;
+  // Заклёпки
+  const rivetsFloor = Math.ceil(2*(frameW + frameL) / 300);  // пол→лонжероны
+  const rivetsSides = Math.ceil(sPerimeter * 3);  // фанера бортов→рамка
 
   // ═══ CUT PLANS ═══
   // Metal pieces for cutting
@@ -433,7 +445,7 @@ function recalc() {
   } else {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
-  renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, sPerimeter);
+  renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides);
   renderBrackets(bp, state);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
   updateMeta();
@@ -535,18 +547,20 @@ function renderTent(area, bp, sPerimeter, hasTent) {
   document.getElementById('tentPlan').innerHTML = html;
 }
 
-function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, sPerim) {
+function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
   let html = `<table>
     <tr><th>Узел</th><th>Тип</th><th class="num">Кол-во</th></tr>
     <tr><td>Борта → рама</td><td>М8×100 + гайка + шайба</td><td class="num">${sBolts}</td></tr>
-    <tr><td>Пол → рама</td><td>М6 мебельный потай + гайка</td><td class="num">${fBolts}</td></tr>
+    <tr><td>Пол → перемычки</td><td>М6 мебельный потай + гайка</td><td class="num">${fBolts}</td></tr>
+    <tr><td>Заклёпки пол→лонжероны</td><td>4.8×25</td><td class="num">~${rivF}</td></tr>
+    <tr><td>Заклёпки фанеры бортов</td><td>4.8×25</td><td class="num">~${rivS}</td></tr>
     <tr><td>Ось / подвеска</td><td>М12×90 + М12×70</td><td class="num">${aBolts}</td></tr>
-    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td></tr>
-    <tr><td>Заклёпки бортов 4.8×25</td><td>—</td><td class="num">~${Math.ceil(sPerim * 3)}</td></tr>`;
+    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td></tr>`;
   if (tBolts > 0) {
-    html += `<tr><td>Каркас тента → борта</td><td>М8×35 + эр-гайка</td><td class="num">${tBolts}</td></tr>`;
+    html += `<tr><td>Каркас тента → борта</td><td>М6×35 + гайка</td><td class="num">${tBolts}</td></tr>`;
   }
-  html += `<tr><td>Петли заднего борта</td><td>Быстросъёмные</td><td class="num">2</td></tr>
+  html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td></tr>
+    <tr><td>Петли заднего борта</td><td>Быстросъёмные</td><td class="num">2</td></tr>
     <tr><td>Замки бортовые</td><td>—</td><td class="num">${st.brand === 'Барсук' ? 2 : 4}</td></tr>
     <tr><td>Замки самосвала</td><td>—</td><td class="num">2</td></tr>
   </table>`;

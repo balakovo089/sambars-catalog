@@ -1054,24 +1054,23 @@ function redrawCanvas() {
     }
 
     // Дуги (Π-образные перемычки) — на тех же позициях что и стойки
-    archPositions.forEach(pos => {
+    archPositions.forEach((pos, i) => {
       const ax = tX + pos * sc;
-
-      // Все дуги на полной высоте tY (скос уже закончился на 800 мм)
+      const archTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
       ctx.strokeStyle = '#27ae60';
       ctx.lineWidth = 2;
       ctx.beginPath();
-      ctx.moveTo(ax, tY);
-      ctx.lineTo(ax, tY + 100*sc);
+      ctx.moveTo(ax, archTopY);
+      ctx.lineTo(ax, archTopY + 100*sc);
       ctx.stroke();
 
       // Метка проставки (внутри рамки, у верхнего края)
       ctx.fillStyle = '#f39c12';
-      ctx.fillRect(ax - 12*sc, tY, 24*sc, 100*sc);
+      ctx.fillRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
       ctx.strokeStyle = '#d35400';
       ctx.lineWidth = 0.8;
       ctx.setLineDash([1, 2]);
-      ctx.strokeRect(ax - 12*sc, tY, 24*sc, 100*sc);
+      ctx.strokeRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
       ctx.setLineDash([]);
     });
 

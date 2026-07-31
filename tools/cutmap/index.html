@@ -335,6 +335,7 @@ function recalc() {
     floorSheets = L <= 3000 ? 1 : 2;
     hasFloorSeam = L > 3000;
   }
+  state.hasFloorSeam = hasFloorSeam;
   // Борта: всегда узкий лист
   const sideSheets = Math.ceil(sideArea / 3.125);
 
@@ -894,7 +895,7 @@ function redrawCanvas() {
   // Annotations
   ctx.fillStyle = '#888';
   ctx.font = '9px DejaVu Sans';
-  let annoText = `поперечин 40×20: ${totalCross} шт${hasFloorSeam ? ' + 1 под шов пола' : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
+  let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ' + 1 под шов пола' : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
   ctx.fillText(annoText, rX, rY+rL+12);

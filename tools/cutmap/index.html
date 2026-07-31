@@ -1622,17 +1622,28 @@ function redrawCanvas() {
     drawDimArrow(tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, `${frameW+2*tentMM} мм`, 'left');
     drawDimArrow(tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, `${frameL} мм`, 'top');
 
-    // Передний клапан (припаян к крыше справа, РАЗВЁРНУТ: высота=frameW, ширина=tentMM)
+    // Передний клапан (развёрнут: высота=frameW, ширина=tentMM+hem)
     const flapGap = 5;
-    const fFlapH = frameW * tScale;    // высота клапана = ширина прицепа
-    const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale;  // ширина = высота тента
+    const fFlapH = frameW * tScale;
+    const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale + hemH;
     const fFlapX = tLayoutX + mainW + flapGap;
     const fFlapY = fold1Y;
+    const fFlapHemY = fFlapY + fFlapW - hemH;
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
     ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
+    // Подворот
+    ctx.setLineDash([1,3]);
+    ctx.strokeStyle = '#888';
+    ctx.beginPath();
+    ctx.moveTo(fFlapX, fFlapHemY); ctx.lineTo(fFlapX + fFlapW, fFlapHemY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#888';
+    ctx.font = '6px DejaVu Sans';
+    ctx.fillText('220', fFlapX + 2, fFlapHemY - 2);
+    // Припайка
     ctx.setLineDash([2,2]);
     ctx.beginPath(); ctx.moveTo(tLayoutX + mainW, fFlapY); ctx.lineTo(tLayoutX + mainW, fFlapY + fFlapH); ctx.stroke();
     ctx.setLineDash([]);
@@ -1641,16 +1652,25 @@ function redrawCanvas() {
     ctx.fillText(`ПЕРЕД${aero?' -30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
     drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW} мм`, 'left');
 
-    // Задний клапан (припаян к крыше слева, развёрнут)
-    const rFlapW = tentMM * tScale;
+    // Задний клапан (развёрнут)
+    const rFlapW = tentMM * tScale + hemH;
     const rFlapH = frameW * tScale;
     const rFlapX = tLayoutX - rFlapW - flapGap;
     const rFlapY = fold1Y;
+    const rFlapHemY = rFlapY + rFlapW - hemH;
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
     ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
+    ctx.setLineDash([1,3]);
+    ctx.strokeStyle = '#888';
+    ctx.beginPath();
+    ctx.moveTo(rFlapX, rFlapHemY); ctx.lineTo(rFlapX + rFlapW, rFlapHemY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#888';
+    ctx.font = '6px DejaVu Sans';
+    ctx.fillText('220', rFlapX + 2, rFlapHemY - 2);
     ctx.setLineDash([2,2]);
     ctx.beginPath(); ctx.moveTo(tLayoutX, rFlapY); ctx.lineTo(tLayoutX, rFlapY + rFlapH); ctx.stroke();
     ctx.setLineDash([]);

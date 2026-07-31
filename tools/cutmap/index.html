@@ -77,6 +77,9 @@ canvas{display:block;cursor:grab}
     <div class="section" id="tentPlan"></div>
   </div>
 
+  <h3>📦 РАСХОДНИКИ</h3>
+  <div class="section" id="consumables"></div>
+
   <h3>🔩 БОЛТОВАЯ КАРТА</h3>
   <div class="section" id="boltMap"></div>
 
@@ -372,6 +375,18 @@ function recalc() {
   const rivetsFloor = Math.ceil(2*(frameW + frameL) / 300);  // пол→лонжероны
   const rivetsSides = Math.ceil(sPerimeter * 3);  // фанера бортов→рамка
 
+  // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
+  const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);
+  const consumables = {
+    cuts: totalCuts,
+    wire: (totalCuts * 0.025).toFixed(2),        // кг проволоки (~25 г на рез)
+    gas: (totalCuts * 0.015).toFixed(2),          // кг CO2 (~15 г на рез)
+    cutDiscs: Math.ceil(totalCuts / 8),            // отрезных дисков
+    grindDiscs: Math.ceil(totalCuts / 12),         // шлифовальных дисков
+    gloves: Math.max(1, Math.ceil(totalCuts / 80)),  // пар перчаток
+    kragi: Math.max(1, Math.ceil(totalCuts / 160)),  // пар краг
+  };
+
   // ═══ CUT PLANS ═══
   // Metal pieces for cutting
   const frameProfile = bp.frameProfile;
@@ -448,6 +463,7 @@ function recalc() {
   renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides);
   renderBrackets(bp, state);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
+  renderConsumables(consumables);
   updateMeta();
   redrawCanvas();
 }
@@ -594,6 +610,19 @@ function renderBrackets(bp, st) {
   </table>`;
   const el = document.getElementById('bracketSpec');
   if (el) el.innerHTML = html;
+}
+
+function renderConsumables(c) {
+  const html = `<table>
+    <tr><td>Резов (пилов)</td><td class="num"><b>${c.cuts}</b></td></tr>
+    <tr><td>Проволока св.</td><td class="num">${c.wire} кг</td></tr>
+    <tr><td>Газ (CO₂)</td><td class="num">${c.gas} кг</td></tr>
+    <tr><td>Диски отрезные</td><td class="num">${c.cutDiscs} шт</td></tr>
+    <tr><td>Диски шлифовальные</td><td class="num">${c.grindDiscs} шт</td></tr>
+    <tr><td>Перчатки</td><td class="num">${c.gloves} пар</td></tr>
+    <tr><td>Краги</td><td class="num">${c.kragi} пар</td></tr>
+  </table>`;
+  document.getElementById('consumables').innerHTML = html;
 }
 
 function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetType) {

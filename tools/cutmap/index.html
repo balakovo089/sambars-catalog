@@ -1168,7 +1168,9 @@ function redrawCanvas() {
 
     drawDimArrow(tbLeft, tentTopY - 10, tbRight, tentTopY - 10, `${frameW+40} мм`, 'top');
     drawDim(secX + secW/2 - 50, tentTopY - 22, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
-    drawDimArrow(tentTopY, tentTopY, tentTopY, frameY, `${tentMM} мм`, 'left');
+    // Высота тента — от верха борта до верха рамки
+    const tentAboveBoard = tentMM - boardH;  // высота тента над бортом
+    drawDimArrow(tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, `тент ${tentH} см`, 'left');
   }
 
   // ── БОРТА ──

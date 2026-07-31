@@ -830,22 +830,32 @@ function redrawCanvas() {
     ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rL + 48);
   }
 
-  // ── БОЛТЫ ПОЛА М6 (только в поперечины, шаг ~350 мм по ширине) ──
+  // ── БОЛТЫ ПОЛА М6 (поперечины + аморт. балки, шаг ~350 мм по ширине) ──
   const floorBoltStepMM = 350;
   const boltsPerCross = Math.max(2, Math.round(frameW / floorBoltStepMM));
-  const crossCount = totalCross;
-  const totalFloorBolts = boltsPerCross * crossCount;
-  ctx.fillStyle = '#f39c12';
+  // Обычные поперечины
+  let totalFloorBolts = boltsPerCross * crossPositions.length;
   crossPositions.forEach(pos => {
     const cy = rY + rL - (pos / frameL) * rL;
     for (let b = 1; b <= boltsPerCross; b++) {
       const bx = rX + (b / (boltsPerCross + 1)) * rW;
+      ctx.fillStyle = '#f39c12';
       ctx.beginPath(); ctx.arc(bx, cy, 2, 0, Math.PI*2); ctx.fill();
+    }
+  });
+  // Амортизаторные балки — тоже перемычки, в них тоже крепится пол
+  specialBeams.forEach(pos => {
+    const sy = rY + rL - (pos / frameL) * rL;
+    totalFloorBolts += boltsPerCross;
+    for (let b = 1; b <= boltsPerCross; b++) {
+      const bx = rX + (b / (boltsPerCross + 1)) * rW;
+      ctx.fillStyle = '#f39c12';
+      ctx.beginPath(); ctx.arc(bx, sy, 2, 0, Math.PI*2); ctx.fill();
     }
   });
   ctx.fillStyle = '#f39c12';
   ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`• М6 пол→поперечины: ${totalFloorBolts} шт (${boltsPerCross}×${crossCount}, шаг ~350 мм по ширине)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
+  ctx.fillText(`• М6 пол→перемычки (поперечины + аморт. балки): ${totalFloorBolts} шт (шаг ~350 мм)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
   // Заклёпки 4.8×25 по лонжеронам
   const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
   ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rL + (state.hasFloorSeam ? 76 : 50));

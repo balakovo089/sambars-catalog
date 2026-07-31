@@ -1105,48 +1105,70 @@ function redrawCanvas() {
   // Cross-section: спереди/сзади (одинаковый вид)
   // ─────────────────────────────────────────────
   const xsLabelNum = hasTent ? '4' : '3';
-  drawLabel(margin, curY, `${xsLabelNum}. ВИД СЗАДИ (рама + борт + тент + задняя рамка)`, '#9b59b6');
+  drawLabel(margin, curY, `${xsLabelNum}. ВИД СЗАДИ (тент + борт + рама + задняя рамка)`, '#9b59b6');
   curY += labelH + 5;
 
   const secX = rX + 60;
-  const secY = curY;
   const secW = frameW * sc;
-  const boardVisH = boardH * sc;       // высота борта визуальная
-  const frameY = secY + boardVisH;     // уровень рамы (ниже бортов)
+  const boardVisH = boardH * sc;       // высота борта 300 мм
 
-  // ── КАРКАС ТЕНТА (Π-образная дуга + боковые рамки) ──
+  // ── ВЕРТИКАЛЬНАЯ КОМПОНОВКА ──
+  // Боковая рамка тента идёт от рамы ВВЕРХ на tentMM
+  // Борт (300 мм) находится внутри нижней части рамки
+  // Дуга Π-образная — на самом верху рамки
+  let tentTopY = curY;                  // верх рамки тента (и дуги)
+  let frameY;                            // уровень рамы
+  if (hasTent) {
+    frameY = tentTopY + tentMM * sc;     // низ рамки тента = уровень рамы
+  } else {
+    frameY = tentTopY + boardVisH;       // без тента: рама под бортом
+  }
+  const boardTopY = frameY - boardVisH;  // верх бортов
+
+  // ── КАРКАС ТЕНТА ──
   if (hasTent) {
     const tbLeft = secX + 10;
     const tbRight = secX + secW - 10;
-    const archBarY = secY;  // горизонтальная труба дуги на уровне верха рамок
 
-    // Боковые рамки тента 20×20×1.5 — рисуем ПОСЛЕ бортов, чтобы были видны
+    // Боковые рамки тента 20×20×1.5 (вертикальные, от верха до рамы)
+    const fw = Math.max(6, 20*sc);
+    ctx.fillStyle = 'rgba(39, 174, 96, 0.25)';
+    ctx.fillRect(tbLeft - fw, tentTopY, fw, tentMM * sc);
+    ctx.fillRect(tbRight, tentTopY, fw, tentMM * sc);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(tbLeft - fw, tentTopY, fw, tentMM * sc);
+    ctx.strokeRect(tbRight, tentTopY, fw, tentMM * sc);
+    ctx.fillStyle = '#27ae60';
+    ctx.font = 'bold 8px DejaVu Sans';
+    ctx.fillText('рамка', tbLeft - fw - 48, tentTopY + tentMM*sc/2 - 6);
+    ctx.fillText('тента', tbLeft - fw - 48, tentTopY + tentMM*sc/2 + 5);
+    ctx.fillText('20×20', tbLeft - fw - 48, tentTopY + tentMM*sc/2 + 16);
 
-    // Дуга Π-образная: горизонтальная труба + две ножки 100 мм вниз (внутри рамок, в проставках)
+    // Дуга Π-образная на верху рамок
     ctx.strokeStyle = '#27ae60';
     ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(tbLeft, archBarY);
-    ctx.lineTo(tbLeft, archBarY + 100*sc);
-    ctx.moveTo(tbLeft, archBarY);
-    ctx.lineTo(tbRight, archBarY);
-    ctx.moveTo(tbRight, archBarY);
-    ctx.lineTo(tbRight, archBarY + 100*sc);
+    ctx.moveTo(tbLeft, tentTopY);
+    ctx.lineTo(tbLeft, tentTopY + 100*sc);
+    ctx.moveTo(tbLeft, tentTopY);
+    ctx.lineTo(tbRight, tentTopY);
+    ctx.moveTo(tbRight, tentTopY);
+    ctx.lineTo(tbRight, tentTopY + 100*sc);
     ctx.stroke();
 
-    // Проставки 25×25×2 внутри рамок (пунктир — не видны снаружи)
+    // Проставки внутри рамок (пунктир)
     ctx.setLineDash([1, 2]);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 1;
     const spW = 25 * sc;
-    ctx.strokeRect(tbLeft - spW/2, archBarY, spW, 100*sc);
-    ctx.strokeRect(tbRight - spW/2, archBarY, spW, 100*sc);
+    ctx.strokeRect(tbLeft - spW/2, tentTopY, spW, 100*sc);
+    ctx.strokeRect(tbRight - spW/2, tentTopY, spW, 100*sc);
     ctx.setLineDash([]);
 
-    // Размеры
-    drawDim(secX + secW/2 - 45, archBarY - 10, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
-    drawDim(tbLeft - 32, archBarY + 50*sc, '100', '#27ae60');
-    drawDimArrow(tbLeft, archBarY - 8, tbRight, archBarY - 8, `${frameW+40} мм`, 'top');
+    drawDimArrow(tbLeft, tentTopY - 10, tbRight, tentTopY - 10, `${frameW+40} мм`, 'top');
+    drawDim(secX + secW/2 - 50, tentTopY - 22, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
+    drawDimArrow(tentTopY, tentTopY, tentTopY, frameY, `${tentMM} мм`, 'left');
   }
 
   // ── БОРТА ──
@@ -1154,43 +1176,29 @@ function redrawCanvas() {
   const bRight = secX + secW - 10;
   ctx.strokeStyle = '#3498db';
   ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(bLeft, secY); ctx.lineTo(bLeft, frameY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, secY); ctx.lineTo(bRight, frameY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bLeft, boardTopY); ctx.lineTo(bLeft, frameY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, boardTopY); ctx.lineTo(bRight, frameY); ctx.stroke();
   ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(bLeft - 5, secY + 3); ctx.lineTo(bLeft, secY + 3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, secY + 3); ctx.lineTo(bRight + 5, secY + 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bLeft - 5, boardTopY + 3); ctx.lineTo(bLeft, boardTopY + 3); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bRight, boardTopY + 3); ctx.lineTo(bRight + 5, boardTopY + 3); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(bLeft - 5, frameY - 3); ctx.lineTo(bLeft, frameY - 3); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(bRight, frameY - 3); ctx.lineTo(bRight + 5, frameY - 3); ctx.stroke();
   ctx.fillStyle = 'rgba(52,152,219,0.1)';
-  ctx.fillRect(bLeft, secY + 3, bRight - bLeft, frameY - secY - 6);
-  drawDim(bLeft - 30, (secY + frameY)/2, `${boardH} мм`, '#3498db');
-  drawDim(secX + secW/2 - 45, frameY + 2, `Фанера 9 мм`, '#888');
-
-  // Боковые рамки тента 20×20×1.5 (поверх бортов, от низа до верха)
-  if (hasTent) {
-    const fw = Math.max(6, 20*sc);  // не меньше 6px для видимости
-    ctx.fillStyle = 'rgba(39, 174, 96, 0.4)';
-    ctx.fillRect(bLeft - fw, secY + 2, fw, frameY - secY - 4);
-    ctx.fillRect(bRight, secY + 2, fw, frameY - secY - 4);
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(bLeft - fw, secY + 2, fw, frameY - secY - 4);
-    ctx.strokeRect(bRight, secY + 2, fw, frameY - secY - 4);
-    ctx.fillStyle = '#27ae60';
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('рамка тента 20×20', bLeft - fw - 75, secY + (frameY - secY)/2 + 3);
-  }
+  ctx.fillRect(bLeft, boardTopY + 3, bRight - bLeft, frameY - boardTopY - 6);
+  drawDim(bLeft - 30, (boardTopY + frameY)/2, `${boardH} мм`, '#3498db');
 
   // ── РАМА ──
   ctx.strokeStyle = '#5dade2';
   ctx.lineWidth = 6;
   ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
-  drawDim(secX + secW/2 - 30, frameY + 14, `Рама: ${bp.frameProfile}`, '#5dade2');
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.fillText(`${bp.frameProfile}`, secX + secW/2 - 20, frameY + 12);
 
   // ── ЗАДНЯЯ РАМКА (под рамой) ──
-  const rearY = frameY;                // начинается от уровня рамы вниз
-  const postW = 20 * sc;               // толщина стойки (20 мм — сторона профиля 40×20 которую видим)
-  const postVisH = 180 * sc;           // высота стоек 180 мм
+  const rearY = frameY;
+  const postW = 20 * sc;
+  const postVisH = 180 * sc;
 
   // Стойки
   ctx.fillStyle = '#e67e22';
@@ -1278,12 +1286,12 @@ function redrawCanvas() {
   // Ширина
   ctx.fillStyle = '#f39c12';
   ctx.font = '10px DejaVu Sans';
-  ctx.fillText(`${W} мм (заявл.) | ${frameW} мм (рама)`, secX + secW/2 - 70, secY - 10);
+  ctx.fillText(`${W} мм (заявл.) | ${frameW} мм (рама)`, secX + secW/2 - 70, boardTopY - 8);
 
   curY = rearY + postVisH + 30;
 
   // Total
-  const totalY = secY - 15;
+  const totalY = boardTopY - 15;
   ctx.fillStyle = '#e0e0e0';
   ctx.font = `bold ${Math.max(12, 14)}px DejaVu Sans`;
   ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);

@@ -614,6 +614,8 @@ function renderBrackets(bp, st) {
 }
 
 function renderConsumables(c) {
+  const el = document.getElementById('consumables');
+  if (!el) return;
   const html = `<table>
     <tr><td>Резов (пилов)</td><td class="num"><b>${c.cuts}</b></td></tr>
     <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td></tr>

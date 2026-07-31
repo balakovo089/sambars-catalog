@@ -96,6 +96,7 @@ canvas{display:block;cursor:grab}
   <div class="legend">
     <span style="color:#5dade2">▬▬</span> Рама<br>
     <span style="color:#7f8c8d">▬▬</span> Поперечины<br>
+    <span style="color:#00bcd4">- -</span> Перемычки под пол<br>
     <span style="color:#e67e22">▬▬</span> Аморт. балки / Задняя рамка<br>
     <span style="color:#e74c3c">▬▬</span> Дышло / Кронштейны<br>
     <span style="color:#f39c12">⬜</span> Рессоры / Гос.номер<br>
@@ -482,14 +483,14 @@ function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand
     for (let i = 0; i < floorSheets; i++) {
       html += `<div class="cut-seg" style="width:${segPct}%;background:${i%2===0?'#e94560':'#f39c12'}">лист ${i+1}</div>`;
     }
-    html += `</div><span class="sub">стыки каждые 1250 мм (${floorSeams} шт)</span>`;
+    html += `</div><span class="sub">стыки каждые 1250 мм от задней части (${floorSeams} шт)</span>`;
   } else {
     // Вдоль: основной + добор
     const mainL = W <= 1250 ? 2500 : 3000;
     const extraL = L - mainL;
     const mainPct = (mainL / L * 100).toFixed(0);
     const extraPct = (extraL / L * 100).toFixed(0);
-    html += `<div class="cut-bar"><div class="cut-seg" style="width:${mainPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(mainL/1000).toFixed(1)} м</div><div class="cut-seg" style="width:${extraPct}%;background:#f39c12">+${(extraL/1000).toFixed(2)} м</div></div><span class="sub">шов на ${(mainL/1000).toFixed(1)} м</span>`;
+    html += `<div class="cut-bar"><div class="cut-seg" style="width:${mainPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(mainL/1000).toFixed(1)} м</div><div class="cut-seg" style="width:${extraPct}%;background:#f39c12">+${(extraL/1000).toFixed(2)} м</div></div><span class="sub">шов на ${(mainL/1000).toFixed(1)} м от заднего края</span>`;
   }
   html += '</div>';
 
@@ -811,6 +812,23 @@ function redrawCanvas() {
   }
 
   ctx.setLineDash([]);
+
+  // ── ПЕРЕМЫЧКИ ПОД ШВЫ ФАНЕРЫ ПОЛА (опционально, другой цвет) ──
+  if (state.hasFloorSeam && state.floorSeams > 0) {
+    const seamStep = W <= 1500 ? (W <= 1250 ? 2500 : 3000) : 1250;
+    ctx.strokeStyle = '#00bcd4';
+    ctx.lineWidth = Math.max(3, 4);
+    ctx.setLineDash([6, 4]);
+    for (let s = 1; s <= state.floorSeams; s++) {
+      const seamFromRear = s * seamStep;  // от задней части (верх схемы)
+      const sy = rY + (seamFromRear / frameL) * rL;
+      ctx.beginPath(); ctx.moveTo(rX, sy); ctx.lineTo(rX + rW, sy); ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#00bcd4';
+    ctx.font = '8px DejaVu Sans';
+    ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rL + 48);
+  }
 
   // ── Front/Rear labels ──
   ctx.fillStyle = '#fff';

@@ -550,9 +550,11 @@ function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand
 function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const isBarsuk = st.brand === 'Барсук';
   const aero = tH >= 120;
-  const hemMM = 220;  // подворот: 100 мм выше каркаса + 120 мм подгиб
-  // Основное полотно: крыша + боковины (единая деталь), с подворотом на боках
-  const mainW = fL/1000;
+  const hemMM = 220;  // подворот снизу: 100 мм выше каркаса + 120 мм подгиб
+  const leftAddMM = 260;  // припуск слева (задний край)
+  const rightAddMM = 120; // припуск справа (передний край)
+  // Основное полотно
+  const mainW = (fL + leftAddMM + rightAddMM)/1000;
   const sideH = (tMM + hemMM)/1000;  // боковина с подворотом
   const roofH = fW/1000;
   const mainH = sideH + roofH + sideH;
@@ -1550,7 +1552,9 @@ function redrawCanvas() {
 
     // Основное полотно (единый кусок: задний бок + крыша + передний бок)
     // Расположение: сверху задний бок → крыша (со скосом спереди) → передний бок
-    const mainW = frameL * tScale;
+    const mainW = (frameL + 260 + 120) * tScale;  // +260 слева (зад) +120 справа (перед)
+    const mainLeftAdd = 260 * tScale;
+    const mainRightAdd = 120 * tScale;
     const sideH = tentMM * tScale;
     const hemH = 220 * tScale;            // подворот 220 мм
     const roofH = frameW * tScale;
@@ -1575,6 +1579,21 @@ function redrawCanvas() {
     ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW, fold1Y); ctx.stroke();
     ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
     ctx.setLineDash([]);
+
+    // Припуски слева/справа (пунктир)
+    const frameLeftX = tLayoutX + mainLeftAdd;      // граница: левый припуск / основная часть
+    const frameRightX = tLayoutX + mainW - mainRightAdd; // граница: основная часть / правый припуск
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle = '#888';
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(frameLeftX, tLayoutY); ctx.lineTo(frameLeftX, tLayoutY + mainH); ctx.stroke();
+    ctx.moveTo(frameRightX, tLayoutY); ctx.lineTo(frameRightX, tLayoutY + mainH); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#888';
+    ctx.font = '7px DejaVu Sans';
+    ctx.fillText('260', tLayoutX + 2, tLayoutY + mainH/2 + 3);
+    ctx.fillText('120', frameRightX + 2, tLayoutY + mainH/2 + 3);
 
     // Линии подворота (220 мм — красные пунктиры по схеме)
     ctx.setLineDash([5, 5]);
@@ -1619,7 +1638,7 @@ function redrawCanvas() {
 
     // Размеры
     drawDimArrow(tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, `${frameW+2*tentMM} мм`, 'left');
-    drawDimArrow(tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, `${frameL} мм`, 'top');
+    drawDimArrow(tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, `${frameL+380} мм (рамка ${frameL}+260+120)`, 'top');
 
     // Передний клапан (развёрнут: высота=frameW, ширина=tentMM+hem)
     const flapGap = 5;

@@ -1653,16 +1653,12 @@ function redrawCanvas() {
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
     ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
-    // Подвороты (красные горизонтальные пунктиры — 120 мм от верха и низа)
+    // Подворот вертикально (красный пунктир)
     ctx.setLineDash([5,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    // Верх
-    ctx.moveTo(fFlapX, fFlapY + 120*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + 120*tScale);
-    // Низ
-    ctx.moveTo(fFlapX, fFlapY + fFlapH - 120*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + fFlapH - 120*tScale);
-    ctx.stroke();
+    ctx.moveTo(fFlapHemX, fFlapY); ctx.lineTo(fFlapHemX, fFlapY + fFlapH); ctx.stroke();
     ctx.setLineDash([]);
     ctx.setLineDash([2,2]);
     ctx.beginPath(); ctx.moveTo(tLayoutX + mainW, fFlapY); ctx.lineTo(tLayoutX + mainW, fFlapY + fFlapH); ctx.stroke();
@@ -1683,14 +1679,15 @@ function redrawCanvas() {
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
     ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
-    // Подвороты (красные горизонтальные пунктиры — 120 мм от верха и низа)
+    // Подвороты заднего клапана
     ctx.setLineDash([5,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    // Верх
+    // Вертикальная линия — подворот 220 мм
+    ctx.moveTo(rFlapHemX, rFlapY); ctx.lineTo(rFlapHemX, rFlapY + rFlapH);
+    // Горизонтальные — 120 мм от верха и низа
     ctx.moveTo(rFlapX, rFlapY + 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + 120*tScale);
-    // Низ
     ctx.moveTo(rFlapX, rFlapY + rFlapH - 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + rFlapH - 120*tScale);
     ctx.stroke();
     ctx.setLineDash([]);
@@ -1702,6 +1699,7 @@ function redrawCanvas() {
     ctx.font = 'bold 8px DejaVu Sans';
     ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 + 4);
     drawDimArrow(rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, `${frameW} мм`, 'left');
+    drawDimArrow(rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, `${tentMM+460} мм`, 'top');
 
     ctx.fillStyle = '#888';
     ctx.font = '8px DejaVu Sans';

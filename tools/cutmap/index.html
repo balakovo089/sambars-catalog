@@ -1014,33 +1014,32 @@ function redrawCanvas() {
     ctx.stroke();
 
     // Вертикальные стойки рамки — столько же сколько дуг, на тех же позициях
-    let archCount, firstArchDist, remainingArch, archStep;
+    let archCount, archPositions = [];
     if (hasAeroSkos) {
       // Со скосом: первая дуга на 800 мм, остальные через ~700 мм
-      firstArchDist = 800;
-      remainingArch = frameL - 800;
-      archCount = 1 + (remainingArch > 0 ? calcStep(remainingArch, 700).n : 0);
-      archStep = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
+      const remainingArch = frameL - 800;
+      const rs = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
+      archCount = 1 + rs.n;
+      archPositions.push(800);
+      for (let i = 1; i <= rs.n; i++) archPositions.push(800 + i * rs.step);
     } else {
-      // Без скоса: все дуги равномерно, без специального отступа
+      // Без скоса: все дуги равномерно, равные промежутки
       const s = calcStep(frameL, 700);
       archCount = s.n;
-      firstArchDist = frameL / (s.n + 1);  // равномерный шаг
-      remainingArch = frameL - firstArchDist;
-      archStep = {n: Math.max(0, s.n - 1), step: firstArchDist};
+      const step = frameL / (s.n + 1);
+      for (let i = 1; i <= s.n; i++) archPositions.push(i * step);
     }
 
     ctx.strokeStyle = '#1e8449';
     ctx.lineWidth = 1.5;
-    for (let i = 0; i < archCount; i++) {
-      const ax = (i === 0) ? tX + firstArchDist * sc
-        : tX + firstArchDist * sc + (remainingArch / Math.max(archStep.n, 1) * i) * sc;
+    archPositions.forEach((pos, i) => {
+      const ax = tX + pos * sc;
       const postTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
       ctx.beginPath();
-      ctx.moveTo(ax, tY + tH);      // низ: всегда полная высота
-      ctx.lineTo(ax, postTopY);      // верх: полная или −300 для первой при скосе
+      ctx.moveTo(ax, tY + tH);
+      ctx.lineTo(ax, postTopY);
       ctx.stroke();
-    }
+    });
 
     // Подписи для аэро скоса
     if (hasAeroSkos) {
@@ -1052,9 +1051,8 @@ function redrawCanvas() {
     }
 
     // Дуги (Π-образные перемычки) — на тех же позициях что и стойки
-    for (let i = 0; i < archCount; i++) {
-      const ax = (i === 0) ? tX + firstArchDist * sc
-        : tX + firstArchDist * sc + (remainingArch / Math.max(archStep.n, 1) * i) * sc;
+    archPositions.forEach(pos => {
+      const ax = tX + pos * sc;
 
       // Все дуги на полной высоте tY (скос уже закончился на 800 мм)
       ctx.strokeStyle = '#27ae60';
@@ -1072,7 +1070,7 @@ function redrawCanvas() {
       ctx.setLineDash([1, 2]);
       ctx.strokeRect(ax - 12*sc, tY, 24*sc, 100*sc);
       ctx.setLineDash([]);
-    }
+    });
 
     // Аэро скос — наклонная верхняя труба рамки на первых 800 мм
     if (hasAeroSkos) {

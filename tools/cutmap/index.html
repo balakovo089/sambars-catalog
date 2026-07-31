@@ -830,55 +830,11 @@ function redrawCanvas() {
     ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rL + 48);
   }
 
-  // ── БОЛТЫ (точки на схеме) ──
-  // Болты бортов к раме М8: периметр, отступ 250 мм от краёв, шаг ~800 мм
-  let sBoltPositions = [];
-  const sTotal = 2*(W+L);
-  const sStep = calcStep(sTotal, 800);
-  const offset250 = 250;
-  // Генерируем позиции по периметру (начиная с левого нижнего угла, по часовой)
-  [
-    {x1:rX, y1:rY+rL, x2:rX, y2:rY, dir:'v'},     // левая сторона (снизу вверх)
-    {x1:rX, y1:rY, x2:rX+rW, y2:rY, dir:'h'},      // верх (слева направо)
-    {x1:rX+rW, y1:rY, x2:rX+rW, y2:rY+rL, dir:'v'},// правая (сверху вниз)
-    {x1:rX+rW, y1:rY+rL, x2:rX, y2:rY+rL, dir:'h'} // низ (справа налево)
-  ].forEach(side => {
-    const segLen = side.dir === 'h' ? Math.abs(side.x2 - side.x1)/sc : Math.abs(side.y2 - side.y1)/sc;
-    if (segLen <= offset250*2) {
-      // Слишком короткий сегмент — один болт по центру
-      sBoltPositions.push({x:(side.x1+side.x2)/2, y:(side.y1+side.y2)/2});
-    } else {
-      const midLen = segLen - 2*offset250;
-      const n = Math.max(1, Math.round(midLen / 800));
-      const step = midLen / n;
-      for (let i = 0; i <= n; i++) {
-        const dist = offset250 + i * step;
-        const t = dist / segLen;
-        sBoltPositions.push({
-          x: side.x1 + (side.x2 - side.x1) * t,
-          y: side.y1 + (side.y2 - side.y1) * t
-        });
-      }
-    }
-  });
-
-  // Рисуем болты бортов М8 (красные точки на раме)
-  sBoltPositions.forEach(p => {
-    ctx.fillStyle = '#e74c3c';
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 2.5, 0, Math.PI*2);
-    ctx.fill();
-  });
-  ctx.fillStyle = '#e74c3c';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`• М8 борта→рама: ${sBoltPositions.length} шт (шаг ~800, отступ 250)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
-
-  // Болты пола М6 (точки реже, по внутреннему контуру рамы)
-  // Один болт примерно каждые 300 мм периметра
-  const floorBoltN = Math.ceil(sTotal / 300);
+  // ── БОЛТЫ ПОЛА М6 (мебельные потайные, на раме) ──
+  const floorBoltN = Math.ceil(2*(W+L) / 300);
   ctx.fillStyle = '#f39c12';
   ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`• М6 пол→рама: ~${floorBoltN} шт (мебельные потайные, шаг ~300)`, rX, rY + rL + (state.hasFloorSeam ? 76 : 50));
+  ctx.fillText(`• М6 пол→рама: ~${floorBoltN} шт (мебельные потайные, шаг ~300 мм)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
 
   // ── Front/Rear labels ──
   ctx.fillStyle = '#fff';
@@ -1056,8 +1012,20 @@ function redrawCanvas() {
   ctx.fillStyle = '#3498db';
   ctx.font = 'bold 10px DejaVu Sans';
   ctx.fillText(`ДЛИННЫЙ борт (×2): ${jLong} перемычек, шаг ~${Math.round(frameL/(jLong+1))} мм`, bX, bY+bH+12);
+  // Болты М8 на нижней части борта
+  const sBoltN = Math.ceil(2*frameL / 800);
+  for (let i = 0; i < sBoltN; i++) {
+    const bx = bX + ((i + 0.5) / sBoltN) * bW;
+    ctx.fillStyle = '#e74c3c';
+    ctx.beginPath(); ctx.arc(bx, bY + bH - 5, 3, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(bx, bY + bH - 5, 1.5, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.fillStyle = '#e74c3c';
+  ctx.font = '8px DejaVu Sans';
+  ctx.fillText(`• М8 борт→рама: ${sBoltN*2} шт (шаг ~800, отступ 250)`, bX, bY+bH+24);
 
-  curY = bY + bH + 26;
+  curY = bY + bH + 38;
 
   // ── КОРОТКИЙ БОРТ ──
   const sbX = bX;
@@ -1230,9 +1198,18 @@ function redrawCanvas() {
     ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка −300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
     // Болты тента: М6, такой же шаг как борта→рама
     const tentBoltN = Math.ceil(2*frameL / 800);
-    ctx.fillText(`• М6 каркас→борта: ~${tentBoltN * 2} шт (шаг ~800 мм)`, tX, tY+tH+48);
+    for (let i = 0; i < tentBoltN; i++) {
+      const bx = tX + ((i + 0.5) / tentBoltN) * tW;
+      ctx.fillStyle = '#27ae60';
+      ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 3, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 1.5, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.fillStyle = '#27ae60';
+    ctx.font = '8px DejaVu Sans';
+    ctx.fillText(`• М6 каркас→борта: ${tentBoltN*2} шт (шаг ~800 мм)`, tX, tY+tH+48);
 
-    curY = tY + tH + 48;
+    curY = tY + tH + 62;
   }
 
   // ─────────────────────────────────────────────

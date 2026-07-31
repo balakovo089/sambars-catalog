@@ -560,10 +560,11 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const mainH = sideH + roofH + sideH;
   const mainM2 = mainW * mainH;
   // Клапаны (припаиваются)
+  const frontAddMM = isBarsuk ? 50 : 260;  // глухой: +50, на скобах: +260
   const frontH = (aero ? tMM - 300 + hemMM : tMM + hemMM)/1000;
-  const frontM2 = (fW/1000) * frontH;
-  const rearH = (tMM + hemMM + 240)/1000;  // задний: +120 верх +120 низ
-  const rearM2 = ((fW + 240)/1000) * rearH;  // высота тоже +240
+  const frontM2 = ((fW + frontAddMM*2)/1000) * frontH;
+  const rearH = (tMM + hemMM + 240)/1000;
+  const rearM2 = ((fW + 240)/1000) * rearH;
   const overlaps = 1.08;
   const totalM2 = ((mainM2 + frontM2 + rearM2) * overlaps).toFixed(2);
   // Нижний периметр (люверсы 10 мм, эспандер)
@@ -579,7 +580,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td colspan="2"><b>Раскрой (2 детали + клапаны)</b></td></tr>
     <tr><td>Основное полотно (крыша+бока)</td><td class="num">${mainW.toFixed(2)}×${mainH.toFixed(2)} = ${mainM2.toFixed(2)} м2</td></tr>
     <tr><td>  в т.ч. подворот ${hemMM} мм</td><td class="num">по низу боковин</td></tr>
-    <tr><td>Передний клапан${aero ? ' (скос -30 см)' : ''}</td><td class="num">${(fW/1000).toFixed(2)}×${(frontH/1000).toFixed(2)} = ${frontM2.toFixed(2)} м2</td></tr>
+    <tr><td>Передний клапан (+${frontAddMM}×2 ${isBarsuk?'глухой':'скобы'})${aero ? ' скос −30' : ''}</td><td class="num">${((fW+frontAddMM*2)/1000).toFixed(2)}×${frontH.toFixed(2)} = ${frontM2.toFixed(2)} м²</td></tr>
     <tr><td>Задний клапан (+120 верх/низ)</td><td class="num">${((fW+240)/1000).toFixed(2)}×${rearH.toFixed(2)} = ${rearM2.toFixed(2)} м²</td></tr>
     <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b> (×${overlaps})</td><td class="num"><b>${totalM2}</b> м2</td></tr>
     <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
@@ -1641,24 +1642,30 @@ function redrawCanvas() {
     drawDimArrow(tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, `${frameW+2*tentMM} мм`, 'left');
     drawDimArrow(tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, `${frameL+380} мм (рамка ${frameL}+260+120)`, 'top');
 
-    // Передний клапан (развёрнут: высота=frameW, ширина=tentMM+hem)
+    // Передний клапан (развёрнут, Барсук +50 / Самбарс +260 с каждой стороны)
     const flapGap = 5;
-    const fFlapH = frameW * tScale;
+    const frontAdd = brand === 'Барсук' ? 50 : 260;
+    const fFlapH = (frameW + frontAdd*2) * tScale;
     const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale + hemH;
     const fFlapX = tLayoutX + mainW + flapGap;
-    const fFlapY = fold1Y;
+    const fFlapY = fold1Y - frontAdd * tScale;
     const fFlapHemX = fFlapX + fFlapW - hemH;  // подворот 220 мм от дальнего края
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
     ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
-    // Подворот вертикально (красный пунктир)
+    // Подвороты переднего клапана
     ctx.setLineDash([5,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(fFlapHemX, fFlapY); ctx.lineTo(fFlapHemX, fFlapY + fFlapH); ctx.stroke();
+    // Вертикальная — подворот 220 мм
+    ctx.moveTo(fFlapHemX, fFlapY); ctx.lineTo(fFlapHemX, fFlapY + fFlapH);
+    // Горизонтальные — на frontAdd от верха/низа
+    ctx.moveTo(fFlapX, fFlapY + frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + frontAdd*tScale);
+    ctx.moveTo(fFlapX, fFlapY + fFlapH - frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + fFlapH - frontAdd*tScale);
+    ctx.stroke();
     ctx.setLineDash([]);
     ctx.setLineDash([2,2]);
     ctx.beginPath(); ctx.moveTo(tLayoutX + mainW, fFlapY); ctx.lineTo(tLayoutX + mainW, fFlapY + fFlapH); ctx.stroke();
@@ -1666,7 +1673,7 @@ function redrawCanvas() {
     ctx.fillStyle = '#f39c12';
     ctx.font = 'bold 8px DejaVu Sans';
     ctx.fillText(`ПЕРЕД${aero?' -30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
-    drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW} мм`, 'left');
+    drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW+frontAdd*2} мм`, 'left');
 
     // Задний клапан (развёрнут, +120 верх +120 низ → высота frameW+240)
     const rFlapW = (tentMM + 220 + 240) * tScale;

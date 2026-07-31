@@ -975,7 +975,8 @@ function redrawCanvas() {
     const tX = bX;
     const tY = curY;
     const tW = frameL * sc;
-    const tH = tentMM * sc;              // высота боковой рамки = высота тента
+    const totalFrameH = boardH + tentMM;  // полная высота рамки: борт + тент
+    const tH = totalFrameH * sc;
     const hasAeroSkos = tentH >= 120;    // аэро скос только ≥120 см
 
     // ── Боковая рамка: рисуем контур без лишнего металла над скосом ──
@@ -1089,12 +1090,12 @@ function redrawCanvas() {
 
     // Размеры
     drawDimArrow(tX, tY-8, tX+tW, tY-8, `${frameL} мм`, 'top');
-    drawDimArrow(tX-15, tY, tX-15, tY+tH, `${tentMM} мм`, 'left');
+    drawDimArrow(tX-15, tY, tX-15, tY+tH, `${totalFrameH} мм (борт ${boardH}+тент ${tentMM})`, 'left');
 
     // Аннотации
     ctx.fillStyle = '#888';
     ctx.font = '9px DejaVu Sans';
-    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, верх+низ ${(frameL/1000*2).toFixed(1)} м × 2 шт = ${(frameL/1000*4).toFixed(1)} м | стоек = дуг: ${archCount} шт`, tX, tY+tH+12);
+    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт, высота ${boardH}+${tentMM}=${totalFrameH} мм | стоек = дуг: ${archCount} шт`, tX, tY+tH+12);
     ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+24);
     ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка −300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
 
@@ -1113,15 +1114,15 @@ function redrawCanvas() {
   const boardVisH = boardH * sc;       // высота борта 300 мм
 
   // ── ВЕРТИКАЛЬНАЯ КОМПОНОВКА ──
-  // Боковая рамка тента идёт от рамы ВВЕРХ на tentMM
-  // Борт (300 мм) находится внутри нижней части рамки
-  // Дуга Π-образная — на самом верху рамки
+  // Рамка тента = борт (300 мм) + тент (tentMM) — начинается от рамы ВВЕРХ
+  // Тент над бортом = tentMM, борт внутри нижней части
   let tentTopY = curY;                  // верх рамки тента (и дуги)
   let frameY;                            // уровень рамы
   if (hasTent) {
-    frameY = tentTopY + tentMM * sc;     // низ рамки тента = уровень рамы
+    const totalFrameH = (boardH + tentMM);  // полная высота рамки: борт + тент
+    frameY = tentTopY + totalFrameH * sc;
   } else {
-    frameY = tentTopY + boardVisH;       // без тента: рама под бортом
+    frameY = tentTopY + boardVisH;
   }
   const boardTopY = frameY - boardVisH;  // верх бортов
 
@@ -1129,21 +1130,22 @@ function redrawCanvas() {
   if (hasTent) {
     const tbLeft = secX + 10;
     const tbRight = secX + secW - 10;
+    const totalFrameH = boardH + tentMM;
 
     // Боковые рамки тента 20×20×1.5 (вертикальные, от верха до рамы)
     const fw = Math.max(6, 20*sc);
     ctx.fillStyle = 'rgba(39, 174, 96, 0.25)';
-    ctx.fillRect(tbLeft - fw, tentTopY, fw, tentMM * sc);
-    ctx.fillRect(tbRight, tentTopY, fw, tentMM * sc);
+    ctx.fillRect(tbLeft - fw, tentTopY, fw, totalFrameH * sc);
+    ctx.fillRect(tbRight, tentTopY, fw, totalFrameH * sc);
     ctx.strokeStyle = '#27ae60';
     ctx.lineWidth = 2.5;
-    ctx.strokeRect(tbLeft - fw, tentTopY, fw, tentMM * sc);
-    ctx.strokeRect(tbRight, tentTopY, fw, tentMM * sc);
+    ctx.strokeRect(tbLeft - fw, tentTopY, fw, totalFrameH * sc);
+    ctx.strokeRect(tbRight, tentTopY, fw, totalFrameH * sc);
     ctx.fillStyle = '#27ae60';
     ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('рамка', tbLeft - fw - 48, tentTopY + tentMM*sc/2 - 6);
-    ctx.fillText('тента', tbLeft - fw - 48, tentTopY + tentMM*sc/2 + 5);
-    ctx.fillText('20×20', tbLeft - fw - 48, tentTopY + tentMM*sc/2 + 16);
+    ctx.fillText('рамка', tbLeft - fw - 48, tentTopY + totalFrameH*sc/2 - 6);
+    ctx.fillText('тента', tbLeft - fw - 48, tentTopY + totalFrameH*sc/2 + 5);
+    ctx.fillText('20×20', tbLeft - fw - 48, tentTopY + totalFrameH*sc/2 + 16);
 
     // Дуга Π-образная на верху рамок
     ctx.strokeStyle = '#27ae60';
@@ -1169,8 +1171,9 @@ function redrawCanvas() {
     drawDimArrow(tbLeft, tentTopY - 10, tbRight, tentTopY - 10, `${frameW+40} мм`, 'top');
     drawDim(secX + secW/2 - 50, tentTopY - 22, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
     // Высота тента — от верха борта до верха рамки
-    const tentAboveBoard = tentMM - boardH;  // высота тента над бортом
     drawDimArrow(tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, `тент ${tentH} см`, 'left');
+    // Высота борта
+    drawDimArrow(bLeft - 30, frameY, bLeft - 30, boardTopY, `${boardH} мм`, 'left');
   }
 
   // ── БОРТА ──

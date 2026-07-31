@@ -1543,48 +1543,53 @@ function redrawCanvas() {
     const tLayoutY = curY;
     const aero = tentH >= 120;
     const tScale = sc * 0.7;
-    const gap = 12;
 
-    // Основное полотно (крыша + боковины — единая деталь)
+    // Основное полотно (единый кусок: задний бок + крыша + передний бок)
+    // Расположение: сверху задний бок → крыша (со скосом спереди) → передний бок
     const mainW = frameL * tScale;
-    const mainH = (frameW + 2*tentMM) * tScale;
+    const sideH = tentMM * tScale;
+    const roofH = frameW * tScale;
+    const mainH = sideH + roofH + sideH;  // задний бок + крыша + передний бок
+    
     ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';
     ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 2.5;
     ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
-    // Линии сгиба (крыша ↔ боковины)
+    
+    // Линии сгиба
     ctx.setLineDash([3,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1;
-    const foldY1 = tLayoutY + tentMM * tScale;
-    const foldY2 = foldY1 + frameW * tScale;
-    ctx.beginPath(); ctx.moveTo(tLayoutX, foldY1); ctx.lineTo(tLayoutX + mainW, foldY1); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(tLayoutX, foldY2); ctx.lineTo(tLayoutX + mainW, foldY2); ctx.stroke();
+    const fold1Y = tLayoutY + sideH;       // задний бок / крыша
+    const fold2Y = fold1Y + roofH;          // крыша / передний бок
+    ctx.beginPath(); ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW, fold1Y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
     ctx.setLineDash([]);
 
-    // Скос на боковинах
+    // Скос на переднем краю КРЫШИ (аэро)
     if (aero) {
       ctx.setLineDash([2,2]);
       ctx.strokeStyle = '#f39c12';
+      ctx.lineWidth = 1.5;
+      // Скос на крыше: от fold1Y+300 до fold1Y на отметке 800 мм
       ctx.beginPath();
-      ctx.moveTo(tLayoutX, tLayoutY + 300*tScale);
-      ctx.lineTo(tLayoutX + 800*tScale, tLayoutY);
-      ctx.moveTo(tLayoutX, foldY2 + 300*tScale);
-      ctx.lineTo(tLayoutX + 800*tScale, foldY2);
+      ctx.moveTo(tLayoutX, fold1Y + 300*tScale);
+      ctx.lineTo(tLayoutX + 800*tScale, fold1Y);
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = '#f39c12';
       ctx.font = '7px DejaVu Sans';
-      ctx.fillText('скос −30', tLayoutX + 2, tLayoutY + 120*tScale);
+      ctx.fillText('скос', tLayoutX + 5, fold1Y + 150*tScale);
+      ctx.fillText('−30', tLayoutX + 5, fold1Y + 165*tScale);
     }
 
-    // Подписи
+    // Подписи секций
     ctx.fillStyle = '#e74c3c';
     ctx.font = 'bold 9px DejaVu Sans';
-    ctx.fillText('БОК', tLayoutX + 4, tLayoutY + tentMM*tScale/2 + 4);
-    ctx.fillText('КРЫША', tLayoutX + mainW/2 - 22, foldY1 + frameW*tScale/2 + 4);
-    ctx.fillText('БОК', tLayoutX + 4, foldY2 + tentMM*tScale/2 + 4);
+    ctx.fillText('БОК', tLayoutX + 6, tLayoutY + sideH/2 + 4);
+    ctx.fillText('КРЫША', tLayoutX + mainW/2 - 24, fold1Y + roofH/2 + 4);
+    ctx.fillText('БОК', tLayoutX + 6, fold2Y + sideH/2 + 4);
     ctx.fillStyle = '#fff';
     ctx.font = '8px DejaVu Sans';
     ctx.fillText('ОСНОВНОЕ ПОЛОТНО', tLayoutX + mainW/2 - 55, tLayoutY + mainH/2);
@@ -1593,40 +1598,48 @@ function redrawCanvas() {
     drawDimArrow(tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, `${frameW+2*tentMM} мм`, 'left');
     drawDimArrow(tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, `${frameL} мм`, 'top');
 
-    // Передний клапан
-    const flapX = tLayoutX + mainW + gap + 40;
-    const flapY = tLayoutY;
-    const flapW = frameW * tScale;
-    const frontFlapH = (aero ? tentMM - 300 : tentMM) * tScale;
-    const rearFlapH = tentMM * tScale;
-
-    ctx.fillStyle = 'rgba(241, 196, 15, 0.2)';
-    ctx.fillRect(flapX, flapY, flapW, frontFlapH);
+    // Передний клапан (припаян к переднему краю крыши — справа)
+    const flapGap = 5;
+    const fFlapX = tLayoutX + mainW + flapGap;
+    const fFlapY = fold1Y;
+    const fFlapW = frameW * tScale;
+    const fFlapH = (aero ? tentMM - 300 : tentMM) * tScale;
+    ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
+    ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
-    ctx.strokeRect(flapX, flapY, flapW, frontFlapH);
+    ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
+    // Линия припайки
+    ctx.setLineDash([2,2]);
+    ctx.beginPath(); ctx.moveTo(tLayoutX + mainW, fFlapY); ctx.lineTo(tLayoutX + mainW, fFlapY + fFlapH); ctx.stroke();
+    ctx.setLineDash([]);
     ctx.fillStyle = '#f39c12';
-    ctx.font = 'bold 9px DejaVu Sans';
-    ctx.fillText(`ПЕРЕД (${bp.frontFlap})${aero?' −30':''}`, flapX + 5, flapY + frontFlapH/2 + 4);
-    drawDimArrow(flapX + flapW + 4, flapY, flapX + flapW + 4, flapY + frontFlapH, `${aero?tentMM-300:tentMM} мм`, 'left');
+    ctx.font = 'bold 8px DejaVu Sans';
+    ctx.fillText(`ПЕРЕД (${bp.frontFlap})${aero?' −30':''}`, fFlapX + fFlapW/2 - 40, fFlapY + fFlapH/2 + 4);
+    drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${aero?tentMM-300:tentMM} мм`, 'left');
 
-    // Задний клапан
-    const rearFlapY = flapY + frontFlapH + gap;
-    ctx.fillStyle = 'rgba(241, 196, 15, 0.2)';
-    ctx.fillRect(flapX, rearFlapY, flapW, rearFlapH);
+    // Задний клапан (припаян к заднему краю крыши — слева)
+    const rFlapX = tLayoutX - fFlapW - flapGap;
+    const rFlapY = fold1Y;
+    const rFlapH = tentMM * tScale;
+    ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
+    ctx.fillRect(rFlapX, rFlapY, fFlapW, rFlapH);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
-    ctx.strokeRect(flapX, rearFlapY, flapW, rearFlapH);
+    ctx.strokeRect(rFlapX, rFlapY, fFlapW, rFlapH);
+    ctx.setLineDash([2,2]);
+    ctx.beginPath(); ctx.moveTo(tLayoutX, rFlapY); ctx.lineTo(tLayoutX, rFlapY + rFlapH); ctx.stroke();
+    ctx.setLineDash([]);
     ctx.fillStyle = '#f39c12';
-    ctx.font = 'bold 9px DejaVu Sans';
-    ctx.fillText(`ЗАД (${bp.rearFlap})`, flapX + 5, rearFlapY + rearFlapH/2 + 4);
-    drawDimArrow(flapX + flapW + 4, rearFlapY, flapX + flapW + 4, rearFlapY + rearFlapH, `${tentMM} мм`, 'left');
+    ctx.font = 'bold 8px DejaVu Sans';
+    ctx.fillText(`ЗАД (${bp.rearFlap})`, rFlapX + fFlapW/2 - 28, rFlapY + rFlapH/2 + 4);
+    drawDimArrow(rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, `${tentMM} мм`, 'left');
 
     ctx.fillStyle = '#888';
     ctx.font = '8px DejaVu Sans';
-    ctx.fillText('клапаны припаиваются', flapX + 5, rearFlapY + rearFlapH + 12);
+    ctx.fillText('клапаны припаиваются к крыше', tLayoutX + mainW/2 - 70, tLayoutY + mainH + 20);
 
-    curY = Math.max(tLayoutY + mainH, rearFlapY + rearFlapH) + 30;
+    curY = Math.max(tLayoutY + mainH, rFlapY + rFlapH) + 34;
   }
 
   // Total

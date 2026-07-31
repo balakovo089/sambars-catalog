@@ -1546,7 +1546,7 @@ function redrawCanvas() {
     drawLabel(margin, curY, '5. ТЕНТ (раскрой)', '#e74c3c');
     curY += labelH + 5;
 
-    const tLayoutX = rX + 30;
+    const tLayoutX = rX + 380;  // отступ чтобы клапаны влезли (rFlapW до ~350px)
     const tLayoutY = curY;
     const aero = tentH >= 120;
     const tScale = sc * 0.7;

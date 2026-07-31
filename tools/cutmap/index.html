@@ -830,35 +830,25 @@ function redrawCanvas() {
     ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rL + 48);
   }
 
-  // ── БОЛТЫ ПОЛА М6 (мебельные потайные, жёлтые точки внутри рамы) ──
-  const perimeter = 2 * (W + L);
-  const floorBoltN = Math.max(8, Math.ceil(perimeter / 300));
-  const fStep = perimeter / floorBoltN;
-  const inset = 10;  // отступ от края рамы в px
-  for (let i = 0; i < floorBoltN; i++) {
-    const d = (i * fStep + fStep/2) % perimeter;  // смещение от начала
-    const wPX = rW - 2*inset;
-    const lPX = rL - 2*inset;
-    let fx, fy;
-    if (d < W) {
-      fx = rX + inset + (d / W) * wPX;
-      fy = rY + rL - inset;
-    } else if (d < W + L) {
-      fx = rX + rW - inset;
-      fy = rY + rL - inset - ((d - W) / L) * lPX;
-    } else if (d < 2*W + L) {
-      fx = rX + rW - inset - ((d - W - L) / W) * wPX;
-      fy = rY + inset;
-    } else {
-      fx = rX + inset;
-      fy = rY + inset + ((d - 2*W - L) / L) * lPX;
+  // ── БОЛТЫ ПОЛА М6 (только в поперечины, шаг ~350 мм по ширине) ──
+  const floorBoltStepMM = 350;
+  const boltsPerCross = Math.max(2, Math.round(frameW / floorBoltStepMM));
+  const crossCount = totalCross;
+  const totalFloorBolts = boltsPerCross * crossCount;
+  ctx.fillStyle = '#f39c12';
+  crossPositions.forEach(pos => {
+    const cy = rY + rL - (pos / frameL) * rL;
+    for (let b = 1; b <= boltsPerCross; b++) {
+      const bx = rX + (b / (boltsPerCross + 1)) * rW;
+      ctx.beginPath(); ctx.arc(bx, cy, 2, 0, Math.PI*2); ctx.fill();
     }
-    ctx.fillStyle = '#f39c12';
-    ctx.beginPath(); ctx.arc(fx, fy, 2.5, 0, Math.PI*2); ctx.fill();
-  }
+  });
   ctx.fillStyle = '#f39c12';
   ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`• М6 пол→рама: ${floorBoltN} шт (мебельные потайные, шаг ~300 мм)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
+  ctx.fillText(`• М6 пол→поперечины: ${totalFloorBolts} шт (${boltsPerCross}×${crossCount}, шаг ~350 мм по ширине)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
+  // Заклёпки 4.8×25 по лонжеронам
+  const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
+  ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rL + (state.hasFloorSeam ? 76 : 50));
 
   // ── Front/Rear labels ──
   ctx.fillStyle = '#fff';

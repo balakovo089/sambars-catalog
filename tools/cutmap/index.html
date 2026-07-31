@@ -1172,8 +1172,6 @@ function redrawCanvas() {
     drawDim(secX + secW/2 - 50, tentTopY - 22, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
     // Высота тента — от верха борта до верха рамки
     drawDimArrow(tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, `тент ${tentH} см`, 'left');
-    // Высота борта
-    drawDimArrow(bLeft - 30, frameY, bLeft - 30, boardTopY, `${boardH} мм`, 'left');
   }
 
   // ── БОРТА ──
@@ -1191,6 +1189,8 @@ function redrawCanvas() {
   ctx.fillStyle = 'rgba(52,152,219,0.1)';
   ctx.fillRect(bLeft, boardTopY + 3, bRight - bLeft, frameY - boardTopY - 6);
   drawDim(bLeft - 30, (boardTopY + frameY)/2, `${boardH} мм`, '#3498db');
+  // Размерная стрелка высоты борта
+  if (!hasTent) drawDimArrow(bLeft - 18, frameY, bLeft - 18, boardTopY, `${boardH} мм`, 'left');
 
   // ── РАМА ──
   ctx.strokeStyle = '#5dade2';

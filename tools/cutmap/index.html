@@ -376,15 +376,16 @@ function recalc() {
   const rivetsSides = Math.ceil(sPerimeter * 3);  // фанера бортов→рамка
 
   // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
+  // Нормы по данным: проволока 0.8мм для труб 2-3мм, полуавтомат CO2
   const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);
   const consumables = {
     cuts: totalCuts,
-    wire: (totalCuts * 0.025).toFixed(2),        // кг проволоки (~25 г на рез)
-    gas: (totalCuts * 0.015).toFixed(2),          // кг CO2 (~15 г на рез)
-    cutDiscs: Math.ceil(totalCuts / 8),            // отрезных дисков
-    grindDiscs: Math.ceil(totalCuts / 12),         // шлифовальных дисков
-    gloves: Math.max(1, Math.ceil(totalCuts / 80)),  // пар перчаток
-    kragi: Math.max(1, Math.ceil(totalCuts / 160)),  // пар краг
+    wire: (totalCuts * 0.007).toFixed(3),        // кг проволоки (~7 г на рез → 2 шва по 3-4 г)
+    gas: (totalCuts * 0.007).toFixed(3),          // кг CO2 (~1:1 к проволоке)
+    cutDiscs: Math.ceil(totalCuts / 18),           // отрезных дисков (125×1.2: ~18 резов на диск)
+    grindDiscs: Math.ceil(totalCuts / 55),         // лепестковых дисков (~0.15 шт/м шва, ~55 резов на диск)
+    gloves: Math.max(1, Math.ceil(totalCuts / 100)),  // пар перчаток
+    kragi: Math.max(1, Math.ceil(totalCuts / 200)),   // пар краг
   };
 
   // ═══ CUT PLANS ═══
@@ -615,12 +616,13 @@ function renderBrackets(bp, st) {
 function renderConsumables(c) {
   const html = `<table>
     <tr><td>Резов (пилов)</td><td class="num"><b>${c.cuts}</b></td></tr>
-    <tr><td>Проволока св.</td><td class="num">${c.wire} кг</td></tr>
-    <tr><td>Газ (CO₂)</td><td class="num">${c.gas} кг</td></tr>
-    <tr><td>Диски отрезные</td><td class="num">${c.cutDiscs} шт</td></tr>
-    <tr><td>Диски шлифовальные</td><td class="num">${c.grindDiscs} шт</td></tr>
+    <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td></tr>
+    <tr><td>Газ CO₂</td><td class="num">${c.gas} кг</td></tr>
+    <tr><td>Диски отрезные 125×1.2</td><td class="num">${c.cutDiscs} шт</td></tr>
+    <tr><td>Диски лепестковые</td><td class="num">${c.grindDiscs} шт</td></tr>
     <tr><td>Перчатки</td><td class="num">${c.gloves} пар</td></tr>
     <tr><td>Краги</td><td class="num">${c.kragi} пар</td></tr>
+    <tr><td colspan="2" class="sub">нормы: ~7 г проволоки/пил, диск на 18 резов, лепесток на 55 швов</td></tr>
   </table>`;
   document.getElementById('consumables').innerHTML = html;
 }

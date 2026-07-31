@@ -1627,7 +1627,7 @@ function redrawCanvas() {
     const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale + hemH;
     const fFlapX = tLayoutX + mainW + flapGap;
     const fFlapY = fold1Y;
-    const fFlapHemX = fFlapX + fFlapW/2;  // вертикальная линия подворота
+    const fFlapHemX = fFlapX + fFlapW - hemH;  // подворот 220 мм от дальнего края
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
     ctx.strokeStyle = '#f39c12';
@@ -1653,7 +1653,7 @@ function redrawCanvas() {
     const rFlapH = frameW * tScale;
     const rFlapX = tLayoutX - rFlapW - flapGap;
     const rFlapY = fold1Y;
-    const rFlapHemX = rFlapX + rFlapW/2;
+    const rFlapHemX = rFlapX + hemH;  // подворот 220 мм от левого края
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
     ctx.strokeStyle = '#f39c12';

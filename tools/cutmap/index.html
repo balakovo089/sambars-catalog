@@ -1019,15 +1019,19 @@ function redrawCanvas() {
       // Со скосом: первая дуга на 800 мм, остальные через ~700 мм
       const remainingArch = frameL - 800;
       const rs = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
-      archCount = 1 + rs.n;
-      archPositions.push(800);
+      archCount = 2 + rs.n;  // передняя + задняя + промежуточные
+      archPositions.push(0);          // передний край (укороченная)
+      archPositions.push(800);        // первая после скоса
       for (let i = 1; i <= rs.n; i++) archPositions.push(800 + i * rs.step);
+      // последняя уже = frameL, не добавляем
     } else {
-      // Без скоса: все дуги равномерно, равные промежутки
+      // Без скоса: все дуги равномерно, включая края
       const s = calcStep(frameL, 700);
-      archCount = s.n;
+      archCount = s.n + 1;  // включая переднюю и заднюю
       const step = frameL / (s.n + 1);
+      archPositions.push(0);  // передний край
       for (let i = 1; i <= s.n; i++) archPositions.push(i * step);
+      archPositions.push(frameL);  // задний край
     }
 
     ctx.strokeStyle = '#1e8449';

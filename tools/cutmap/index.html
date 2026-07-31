@@ -96,7 +96,10 @@ canvas{display:block;cursor:grab}
   <div class="legend">
     <span style="color:#5dade2">▬▬</span> Рама<br>
     <span style="color:#7f8c8d">▬▬</span> Поперечины<br>
+    <span style="color:#e67e22">▬▬</span> Аморт. балки<br>
     <span style="color:#e74c3c">▬▬</span> Дышло<br>
+    <span style="color:#e74c3c;background:rgba(231,76,60,.2)">▬▬</span> Кронштейны<br>
+    <span style="color:#f39c12">⬜</span> Рессоры<br>
     <span style="color:#3498db">▬▬</span> Борта<br>
     <span style="color:#27ae60">- -</span> Тент
   </div>
@@ -478,6 +481,11 @@ function renderBrackets(bp, st) {
   const a = st.axles;
   const html = `<table>
     <tr><th>Деталь</th><th>Кол-во</th><th>Расположение</th></tr>
+    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Самосвал</b></td></tr>
+    <tr><td>Пластины дышла</td><td class="num">2 шт</td><td>на концах боковых лучей, 120×60×5 мм</td></tr>
+    <tr><td>Пластины рамы</td><td class="num">2 шт</td><td>на лонжеронах рамы, 120×60×5 мм</td></tr>
+    <tr><td>Болт + крепёж</td><td class="num">2 компл</td><td>М12×80 + 2 гайки М12 + 3 шайбы</td></tr>
+    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Подвеска</b></td></tr>
     <tr><td>Кронштейны рессор</td><td class="num">${a*4} шт</td><td>2 на каждую рессору, расстояние между крайними 670 мм</td></tr>
     <tr><td>Пятки рессор</td><td class="num">${a*2} шт</td><td>за задним кронштейном, 60×60 мм</td></tr>
     <tr><td>Кронштейны амортизаторов</td><td class="num">${a*4} шт</td><td>2 на каждую ось: на оси и на аморт. балке</td></tr>
@@ -823,10 +831,33 @@ function redrawCanvas() {
   ctx.font = 'bold 8px DejaVu Sans';
   ctx.fillText('15см', MID_X + 10, JOINT_Y + 3);
 
-  // Attachments — красные квадраты
-  ctx.fillStyle = '#e74c3c';
+  // Кронштейны самосвала — пластины 120×60×5 мм (на дышле + ответные на раме)
+  const brL = 120 * sc;  // длина пластины 120 мм
+  const brW = 60 * sc;   // ширина пластины 60 мм
   [ATTACH_L, ATTACH_R].forEach(sx => {
-    ctx.fillRect(sx - 3, ATTACH_Y - 3, 6, 6);
+    // Пластина (наложенные: одна на дышле, одна на раме)
+    ctx.fillStyle = 'rgba(231, 76, 60, 0.25)';
+    ctx.fillRect(sx - brL/2, ATTACH_Y - brW/2, brL, brW);
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([]);
+    ctx.strokeRect(sx - brL/2, ATTACH_Y - brW/2, brL, brW);
+    
+    // Болт М12×80 (жёлтый кружок с белым центром)
+    ctx.fillStyle = '#f1c40f';
+    ctx.beginPath();
+    ctx.arc(sx, ATTACH_Y, 5, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(sx, ATTACH_Y, 2.5, 0, Math.PI*2);
+    ctx.fill();
+    
+    // Подпись кронштейна
+    ctx.fillStyle = '#e74c3c';
+    ctx.font = 'bold 8px DejaVu Sans';
+    ctx.fillText('пл. 120×60×5', sx + brL/2 + 2, ATTACH_Y - 2);
+    ctx.fillText('M12×80', sx + brL/2 + 2, ATTACH_Y + 10);
   });
 
   // 5. Подписи
@@ -836,7 +867,7 @@ function redrawCanvas() {
   ctx.fillText('120 см', MID_X - 55, (HITCH_Y + FRONT_Y)/2);      // вся длина центр. луча
   ctx.fillText('15 см', MID_X + 8, (HITCH_Y + JOINT_Y)/2 + 4);   // отрезок до joint
   ctx.fillText(`${dbSideLen*100} см`, ATTACH_R + 5, (JOINT_Y + ATTACH_Y)/2 + 3);
-  ctx.fillText('~22 см', ATTACH_R + 5, ATTACH_Y + 3);
+  ctx.fillText('~22 см', ATTACH_R + 5, ATTACH_Y + brW/2 + 12);
 
   // Размеры рамы
   drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');

@@ -1118,22 +1118,9 @@ function redrawCanvas() {
   if (hasTent) {
     const tbLeft = secX + 10;
     const tbRight = secX + secW - 10;
-    const archBarY = secY;  // горизонтальная труба дуги на уровне верха рамок (не выпирает)
+    const archBarY = secY;  // горизонтальная труба дуги на уровне верха рамок
 
-    // Боковые рамки тента 20×20×1.5 (вертикальные, рядом с бортами)
-    ctx.fillStyle = '#27ae60';
-    ctx.fillRect(tbLeft - 5, secY, 20*sc, boardVisH);
-    ctx.fillRect(tbRight - 5, secY, 20*sc, boardVisH);
-    ctx.strokeStyle = '#1e8449';
-    ctx.lineWidth = 1;
-    ctx.strokeRect(tbLeft - 5, secY, 20*sc, boardVisH);
-    ctx.strokeRect(tbRight - 5, secY, 20*sc, boardVisH);
-    ctx.fillStyle = '#27ae60';
-    ctx.font = '7px DejaVu Sans';
-    ctx.fillText('рамка', tbLeft - 5, frameY + 12);
-    ctx.fillText('тента', tbLeft - 5, frameY + 20);
-    ctx.fillText('рамка', tbRight + 20*sc + 2, frameY + 12);
-    ctx.fillText('тента', tbRight + 20*sc + 2, frameY + 20);
+    // Боковые рамки тента 20×20×1.5 — рисуем ПОСЛЕ бортов, чтобы были видны
 
     // Дуга Π-образная: горизонтальная труба + две ножки 100 мм вниз (внутри рамок, в проставках)
     ctx.strokeStyle = '#27ae60';
@@ -1178,6 +1165,21 @@ function redrawCanvas() {
   ctx.fillRect(bLeft, secY + 3, bRight - bLeft, frameY - secY - 6);
   drawDim(bLeft - 30, (secY + frameY)/2, `${boardH} мм`, '#3498db');
   drawDim(secX + secW/2 - 45, frameY + 2, `Фанера 9 мм`, '#888');
+
+  // Боковые рамки тента 20×20×1.5 (поверх бортов, от низа до верха)
+  if (hasTent) {
+    const fw = Math.max(6, 20*sc);  // не меньше 6px для видимости
+    ctx.fillStyle = 'rgba(39, 174, 96, 0.4)';
+    ctx.fillRect(bLeft - fw, secY + 2, fw, frameY - secY - 4);
+    ctx.fillRect(bRight, secY + 2, fw, frameY - secY - 4);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bLeft - fw, secY + 2, fw, frameY - secY - 4);
+    ctx.strokeRect(bRight, secY + 2, fw, frameY - secY - 4);
+    ctx.fillStyle = '#27ae60';
+    ctx.font = 'bold 8px DejaVu Sans';
+    ctx.fillText('рамка тента 20×20', bLeft - fw - 75, secY + (frameY - secY)/2 + 3);
+  }
 
   // ── РАМА ──
   ctx.strokeStyle = '#5dade2';

@@ -1553,45 +1553,32 @@ function redrawCanvas() {
     const fold1Y = tLayoutY + sideH;       // сгиб: задний бок / крыша
     const fold2Y = fold1Y + roofH;          // сгиб: крыша / передний бок
     
-    // Полигон основного полотна
+    // Основное полотно — полный прямоугольник (крыша НЕ режется)
     ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';
-    ctx.beginPath();
-    // Левый край
-    ctx.moveTo(tLayoutX, tLayoutY);
-    ctx.lineTo(tLayoutX, tLayoutY + mainH);
-    // Правый край (передний)
-    ctx.lineTo(tLayoutX + mainW, tLayoutY + mainH);
-    ctx.lineTo(tLayoutX + mainW, fold2Y + 300*tScale); // передний край нижнего бока
-    ctx.lineTo(tLayoutX + mainW - 800*tScale, fold2Y); // излом на сгибе
-    ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y); // излом на сгибе
-    ctx.lineTo(tLayoutX + mainW, fold1Y - 300*tScale); // передний край верхнего бока
-    ctx.lineTo(tLayoutX + mainW, tLayoutY);             // верхний край
-    ctx.closePath();
-    ctx.fill();
-
-    // Контур (жирный)
+    ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 2.5;
-    ctx.stroke();
+    ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
 
     // Линии сгиба
     ctx.setLineDash([3,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y);
-    ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW - 800*tScale, fold2Y);
-    ctx.stroke();
+    ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW, fold1Y); ctx.stroke();
+    ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
     ctx.setLineDash([]);
 
-    // Линии скоса (передний край)
+    // Линии скоса на боковинах (крыша не режется — полная ширина mainW)
     if (aero) {
       ctx.setLineDash([2,2]);
       ctx.strokeStyle = '#f39c12';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.moveTo(tLayoutX + mainW - 800*tScale, fold1Y);
-      ctx.lineTo(tLayoutX + mainW, fold1Y - 300*tScale);
+      // Верхний бок: от переднего края (−300) к сгибу на 800 мм
+      ctx.moveTo(tLayoutX + mainW, fold1Y - 300*tScale);
+      ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y);
+      // Нижний бок: от сгиба на 800 мм к переднему краю (+300)
       ctx.moveTo(tLayoutX + mainW - 800*tScale, fold2Y);
       ctx.lineTo(tLayoutX + mainW, fold2Y + 300*tScale);
       ctx.stroke();

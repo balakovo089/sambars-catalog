@@ -1550,6 +1550,8 @@ function redrawCanvas() {
     const sideH = tentMM * tScale;
     const roofH = frameW * tScale;
     const mainH = sideH + roofH + sideH;  // задний бок + крыша + передний бок
+    const fold1Y = tLayoutY + sideH;       // сгиб: задний бок / крыша
+    const fold2Y = fold1Y + roofH;          // сгиб: крыша / передний бок
     
     // Полигон основного полотна
     ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';

@@ -90,7 +90,7 @@ canvas{display:block;cursor:grab}
 <div class="main">
   <canvas id="c"></canvas>
   <div class="toolbar">
-    <span style="color:#888">🖱 Перетаскивайте схему</span>
+    <span style="color:#888">🖱 Перетаскивайте | ⚙ Колёсико — вверх/вниз</span>
     <button onclick="resetView()">Сброс</button>
   </div>
   <div class="legend">
@@ -1302,7 +1302,8 @@ function redrawCanvas() {
 // ══════════════════════════════════════════════════════════
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  // zoom disabled — all elements share same scale
+  offY -= e.deltaY;
+  redrawCanvas();
 });
 
 canvas.addEventListener('mousedown', e => {

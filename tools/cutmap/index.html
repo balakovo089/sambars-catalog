@@ -550,23 +550,30 @@ function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand
 function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const isBarsuk = st.brand === 'Барсук';
   const aero = tH >= 120;
-  const hemMM = 220;  // подворот снизу: 100 мм выше каркаса + 120 мм подгиб
-  const leftAddMM = 260;  // припуск слева (задний край)
-  const rightAddMM = 120; // припуск справа (передний край)
-  // Основное полотно
-  const mainW = (fL + leftAddMM + rightAddMM)/1000;
-  const sideH = (tMM + hemMM)/1000;  // боковина с подворотом
-  const roofH = fW/1000;
-  const mainH = sideH + roofH + sideH;
-  const mainM2 = mainW * mainH;
-  // Клапаны (припаиваются)
-  const frontAddMM = isBarsuk ? 50 : 260;  // глухой: +50, на скобах: +260
-  const frontH = (aero ? tMM - 300 + hemMM : tMM + hemMM)/1000;
-  const frontM2 = ((fW + frontAddMM*2)/1000) * frontH;
-  const rearH = (tMM + hemMM + 240)/1000;
-  const rearM2 = ((fW + 240)/1000) * rearH;
-  const overlaps = 1.08;
-  const totalM2 = ((mainM2 + frontM2 + rearM2) * overlaps).toFixed(2);
+  const hemMM = 220;
+  const leftAddMM = 260;
+  const rightAddMM = 120;
+  const rollW = 2500;  // ширина рулона мм
+
+  // Детали (ширина × длина в мм, до разворота)
+  const mainW = fW + 2*tMM + 2*hemMM;  // ширина основного полотна
+  const mainL = fL + leftAddMM + rightAddMM;  // длина
+  const frontAddMM = isBarsuk ? 50 : 260;
+  const frontW = aero ? tMM - 300 + hemMM : tMM + hemMM;  // ширина переднего клапана
+  const frontL = fW + frontAddMM*2;  // длина
+  const rearW = tMM + hemMM + 240;  // ширина заднего клапана
+  const rearL = fW + 240;  // длина
+
+  // Расход от рулона 2500 мм (погонные метры)
+  const rollCut = (dw, dl) => {
+    const along = Math.ceil(dw / rollW) * dl;
+    const across = Math.ceil(dl / rollW) * dw;
+    return Math.min(along, across);
+  };
+  const mainRM = (rollCut(mainW, mainL) / 1000).toFixed(2);
+  const frontRM = (rollCut(frontW, frontL) / 1000).toFixed(2);
+  const rearRM = (rollCut(rearW, rearL) / 1000).toFixed(2);
+  const totalRM = (parseFloat(mainRM) + parseFloat(frontRM) + parseFloat(rearRM)).toFixed(2);
   // Нижний периметр (люверсы 10 мм, эспандер)
   const lowerPerimeter = 2*(fL + fW)/1000;  // по низу: 2 бока + перед + зад
   const louvers10 = Math.ceil(lowerPerimeter / 0.15);
@@ -577,12 +584,11 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const straps = isBarsuk ? 4 : 0;
 
   let html = `<table>
-    <tr><td colspan="2"><b>Раскрой (2 детали + клапаны)</b></td></tr>
-    <tr><td>Основное полотно (крыша+бока)</td><td class="num">${mainW.toFixed(2)}×${mainH.toFixed(2)} = ${mainM2.toFixed(2)} м2</td></tr>
-    <tr><td>  в т.ч. подворот ${hemMM} мм</td><td class="num">по низу боковин</td></tr>
-    <tr><td>Передний клапан (+${frontAddMM}×2 ${isBarsuk?'глухой':'скобы'})${aero ? ' скос −30' : ''}</td><td class="num">${((fW+frontAddMM*2)/1000).toFixed(2)}×${frontH.toFixed(2)} = ${frontM2.toFixed(2)} м²</td></tr>
-    <tr><td>Задний клапан (+120 верх/низ)</td><td class="num">${((fW+240)/1000).toFixed(2)}×${rearH.toFixed(2)} = ${rearM2.toFixed(2)} м²</td></tr>
-    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b> (×${overlaps})</td><td class="num"><b>${totalM2}</b> м2</td></tr>
+    <tr><td colspan="2"><b>Раскрой (рулон 2500 мм)</b></td></tr>
+    <tr><td>Основное полотно ${(mainW/1000).toFixed(2)}×${(mainL/1000).toFixed(2)} м</td><td class="num"><b>${mainRM}</b> пог.м</td></tr>
+    <tr><td>Передний клапан (+${frontAddMM}×2)</td><td class="num"><b>${frontRM}</b> пог.м</td></tr>
+    <tr><td>Задний клапан (+120×2)</td><td class="num"><b>${rearRM}</b> пог.м</td></tr>
+    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО от рулона</b></td><td class="num"><b>${totalRM}</b> пог.м</td></tr>
     <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
   </table>
   <table style="margin-top:8px">

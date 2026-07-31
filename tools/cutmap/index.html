@@ -402,8 +402,8 @@ function recalc() {
     if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile}`, pieces:[(frameW)/1000]});
   }
   if (sTotal > 0) {
-    // Борта: 2 длинных + 2 коротких (верх и низ каждой стороны) + стойки
-    const sidePieces = [L/1000, L/1000, W/1000, W/1000];
+    // Борта: 2 длинных + 2 коротких (по размеру РАМЫ, не заявленному)
+    const sidePieces = [frameL/1000, frameL/1000, frameW/1000, frameW/1000];
     for (let i = 0; i < totalJumpers; i++) sidePieces.push(bp.boardH/1000);
     allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
   }

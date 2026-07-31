@@ -1036,8 +1036,9 @@ function redrawCanvas() {
   ctx.fillStyle = '#3498db';
   ctx.font = 'bold 10px DejaVu Sans';
   ctx.fillText(`ДЛИННЫЙ борт (×2): ${jLong} перемычек, шаг ~${Math.round(frameL/(jLong+1))} мм`, bX, bY+bH+12);
-  // Болты М8 на нижней части борта
-  const sBoltN = Math.ceil(2*frameL / 800);
+  // Болты М8 на нижней части борта (отступ 250 мм от краёв, шаг ~800 мм)
+  const sMidLen = frameL - 2*250;
+  const sBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
   for (let i = 0; i < sBoltN; i++) {
     const bx = bX + ((i + 0.5) / sBoltN) * bW;
     ctx.fillStyle = '#e74c3c';
@@ -1221,7 +1222,7 @@ function redrawCanvas() {
     ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+24);
     ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка −300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
     // Болты тента: М6, такой же шаг как борта→рама
-    const tentBoltN = Math.ceil(2*frameL / 800);
+    const tentBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
     for (let i = 0; i < tentBoltN; i++) {
       const bx = tX + ((i + 0.5) / tentBoltN) * tW;
       ctx.fillStyle = '#27ae60';

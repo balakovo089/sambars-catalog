@@ -393,8 +393,14 @@ function recalc() {
     }
   }
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, dbSideLen, dbSideLen, (frameW)/1000]});  // центр + 2 бока + перемычка
-  allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
-  if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile}`, pieces:[(frameW)/1000]});
+  // Аморт. балки — как перемычки: на Самбарсе/Бизоне делятся центр. балкой на половинки
+  if (brand !== 'Барсук') {
+    allProfilePieces.push({label:`Аморт. балка ${frameProfile} (2 половинки)`, pieces:[fpCrossHalf, fpCrossHalf]});
+    if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile} (2 половинки)`, pieces:[fpCrossHalf, fpCrossHalf]});
+  } else {
+    allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
+    if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile}`, pieces:[(frameW)/1000]});
+  }
   if (sTotal > 0) {
     const sidePieces = [sPerimeter, sPerimeter]; // top + bottom
     for (let i = 0; i < totalJumpers; i++) sidePieces.push(bp.boardH/1000);
@@ -697,12 +703,18 @@ function redrawCanvas() {
   }
   specialBeams.sort((a,b) => a-b);
   
-  // Draw shock beams (frame profile, not 40×20)
+  // Draw shock beams (frame profile, не 40×20)
   ctx.strokeStyle = '#e67e22';
   ctx.lineWidth = Math.max(4, 5);
   specialBeams.forEach(pos => {
-    const y = rY + rL - (pos / frameL) * rL;  // от ПЕРЕДНЕГО края (дышло снизу)
-    ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
+    const y = rY + rL - (pos / frameL) * rL;
+    if (brand !== 'Барсук') {
+      // Самбарс/Бизон: две половинки (делится центр. балкой)
+      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW/2 - 2, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(rX + rW/2 + 2, y); ctx.lineTo(rX + rW, y); ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW, y); ctx.stroke();
+    }
   });
   
   // Regular cross members in segments between special beams

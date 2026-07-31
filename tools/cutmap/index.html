@@ -1048,7 +1048,7 @@ function redrawCanvas() {
   // Cross-section: спереди/сзади (одинаковый вид)
   // ─────────────────────────────────────────────
   const xsLabelNum = hasTent ? '4' : '3';
-  drawLabel(margin, curY, `${xsLabelNum}. РАЗРЕЗ СПЕРЕДИ/СЗАДИ (рама + борт + тент + задняя рамка)`, '#9b59b6');
+  drawLabel(margin, curY, `${xsLabelNum}. ВИД СЗАДИ (рама + борт + тент + задняя рамка)`, '#9b59b6');
   curY += labelH + 5;
 
   const secX = rX + 60;
@@ -1143,17 +1143,15 @@ function redrawCanvas() {
   ctx.fillText('400×180×1', plateX + plateW/2 - 28, plateY + plateH/2 + 3);
   ctx.fillText('гос. номер', plateX + plateW/2 - 26, plateY + plateH/2 - 6);
 
-  // ── КРОНШТЕЙНЫ ПОДФАРНИКОВ (П-образные, между стойкой и пластиной номера) ──
+  // ── КРОНШТЕЙНЫ ПОДФАРНИКОВ (П-образные, вплотную к стойкам) ──
   const ltW = 200 * sc;
   const ltH = 180 * sc;
   const ltCenterY = rearY + postVisH/2;
 
-  // Левый: между левой стойкой и пластиной номера
-  const leftGap = plateX - (secX + postW);
-  const ltLCenterX = secX + postW + leftGap/2;
-  // Правый: между пластиной номера и правой стойкой
-  const rightGap = (secX + secW - postW) - (plateX + plateW);
-  const ltRCenterX = plateX + plateW + rightGap/2;
+  // Левый: вплотную к левой стойке
+  const ltLCenterX = secX + postW + ltW/2;
+  // Правый: вплотную к правой стойке
+  const ltRCenterX = secX + secW - postW - ltW/2;
 
   function drawPBracket(cx, cy, w, h) {
     const left = cx - w/2;

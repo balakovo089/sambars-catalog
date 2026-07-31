@@ -309,16 +309,17 @@ function recalc() {
   // Tent frame
   let tentArchCount = 0, tentFrameM = 0, tentArea = 0;
   if (hasTent) {
-    const remaining = frameL - 800;
-    const archStep = remaining > 0 ? calcStep(remaining, 700) : {n:0, step:0};
-    tentArchCount = 1 + archStep.n;
-    const firstArchMM = frameW + 2*(tentMM - 300);
-    const otherArchMM = frameW + 2*tentMM;
-    const archesM = (firstArchMM + archStep.n * otherArchMM)/1000;
-    const sideFramesM = 2 * frameL/1000;
-    const spacersM = tentArchCount * 2 * 0.10;
-    tentFrameM = archesM + sideFramesM + spacersM;
+    // Количество дуг: передняя + задняя + промежуточные
+    if (tentH >= 120) {
+      const remaining = frameL - 800;
+      const rs = remaining > 0 ? calcStep(remaining, 700) : {n:0};
+      tentArchCount = 2 + rs.n;  // передняя(0) + промежуточные + задняя(frameL)
+    } else {
+      const s = calcStep(frameL, 700);
+      tentArchCount = s.n + 2;  // передняя(0) + s.n промежуточных + задняя(frameL)
+    }
     tentArea = ((frameW + 2*tentMM)/1000) * (frameL/1000) * 1.15;
+    tentFrameM = tentArchCount;  // флаг: >0 значит тент есть
   }
 
   // Plywood

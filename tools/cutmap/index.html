@@ -1551,41 +1551,52 @@ function redrawCanvas() {
     const roofH = frameW * tScale;
     const mainH = sideH + roofH + sideH;  // задний бок + крыша + передний бок
     
+    // Полигон основного полотна
     ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';
-    ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
+    ctx.beginPath();
+    // Левый край
+    ctx.moveTo(tLayoutX, tLayoutY);
+    ctx.lineTo(tLayoutX, tLayoutY + mainH);
+    // Правый край (передний)
+    ctx.lineTo(tLayoutX + mainW, tLayoutY + mainH);
+    ctx.lineTo(tLayoutX + mainW, fold2Y + 300*tScale); // передний край нижнего бока
+    ctx.lineTo(tLayoutX + mainW - 800*tScale, fold2Y); // излом на сгибе
+    ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y); // излом на сгибе
+    ctx.lineTo(tLayoutX + mainW, fold1Y - 300*tScale); // передний край верхнего бока
+    ctx.lineTo(tLayoutX + mainW, tLayoutY);             // верхний край
+    ctx.closePath();
+    ctx.fill();
+
+    // Контур (жирный)
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 2.5;
-    ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
-    
+    ctx.stroke();
+
     // Линии сгиба
     ctx.setLineDash([3,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1;
-    const fold1Y = tLayoutY + sideH;       // задний бок / крыша
-    const fold2Y = fold1Y + roofH;          // крыша / передний бок
-    ctx.beginPath(); ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW, fold1Y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y);
+    ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW - 800*tScale, fold2Y);
+    ctx.stroke();
     ctx.setLineDash([]);
 
-    // Скос на переднем краю: верхний бок, крыша и нижний бок — все под скос
+    // Линии скоса (передний край)
     if (aero) {
       ctx.setLineDash([2,2]);
       ctx.strokeStyle = '#f39c12';
       ctx.lineWidth = 1.5;
-      // Верхний край верхнего бока (передний срез)
       ctx.beginPath();
-      ctx.moveTo(tLayoutX, tLayoutY + 300*tScale);
-      ctx.lineTo(tLayoutX + 800*tScale, tLayoutY);
-      ctx.stroke();
-      // Стык КРЫША / НИЖНИЙ БОК (передний срез)
-      ctx.beginPath();
-      ctx.moveTo(tLayoutX, fold2Y + 300*tScale);
-      ctx.lineTo(tLayoutX + 800*tScale, fold2Y);
+      ctx.moveTo(tLayoutX + mainW - 800*tScale, fold1Y);
+      ctx.lineTo(tLayoutX + mainW, fold1Y - 300*tScale);
+      ctx.moveTo(tLayoutX + mainW - 800*tScale, fold2Y);
+      ctx.lineTo(tLayoutX + mainW, fold2Y + 300*tScale);
       ctx.stroke();
       ctx.setLineDash([]);
       ctx.fillStyle = '#f39c12';
       ctx.font = '7px DejaVu Sans';
-      ctx.fillText('скос −30', tLayoutX + 5, tLayoutY + 150*tScale);
+      ctx.fillText('скос −30', tLayoutX + mainW - 600*tScale, fold1Y - 150*tScale);
     }
 
     // Подписи секций

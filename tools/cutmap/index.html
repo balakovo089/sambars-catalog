@@ -548,8 +548,13 @@ function renderTent(area, bp, sPerimeter, hasTent) {
 }
 
 function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
+  const isBarsuk = st.brand === 'Барсук';
+  const hingeBolts = (isBarsuk ? 2 : 4) * 4;  // 2/4 петли × 4 болта М8×80
+  const lockBolts = (isBarsuk ? 2 : 4) * 4;   // 2/4 замка × 4 болта М6×35
+  const dumpLockBolts = 2 * 4;                  // 2 замка самосвала × 4 болта М8×80
   let html = `<table>
     <tr><th>Узел</th><th>Тип</th><th class="num">Кол-во</th></tr>
+    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Крепёж</b></td></tr>
     <tr><td>Борта → рама</td><td>М8×100 + гайка + шайба</td><td class="num">${sBolts}</td></tr>
     <tr><td>Пол → перемычки</td><td>М6 мебельный потай + гайка</td><td class="num">${fBolts}</td></tr>
     <tr><td>Заклёпки пол→лонжероны</td><td>4.8×25</td><td class="num">~${rivF}</td></tr>
@@ -559,9 +564,16 @@ function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
   if (tBolts > 0) {
     html += `<tr><td>Каркас тента → борта</td><td>М6×35 + гайка</td><td class="num">${tBolts}</td></tr>`;
   }
+  html += `<tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Петли и замки</b></td></tr>
+    <tr><td>Петли борта</td><td>М8×80 + гайка</td><td class="num">${hingeBolts} шт (${isBarsuk ? '2 задние' : '4 перед+зад'} петли × 4)</td></tr>
+    <tr><td>Замки бортовые</td><td>М6×35 + цинговая гайка</td><td class="num">${lockBolts} шт (${isBarsuk ? '2 задних' : '4 перед+зад'} замка × 4)</td></tr>
+    <tr><td>Замки самосвала</td><td>М8×80 + гайка</td><td class="num">${dumpLockBolts} шт (2 замка × 4)</td></tr>`;
+  if (isBarsuk) {
+    html += `<tr><td>Передний борт (крепление)</td><td>М8×80</td><td class="num">4 шт (вместо петель и замков)</td></tr>`;
+  }
   html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td></tr>
     <tr><td>Петли заднего борта</td><td>Быстросъёмные</td><td class="num">2</td></tr>
-    <tr><td>Замки бортовые</td><td>—</td><td class="num">${st.brand === 'Барсук' ? 2 : 4}</td></tr>
+    <tr><td>Замки бортовые</td><td>—</td><td class="num">${isBarsuk ? 2 : 4}</td></tr>
     <tr><td>Замки самосвала</td><td>—</td><td class="num">2</td></tr>
   </table>`;
   document.getElementById('boltMap').innerHTML = html;

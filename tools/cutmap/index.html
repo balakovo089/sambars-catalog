@@ -966,7 +966,7 @@ function redrawCanvas() {
   curY = sbY + sbH + 36;
 
   // ─────────────────────────────────────────────
-  // 3. TENT FRAME (каркас тента)
+  // 3. TENT FRAME (каркас тента — вид сбоку)
   // ─────────────────────────────────────────────
   if (hasTent) {
     drawLabel(margin, curY, '3. КАРКАС ТЕНТА (вид сбоку)', '#27ae60');
@@ -975,23 +975,33 @@ function redrawCanvas() {
     const tX = bX;
     const tY = curY;
     const tW = frameL * sc;
-    const tH = tentMM * sc;
+    const tH = tentMM * sc;              // высота боковой рамки = высота тента
+    const spacerH = 100 * sc;            // высота проставки 100 мм
+    const archLegH = 100 * sc;           // ножка дуги 100 мм
+    const hasAeroSkos = tentH >= 120;    // аэро скос только ≥120 см
 
-    // Outer frame
-    ctx.setLineDash([4,3]);
+    // Боковая рамка (прямоугольник: верхняя + нижняя труба + перемычки)
+    ctx.fillStyle = 'rgba(39, 174, 96, 0.1)';
+    ctx.fillRect(tX, tY, tW, tH);
     ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.strokeRect(tX, tY, tW, tH);
-    ctx.setLineDash([]);
-
-    // Side rails (top + middle + bottom)
-    ctx.strokeStyle = '#1e8449';
-    ctx.lineWidth = 1;
+    // Верхняя и нижняя трубы рамки (утолщённые линии)
+    ctx.lineWidth = 4;
     ctx.beginPath(); ctx.moveTo(tX, tY); ctx.lineTo(tX+tW, tY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(tX, tY+tH/2); ctx.lineTo(tX+tW, tY+tH/2); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(tX, tY+tH); ctx.lineTo(tX+tW, tY+tH); ctx.stroke();
 
-    // Arches (дуги)
+    // Вертикальные перемычки рамки
+    const framePostStep = calcStep(frameL, 700);
+    const framePostN = Math.max(0, framePostStep.n - 1);
+    ctx.strokeStyle = '#1e8449';
+    ctx.lineWidth = 1.5;
+    for (let i = 1; i <= framePostN; i++) {
+      const px = tX + (i / (framePostN + 1)) * tW;
+      ctx.beginPath(); ctx.moveTo(px, tY + 4); ctx.lineTo(px, tY + tH - 4); ctx.stroke();
+    }
+
+    // Дуги (П-образные перемычки)
     const archCount = 1 + (frameL - 800 > 0 ? calcStep(frameL - 800, 700).n : 0);
     const firstArchDist = 800;
     const remainingArch = frameL - 800;
@@ -1005,41 +1015,64 @@ function redrawCanvas() {
         const prev = remainingArch > 0 ? (remainingArch / Math.max(archStep.n, 1)) : 0;
         ax = tX + firstArchDist * sc + (prev * i) * sc;
       }
-      ctx.strokeStyle = '#27ae60';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(ax, tY); ctx.lineTo(ax, tY+tH); ctx.stroke();
 
-      // Spacer dots
+      // Проставка 25×25×2 мм (оранжевый прямоугольник над рамкой)
+      const spacerW = 25 * sc;
       ctx.fillStyle = '#f39c12';
-      ctx.beginPath(); ctx.arc(ax, tY+tH, 3, 0, Math.PI*2); ctx.fill();
+      ctx.fillRect(ax - spacerW/2, tY - spacerH, spacerW, spacerH);
+      ctx.strokeStyle = '#d35400';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(ax - spacerW/2, tY - spacerH, spacerW, spacerH);
 
-      // Label
-      if (i === 0) {
-        ctx.fillStyle = '#888';
-        ctx.font = '8px DejaVu Sans';
-        ctx.fillText(`${firstArchDist}`, tX+2, tY-3);
-      }
+      // Ножка дуги 20×20 (внутри проставки, чуть уже)
+      const legW = 20 * sc;
+      ctx.fillStyle = '#27ae60';
+      ctx.fillRect(ax - legW/2, tY - archLegH, legW, archLegH);
+
+      // Вертикальная линия дуги (продолжение вверх в зависимости от аэро скоса)
+      const archTopY = (i === 0 && hasAeroSkos) ? tY - archLegH - 300*sc : tY - archLegH;
+      ctx.strokeStyle = '#27ae60';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(ax, tY - archLegH);
+      ctx.lineTo(ax, archTopY);
+      ctx.stroke();
+
+      // Горизонтальная перекладина дуги (вид сбоку — маленький квадрат/точка)
+      ctx.fillStyle = '#27ae60';
+      ctx.fillRect(ax - 10, archTopY - 10, 20, 20);
+      ctx.strokeStyle = '#1e8449';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(ax - 10, archTopY - 10, 20, 20);
     }
 
-    // Aero slope indicator (first arch is 30cm lower)
-    ctx.setLineDash([2,3]);
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 1;
-    const firstArchX = tX + firstArchDist * sc;
-    const slopeTop = tY - 300*sc;
-    ctx.beginPath(); ctx.moveTo(tX, slopeTop); ctx.lineTo(firstArchX, tY); ctx.stroke();
-    ctx.setLineDash([]);
+    // Аэро скос (только для высоких тентов)
+    if (hasAeroSkos) {
+      const firstArchX = tX + firstArchDist * sc;
+      const normalTop = tY - archLegH;
+      const skosTop = tY - archLegH - 300*sc;
+      ctx.setLineDash([2,3]);
+      ctx.strokeStyle = '#f39c12';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(tX, normalTop); ctx.lineTo(firstArchX, skosTop); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#f39c12';
+      ctx.font = '8px DejaVu Sans';
+      ctx.fillText('аэро скос −30 см', tX + 5, normalTop - 8);
+    }
 
-    // Dimensions
-    drawDimArrow(tX, tY-8, tX+tW, tY-8, `${frameL} мм`, 'top');
-    drawDimArrow(tX-15, tY, tX-15, tY+tH, `${tentMM} мм`, 'left');
+    // Размеры
+    drawDimArrow(tX, tY - spacerH - (hasAeroSkos ? 320*sc : 10), tX+tW, tY - spacerH - (hasAeroSkos ? 320*sc : 10), `${frameL} мм`, 'top');
+    drawDimArrow(tX - 15, tY, tX - 15, tY + tH, `${tentMM} мм`, 'left');
+    drawDim(tX + 5, tY - spacerH/2, '100', '#f39c12');
 
-    // Annotations
+    // Аннотации
+    const spacerMM = archCount * 2 * 100 / 1000;
     ctx.fillStyle = '#888';
     ctx.font = '9px DejaVu Sans';
-    ctx.fillText(`дуг: ${archCount} шт (1-я на ${firstArchDist} мм, остальные с шагом ${archStep.step.toFixed(0)} мм)`, tX, tY+tH+12);
-    ctx.fillText(`профиль дуг: 20×20×1.5 | бок.рамки: 20×20×1.5 × 2 × ${(frameL/1000).toFixed(1)} м | проставки: 25×25×2 × ${archCount*2} шт × 10 см`, tX, tY+tH+24);
-    ctx.fillText(`аэро скос: 1-я дуга на 30 см ниже | ПВХ: ${bp.tentPVC} (${bp.tentClr})`, tX, tY+tH+36);
+    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт = ${(frameL/1000*4).toFixed(1)} м | перемычек: ${framePostN} × ${tentMM/10} см`, tX, tY+tH+12);
+    ctx.fillText(`Дуги (П-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм | проставки 25×25×2×100 мм: ${archCount*2} шт (${spacerMM.toFixed(1)} м)`, tX, tY+tH+24);
+    ctx.fillText(`Дуги вставляются в проставки без крепежа — съёмные | Аэро скос: ${hasAeroSkos ? 'да (−30 см)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
 
     curY = tY + tH + 48;
   }
@@ -1058,23 +1091,48 @@ function redrawCanvas() {
   const rearVisH = 180 * sc;           // высота задней рамки
   const frameY = secY + boardVisH;     // уровень рамы (ниже бортов)
 
-  // ── ТЕНТ (над бортами) ──
+  // ── КАРКАС ТЕНТА (Π-образная дуга на виде сзади) ──
   if (hasTent) {
-    const archTop = secY - tentMM*sc;
-    const bLeft = secX + 10;
-    const bRight = secX + secW - 10;
-    ctx.setLineDash([4,3]);
+    const tbLeft = secX + 10;
+    const tbRight = secX + secW - 10;
+    const spacerTopY = secY - 100*sc;      // верх проставок (100 мм над бортом)
+    const archBarY = spacerTopY;           // горизонтальная труба дуги на уровне верха проставок
+    const spacerW = 25 * sc;               // ширина проставки 25 мм
+
+    // Проставки 25×25×2 (оранжевые, над бортами)
+    ctx.fillStyle = '#f39c12';
+    ctx.fillRect(tbLeft - spacerW/2, spacerTopY, spacerW, 100*sc);
+    ctx.fillRect(tbRight - spacerW/2, spacerTopY, spacerW, 100*sc);
+    ctx.strokeStyle = '#d35400';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(tbLeft - spacerW/2, spacerTopY, spacerW, 100*sc);
+    ctx.strokeRect(tbRight - spacerW/2, spacerTopY, spacerW, 100*sc);
+
+    // Дуга Π-образная: горизонтальная труба + две ножки 100 мм
     ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 3;
     ctx.beginPath();
-    ctx.moveTo(bLeft, secY);
-    ctx.lineTo(bLeft, archTop);
-    ctx.lineTo(bRight, archTop);
-    ctx.lineTo(bRight, secY);
+    ctx.moveTo(tbLeft, archBarY);
+    ctx.lineTo(tbLeft, archBarY + 100*sc);
+    ctx.moveTo(tbLeft, archBarY);
+    ctx.lineTo(tbRight, archBarY);
+    ctx.moveTo(tbRight, archBarY);
+    ctx.lineTo(tbRight, archBarY + 100*sc);
     ctx.stroke();
-    ctx.setLineDash([]);
-    drawDim(bLeft - 30, (archTop + secY)/2, `${tentMM} мм`, '#27ae60');
-    drawDim(secX + secW/2 - 40, archTop - 8, `Дуга: 20×20×1.5`, '#27ae60');
+
+    // Торцы труб (горизонтальная перекладина дуги)
+    ctx.fillStyle = '#27ae60';
+    ctx.fillRect(tbLeft - 10, archBarY - 10, 20, 20);
+    ctx.fillRect(tbRight - 10, archBarY - 10, 20, 20);
+    ctx.strokeStyle = '#1e8449';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(tbLeft - 10, archBarY - 10, 20, 20);
+    ctx.strokeRect(tbRight - 10, archBarY - 10, 20, 20);
+
+    // Размеры
+    drawDim(secX + secW/2 - 40, archBarY - 14, `Дуга 20×20×1.5 — Π-обр.`, '#27ae60');
+    drawDim(tbLeft - 32, spacerTopY + 50*sc, '100', '#27ae60');
+    drawDimArrow(tbLeft, archBarY - 16, tbRight, archBarY - 16, `${frameW+40} мм`, 'top');
   }
 
   // ── БОРТА ──

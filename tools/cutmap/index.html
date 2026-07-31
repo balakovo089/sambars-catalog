@@ -451,14 +451,34 @@ function renderCutPlan(pieces) {
 }
 
 function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam) {
-  const floorSheetType = W <= 1250 ? 'узкий 1250×2500' : 'широкий 1500×3000';
-  const seamNote = hasFloorSeam ? ` (шов + доп. перемычка 40×20×2)` : '';
-  let html = `<table>
-    <tr><th>Назначение</th><th>Площадь</th><th>Листов</th></tr>
-    <tr><td>Пол (фанера 9 мм с сеткой)</td><td>${floorArea.toFixed(2)} м²</td><td><b>${floorSheets}</b> ${floorSheetType}${seamNote}</td></tr>
-    <tr><td>Борта (фанера 9 мм вл.)</td><td>${sideArea.toFixed(2)} м²</td><td><b>${sideSheets}</b> узкий 1250×2500<br><span class="sub">${brand === 'Барсук' ? 'обрезки, швы на перемычках' : 'цельные, без швов'}</span></td></tr>
-    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО фанеры</b></td><td></td><td><b>${floorSheets + sideSheets}</b> листов</td></tr>
-  </table>`;
+  const floorSheetType = W <= 1250 ? '1250×2500' : '1500×3000';
+  const seamNote = hasFloorSeam ? ` + доп. перемычка 40×20×2` : '';
+  
+  // Визуальный раскрой (как для металла)
+  let html = '<div class="cut-block"><b>ПОЛ</b> — ' + floorSheetType + seamNote;
+  const fW = W <= 1250 ? 1250 : 1500;
+  const fL = W <= 1250 ? 2500 : 3000;
+  if (floorSheets === 1) {
+    const usedPct = ((W * L) / (fW * fL) * 100).toFixed(0);
+    html += `<div class="cut-bar"><div class="cut-seg" style="width:${usedPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м</div><div class="cut-seg cut-waste" style="width:${100-parseInt(usedPct)}%">обрезь</div></div>`;
+  } else {
+    const mainL = W <= 1250 ? 2500 : 3000;
+    const extraL = L - mainL;
+    const mainPct = (mainL / L * 100).toFixed(0);
+    const extraPct = (extraL / L * 100).toFixed(0);
+    html += `<div class="cut-bar"><div class="cut-seg" style="width:${mainPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(mainL/1000).toFixed(1)} м</div><div class="cut-seg" style="width:${extraPct}%;background:#f39c12">+${(extraL/1000).toFixed(2)} м</div></div><span class="sub">шов на ${(mainL/1000).toFixed(1)} м от заднего края</span>`;
+  }
+  html += '</div>';
+
+  // Борта — всегда узкий лист
+  const sidePcs = Math.ceil(sideArea / 3.125);
+  html += `<div class="cut-block"><b>БОРТА</b> — узкий лист 1250×2500 | ${sidePcs} лист(а) — ${brand === 'Барсук' ? 'обрезки, швы на перемычках' : 'цельные, без швов'}</div>`;
+
+  html += `<div class="summary" style="margin-top:6px"><table>
+    <tr><td>Пол</td><td class="val">${floorSheets} лист(а) ${floorSheetType}</td></tr>
+    <tr><td>Борта</td><td class="val">${sidePcs} лист(а) 1250×2500</td></tr>
+    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b></td><td class="val"><b>${floorSheets + sidePcs}</b> листов</td></tr>
+  </table></div>`;
   document.getElementById('plywoodPlan').innerHTML = html;
 }
 

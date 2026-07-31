@@ -1627,22 +1627,19 @@ function redrawCanvas() {
     const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale + hemH;
     const fFlapX = tLayoutX + mainW + flapGap;
     const fFlapY = fold1Y;
-    const fFlapHemY = fFlapY + fFlapW - hemH;
+    const fFlapHemX = fFlapX + fFlapW/2;  // вертикальная линия подворота
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
     ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
-    // Подворот
-    ctx.setLineDash([1,3]);
-    ctx.strokeStyle = '#888';
+    // Подворот вертикально (красный пунктир)
+    ctx.setLineDash([5,5]);
+    ctx.strokeStyle = '#e74c3c';
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(fFlapX, fFlapHemY); ctx.lineTo(fFlapX + fFlapW, fFlapHemY); ctx.stroke();
+    ctx.moveTo(fFlapHemX, fFlapY); ctx.lineTo(fFlapHemX, fFlapY + fFlapH); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = '#888';
-    ctx.font = '6px DejaVu Sans';
-    ctx.fillText('220', fFlapX + 2, fFlapHemY - 2);
-    // Припайка
     ctx.setLineDash([2,2]);
     ctx.beginPath(); ctx.moveTo(tLayoutX + mainW, fFlapY); ctx.lineTo(tLayoutX + mainW, fFlapY + fFlapH); ctx.stroke();
     ctx.setLineDash([]);
@@ -1656,18 +1653,18 @@ function redrawCanvas() {
     const rFlapH = frameW * tScale;
     const rFlapX = tLayoutX - rFlapW - flapGap;
     const rFlapY = fold1Y;
-    const rFlapHemY = rFlapY + rFlapW/2;
+    const rFlapHemX = rFlapX + rFlapW/2;
     ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
     ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 2;
     ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
-    // Подворот по центру клапана (красный пунктир)
+    // Подворот вертикально (красный пунктир)
     ctx.setLineDash([5,5]);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(rFlapX, rFlapHemY); ctx.lineTo(rFlapX + rFlapW, rFlapHemY); ctx.stroke();
+    ctx.moveTo(rFlapHemX, rFlapY); ctx.lineTo(rFlapHemX, rFlapY + rFlapH); ctx.stroke();
     ctx.setLineDash([]);
     // Линия припайки
     ctx.setLineDash([2,2]);

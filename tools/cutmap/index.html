@@ -408,12 +408,17 @@ function recalc() {
     allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
   }
   if (tentFrameM > 0) {
-    const archFirst = (frameW + 2*(tentMM - 300))/1000;
-    const archOther = (frameW + 2*tentMM)/1000;
-    const tfPieces = [archFirst, frameL/1000, frameL/1000];
-    for (let i = 0; i < (tentArchCount - 1); i++) tfPieces.push(archOther);
-    for (let i = 0; i < tentArchCount * 2; i++) tfPieces.push(0.10);
-    allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:tfPieces});
+    // Боковые рамки: 2 рамки × (верх + низ) = 4 куска по frameL
+    const frameRails = [frameL/1000, frameL/1000, frameL/1000, frameL/1000];
+    // Стойки рамок: archCount шт × totalFrameH (борт + тент)
+    const totalFrameM = (bp.boardH + tentMM) / 1000;
+    const framePosts = Array(archCount).fill(totalFrameM);
+    // Дуги Π-образные: archCount шт × (ширина + 2×100 мм ножки)
+    const archPieceM = (frameW + 240) / 1000;  // frameW + 40 зазор + 2×100 ножки
+    const arches = Array(archCount).fill(archPieceM);
+    allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:[...frameRails, ...framePosts, ...arches]});
+    // Проставки 25×25×2 — отдельный профиль
+    allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(archCount * 2).fill(0.10)});
   }
   allProfilePieces.push({label:`Ось ${axleProfile}`, pieces:Array(axles).fill((frameW + 200)/1000)});
 

@@ -559,10 +559,11 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const roofH = fW/1000;
   const mainH = sideH + roofH + sideH;
   const mainM2 = mainW * mainH;
-  // Клапаны (припаиваются), тоже с подворотом
+  // Клапаны (припаиваются)
   const frontH = (aero ? tMM - 300 + hemMM : tMM + hemMM)/1000;
   const frontM2 = (fW/1000) * frontH;
-  const rearM2 = (fW/1000) * ((tMM + hemMM)/1000);
+  const rearH = (tMM + hemMM + 240)/1000;  // задний: +120 верх +120 низ
+  const rearM2 = (fW/1000) * rearH;
   const overlaps = 1.08;
   const totalM2 = ((mainM2 + frontM2 + rearM2) * overlaps).toFixed(2);
   // Нижний периметр (люверсы 10 мм, эспандер)
@@ -1667,8 +1668,8 @@ function redrawCanvas() {
     ctx.fillText(`ПЕРЕД${aero?' -30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
     drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW} мм`, 'left');
 
-    // Задний клапан (развёрнут)
-    const rFlapW = tentMM * tScale + hemH;
+    // Задний клапан (развёрнут, +120 верх +120 низ = +240 к ширине)
+    const rFlapW = (tentMM + 220 + 240) * tScale;
     const rFlapH = frameW * tScale;
     const rFlapX = tLayoutX - rFlapW - flapGap;
     const rFlapY = fold1Y;

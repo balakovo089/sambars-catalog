@@ -631,7 +631,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     visHtml += mkBar(s.parts, 14, `Полоса ${i+1}/${N}`, s.w);
     visHtml += `<div style="font-size:9px;color:#888;margin:1px 0">↕ ${(mainL/1000).toFixed(2)} м (полоса ${i+1}: ${s.w} мм)</div>`;
     if (i < N - 1) {
-      visHtml += `<div style="height:14px;margin:4px 0;border-top:3px dashed #ff4444;border-bottom:3px dashed #ff4444;display:flex;align-items:center;justify-content:flex-end"><span style="background:#ff4444;color:#fff;font-size:8px;font-weight:bold;padding:1px 6px;border-radius:3px;margin-right:4px">ШОВ ${Math.round((i+1)*rollW)} мм — стык полос на крыше</span></div>`;
+      visHtml += `<div style="border-top:2px dashed #e74c3c;margin:2px 0" title="Шов между полосами"></div>`;
     }
   });
 
@@ -1059,6 +1059,30 @@ function redrawCanvas() {
   // Заклёпки 4.8×25 по лонжеронам
   const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
   ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rL + (state.hasFloorSeam ? 76 : 50));
+
+  // ── ШОВ ТКАНИ ТЕНТА (стык полос на крыше) ──
+  if (hasTent) {
+    const hemMM = 220;
+    const mainW = frameW + 2*tentMM + 2*hemMM;
+    const N = Math.ceil(mainW / 2500);
+    // Рисуем швы между полосами ткани (пунктир на крыше)
+    for (let i = 1; i < N; i++) {
+      const shovOnRoof = i * 2500 - hemMM - tentMM;
+      if (shovOnRoof > 0 && shovOnRoof < frameW) {
+        const sx = rX + shovOnRoof * sc;
+        ctx.setLineDash([8, 5]);
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(sx, rY); ctx.lineTo(sx, rY + rL); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#e74c3c';
+        ctx.font = '9px DejaVu Sans';
+        ctx.textAlign = 'center';
+        ctx.fillText(`шов ткани ${Math.round(i*2500)}`, sx, rY - 8);
+        ctx.textAlign = 'left';
+      }
+    }
+  }
 
   // ── Front/Rear labels ──
   ctx.fillStyle = '#fff';

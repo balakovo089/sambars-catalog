@@ -1060,30 +1060,6 @@ function redrawCanvas() {
   const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
   ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rL + (state.hasFloorSeam ? 76 : 50));
 
-  // ── ШОВ ТКАНИ ТЕНТА (стык полос на крыше) ──
-  if (hasTent) {
-    const hemMM = 220;
-    const mainW = frameW + 2*tentMM + 2*hemMM;
-    const N = Math.ceil(mainW / 2500);
-    // Рисуем швы между полосами ткани (пунктир на крыше)
-    for (let i = 1; i < N; i++) {
-      const shovOnRoof = i * 2500 - hemMM - tentMM;
-      if (shovOnRoof > 0 && shovOnRoof < frameW) {
-        const sx = rX + shovOnRoof * sc;
-        ctx.setLineDash([8, 5]);
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(sx, rY); ctx.lineTo(sx, rY + rL); ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#e74c3c';
-        ctx.font = '9px DejaVu Sans';
-        ctx.textAlign = 'center';
-        ctx.fillText(`шов ткани ${Math.round(i*2500)}`, sx, rY - 8);
-        ctx.textAlign = 'left';
-      }
-    }
-  }
-
   // ── Front/Rear labels ──
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 14px DejaVu Sans';
@@ -1680,12 +1656,41 @@ function redrawCanvas() {
     const hem1Y = tLayoutY + sideH;                // граница подворота верхнего бока
     const hem2Y = fold2Y + sideH + hemH;           // низ основного полотна
 
-    // Основное полотно — полный прямоугольник (крыша НЕ режется)
+    // Основное полотно — полный прямоугольник
     ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';
     ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
     ctx.strokeStyle = '#e74c3c';
     ctx.lineWidth = 2.5;
     ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
+
+    // ═══ ШВЫ РАСКРОЯ (границы рулона 2500 мм) ═══
+    const tentFullW = frameW + 2*tentMM + 2*220;  // полная ширина развёртки с hem
+    const rollW = 2500;
+    const Nstrips = Math.ceil(tentFullW / rollW);
+    for (let i = 1; i < Nstrips; i++) {
+      const shovFromTop = i * rollW;  // мм от верхнего края развёртки
+      const shovY = tLayoutY + shovFromTop * tScale;
+      ctx.setLineDash([10, 6]);
+      ctx.strokeStyle = '#ff4444';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(tLayoutX, shovY);
+      ctx.lineTo(tLayoutX + mainW, shovY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Плашка шва
+      const inRoof = shovFromTop > (220 + tentMM) && shovFromTop < (220 + tentMM + frameW);
+      ctx.fillStyle = '#ff4444';
+      ctx.font = 'bold 9px DejaVu Sans';
+      ctx.fillText(`← ШОВ ${Math.round(i*rollW)} мм ${inRoof ? '(на крыше)' : '(на боковине)'}`, tLayoutX + mainW + 4, shovY + 4);
+      // Короткая стрелка
+      ctx.beginPath();
+      ctx.moveTo(tLayoutX + mainW, shovY);
+      ctx.lineTo(tLayoutX + mainW + 8, shovY - 3);
+      ctx.moveTo(tLayoutX + mainW, shovY);
+      ctx.lineTo(tLayoutX + mainW + 8, shovY + 3);
+      ctx.stroke();
+    }
 
     // Линии сгиба КРЫША/БОК
     ctx.setLineDash([3,5]);

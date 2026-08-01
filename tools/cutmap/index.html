@@ -2,1763 +2,901 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Спецификации прицепов - Самбарс v28.07</title>
+<title>Карта раскроя прицепа — редактор</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'DejaVu Sans',Arial,sans-serif;background:#1a1a2e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
-/* ── Левая панель ── */
-.sidebar{width:380px;background:#16213e;padding:14px;overflow-y:auto;overflow-x:hidden;border-right:1px solid #0f3460;flex-shrink:0}
-.sidebar h2{font-size:16px;color:#e94560;margin-bottom:10px}
-.sidebar h3{font-size:13px;color:#a0a0c0;margin:14px 0 8px;border-top:1px solid #0f3460;padding-top:10px}
-label{display:block;font-size:11px;color:#777;margin-bottom:2px}
-select{width:100%;padding:6px 8px;background:#1a1a2e;color:#e0e0e0;border:1px solid #0f3460;border-radius:4px;font-size:13px;margin-bottom:8px}
-select:focus{outline:none;border-color:#e94560}
-
-.meta-info{font-size:11px;color:#888;line-height:1.6;background:#0f3460;padding:8px 10px;border-radius:4px;margin-bottom:8px}
-.meta-info b{color:#e94560}
-
-.section{background:#1a1a2e;border-radius:6px;padding:10px;margin-bottom:8px;font-size:11px}
-.section h4{color:#e94560;font-size:12px;margin-bottom:6px}
-.section table{width:100%;border-collapse:collapse}
-.section th{text-align:left;color:#a0a0c0;font-size:10px;padding:2px 4px;border-bottom:1px solid #0f3460}
-.section td{padding:2px 4px;font-size:11px}
-.section .num{text-align:right;font-family:monospace}
-.section .sub{color:#888;font-size:10px}
-
-.cut-block{margin-bottom:6px}
-.cut-bar{display:flex;height:14px;border-radius:2px;overflow:hidden;margin-top:2px}
-.cut-seg{display:flex;align-items:center;justify-content:center;font-size:8px;color:#fff;min-width:14px}
-.cut-waste{background:#333!important;color:#666}
-
-.summary{background:linear-gradient(135deg,#0f3460,#16213e);padding:10px;border-radius:6px;margin-top:8px}
-.summary table{width:100%}
-.summary td{padding:2px 0;font-size:12px}
-.summary .val{text-align:right;font-weight:bold;color:#e94560}
-
-/* ── Правая панель (схема) ── */
-.main{flex:1;overflow:hidden;position:relative;background:#1a1a2e}
-canvas{display:block;cursor:grab}
-.toolbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#16213e;padding:6px 12px;border-radius:8px;border:1px solid #0f3460;display:flex;gap:6px;align-items:center;font-size:11px;z-index:10}
-.toolbar button{padding:5px 12px;border-radius:4px;border:1px solid #0f3460;background:#1a1a2e;color:#e0e0e0;cursor:pointer;font-size:11px}
-.toolbar button:hover{background:#0f3460}
-.toolbar button.active{background:#e94560;color:#fff;border-color:#e94560}
-.toolbar .sep{width:1px;height:16px;background:#0f3460}
-.legend{position:absolute;top:8px;right:16px;font-size:10px;color:#888;line-height:1.8}
-
-::-webkit-scrollbar{width:6px}
-::-webkit-scrollbar-track{background:#1a1a2e}
-::-webkit-scrollbar-thumb{background:#0f3460;border-radius:3px}
+body{font-family:'DejaVu Sans',Arial,sans-serif;background:#f5f5f5;display:flex;height:100vh}
+.sidebar{width:340px;background:#fff;padding:16px;overflow-y:auto;box-shadow:2px 0 8px rgba(0,0,0,.1);z-index:2}
+.sidebar h2{font-size:15px;color:#2c3e50;margin-bottom:12px}
+.sidebar h3{font-size:12px;color:#555;margin:14px 0 6px;border-top:1px solid #eee;padding-top:10px}
+label{display:block;font-size:11px;color:#777;margin-bottom:1px}
+input,select{width:100%;padding:6px 8px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-bottom:8px}
+input:focus,select:focus{outline:none;border-color:#3498db}
+.btn{display:inline-block;padding:6px 14px;border-radius:4px;font-size:12px;cursor:pointer;border:none;margin:2px}
+.btn-blue{background:#3498db;color:#fff}
+.btn-red{background:#e74c3c;color:#fff}
+.btn-gray{background:#eee;color:#555}
+.result{background:#f0f4ff;padding:10px;border-radius:6px;margin-top:6px;font-size:11px}
+.result table{width:100%;border-collapse:collapse}
+.result th{text-align:left;color:#555;font-weight:600;padding:2px 0}
+.result td{padding:1px 0}
+.result .total{border-top:2px solid #2c3e50;font-weight:bold}
+.tip{font-size:10px;color:#aaa;margin-top:4px}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;background:#e8ecf0;display:flex;flex-direction:column}
+.main canvas{display:block}
+.model-info{font-size:11px;color:#2c3e50;background:#e8f0ff;padding:4px 8px;border-radius:4px;margin-bottom:8px}
+.toolbar{position:fixed;bottom:20px;left:360px;background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);display:flex;gap:8px;align-items:center;font-size:12px;z-index:10}
+.toolbar button{padding:6px 16px;border-radius:4px;border:1px solid #ddd;background:#fff;cursor:pointer;font-size:12px;white-space:nowrap}
+.toolbar button.active{background:#3498db;color:#fff;border-color:#3498db}
+.toolbar button:hover{opacity:.85}
+.toolbar .sep{width:1px;height:20px;background:#ddd}
 </style>
 </head>
 <body>
 
 <div class="sidebar">
-  <h2>🔧 Спецификации Самбарс</h2>
+  <h2>🔧 Карта раскроя прицепа</h2>
 
-  <label>Модель из каталога</label>
-  <select id="modelSelect" onchange="onModelChange()"></select>
-
-  <label>Осей</label>
-  <select id="axles" onchange="onAxleChange()">
+  <label>Модель</label>
+  <select id="brand" onchange="redraw()">
+    <option value="barsuk">Барсук</option><option value="sambars">Самбарс</option><option value="bizon">Бизон</option>
   </select>
+  <label>Длина рамы, мм</label>
+  <input type="number" id="L" value="2000" min="1500" max="6000" step="50" onchange="redraw()">
+  <label>Ширина рамы, мм</label>
+  <select id="W" onchange="redraw()">
+    <option value="1250">1250</option><option value="1500" selected>1500</option>
+    <option value="1800">1800</option><option value="2000">2000</option>
+  </select>
+  <label>Высота борта, мм</label>
+  <select id="sideH" onchange="redraw()">
+    <option value="300" selected>300</option><option value="500">500</option>
+  </select>
+  <label>Высота тента, мм</label>
+  <select id="tentH" onchange="redraw()">
+    <option value="0">Без тента</option><option value="500">500</option><option value="700">700</option><option value="1200" selected>1200</option><option value="1400">1400</option>
+  </select>
+  <label>Ширина рулона ПВХ, мм</label>
+  <input type="number" id="rollW" value="2500" min="1000" max="3000" step="100" onchange="redraw()">
 
-  <div class="meta-info" id="metaInfo"></div>
-
-  <h3>📊 МЕТАЛЛОПРОКАТ</h3>
-  <div class="section" id="metalSpec"></div>
-
-  <h3>🪚 РАСКЛАДКА РАСПИЛА (6м хлысты)</h3>
-  <div class="section" id="cutPlan"></div>
-
-  <h3>🪵 РАСКРОЙ ФАНЕРЫ</h3>
-  <div class="section" id="plywoodPlan"></div>
-  <div style="display:none" id="tentPlanBlock">
-    <h3>⛺ ТЕНТ</h3>
-    <div class="section" id="tentPlan"></div>
-  </div>
-
-  <h3>📦 РАСХОДНИКИ</h3>
-  <div class="section" id="consumables"></div>
-
-  <h3>🔩 БОЛТОВАЯ КАРТА</h3>
-  <div class="section" id="boltMap"></div>
-
-  <h3>🔧 КРОНШТЕЙНЫ</h3>
-  <div class="section" id="bracketSpec"></div>
-
-  <h3>⚖️ СВОДКА</h3>
-  <div class="summary" id="summary"></div>
+  <h3>📊 СПЕЦИФИКАЦИЯ (металл)</h3>
+  <div class="result" id="spec"></div>
+  <h3>⚖️ ИТОГО (металл)</h3>
+  <div class="result" id="total"></div>
+  <h3>🎪 РАСКРОЙ ТЕНТА (ПВХ)</h3>
+  <div class="result" id="tentCut"></div>
+  <div class="tip">🖱 На схеме: клик на элемент = удалить<br>Кнопки внизу = добавить поперечину/стойку/дугу<br>🖱 Колёсико = зум | Alt+drag = двигать</div>
+  <div class="tip" style="margin-top:4px"><b>Барсук:</b> рама 60×40×2, без центр. балки<br><b>Самбарс/Бизон:</b> рама 60×60×2, с центр. балкой</div>
 </div>
 
-<div class="main">
-  <canvas id="c"></canvas>
-  <div class="toolbar">
-    <span style="color:#888">🖱 Перетаскивайте | ⚙ Колёсико - вверх/вниз</span>
-    <button onclick="resetView()">Сброс</button>
-  </div>
-  <div class="legend">
-    <span style="color:#5dade2">▬▬</span> Рама<br>
-    <span style="color:#7f8c8d">▬▬</span> Поперечины<br>
-    <span style="color:#00bcd4">- -</span> Перемычки под пол<br>
-    <span style="color:#e67e22">▬▬</span> Аморт. балки / Задняя рамка<br>
-    <span style="color:#e74c3c">▬▬</span> Дышло / Кронштейны<br>
-    <span style="color:#f39c12">⬜</span> Рессоры / Гос.номер<br>
-    <span style="color:#3498db">▬▬</span> Борта<br>
-    <span style="color:#27ae60">- -</span> Тент<br>
-    <span style="color:#9b59b6">▬▬</span> Подфарники
-  </div>
+<div class="main" id="mainArea">
+<canvas id="c"></canvas>
+<div id="tentArea" style="padding:20px 30px;background:#f0f4f8;border-top:3px solid #27ae60;display:none">
+  <h3 style="margin:0 0 12px 0;font-size:14px;color:#2c3e50">🎪 Раскрой тента на рулоне <span style="color:#27ae60" id="tentRollLabel"></span></h3>
+  <canvas id="tentCanvas" style="background:#fff;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.1);max-width:100%"></canvas>
+</div>
+</div>
+
+<div class="toolbar" id="toolbar">
+  <b>🛠 Инструмент:</b>
+  <button class="active" onclick="setTool('delete')" id="btn-del">🗑 Удалить</button>
+  <button onclick="setTool('addCross')" id="btn-cross">➕ Поперечина</button>
+  <button onclick="setTool('addVert')" id="btn-vert">➕ Стойка борта</button>
+  <button onclick="setTool('addArch')" id="btn-arch">➕ Дуга тента</button>
+  <span class="sep"></span>
+  <button onclick="resetAll()">🔄 Сброс</button>
+  <span class="sep"></span>
+  <span style="color:#888;font-size:11px">L={L}мм W={W}мм</span>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════════
-// КАТАЛОГ МОДЕЛЕЙ (из catalog_data.json)
-// ══════════════════════════════════════════════════════════
-const CATALOG = [
-  {num:1, brand:"Барсук", model:"Барсук 1.25×2.0", w:1250, l:2000, tent:50, ax:[1]},
-  {num:2, brand:"Барсук", model:"Барсук 1.25×2.5", w:1250, l:2500, tent:70, ax:[1,2]},
-  {num:3, brand:"Барсук", model:"Барсук 1.25×3.0", w:1250, l:3000, tent:120, ax:[1,2]},
-  {num:4, brand:"Барсук", model:"Барсук 1.5×2.5", w:1500, l:2500, tent:70, ax:[1,2]},
-  {num:5, brand:"Барсук", model:"Барсук 1.5×3.0", w:1500, l:3000, tent:120, ax:[1,2]},
-  {num:6, brand:"Барсук", model:"Барсук 1.5×3.5", w:1500, l:3500, tent:120, ax:[1,2]},
-  {num:7, brand:"Самбарс", model:"Самбарс 1.25×2.0", w:1250, l:2000, tent:70, ax:[1]},
-  {num:8, brand:"Самбарс", model:"Самбарс 1.25×2.5", w:1250, l:2500, tent:120, ax:[1,2]},
-  {num:9, brand:"Самбарс", model:"Самбарс 1.25×3.0", w:1250, l:3000, tent:120, ax:[1,2]},
-  {num:10, brand:"Самбарс", model:"Самбарс 1.5×2.5", w:1500, l:2500, tent:120, ax:[1,2]},
-  {num:11, brand:"Самбарс", model:"Самбарс 1.5×3.0", w:1500, l:3000, tent:120, ax:[1,2]},
-  {num:12, brand:"Самбарс", model:"Самбарс 1.5×3.5", w:1500, l:3500, tent:120, ax:[1,2]},
-  {num:13, brand:"Самбарс", model:"Самбарс 1.7×3.0", w:1700, l:3000, tent:140, ax:[1,2]},
-  {num:14, brand:"Самбарс", model:"Самбарс 1.7×3.5", w:1700, l:3500, tent:140, ax:[1,2]},
-  {num:15, brand:"Самбарс", model:"Самбарс 1.7×4.0", w:1700, l:4000, tent:140, ax:[1,2]},
-  {num:16, brand:"Самбарс", model:"Самбарс 1.93×3.5", w:1930, l:3500, tent:140, ax:[1,2]},
-  {num:17, brand:"Самбарс", model:"Самбарс 1.93×4.0", w:1930, l:4000, tent:140, ax:[1,2]},
-  {num:18, brand:"Самбарс", model:"Самбарс 1.93×4.5", w:1930, l:4500, tent:140, ax:[1,2]},
-  {num:19, brand:"Бизон", model:"Бизон 2.0×3.5", w:2000, l:3500, tent:0, ax:[2]},
-  {num:20, brand:"Бизон", model:"Бизон 2.0×4.0", w:2000, l:4000, tent:0, ax:[2]},
-];
+// ═══ STATE ═══
+let tool = 'delete';
+let crossPositions = [];  // positions of cross members as fraction of length
+let vertPositions = [];   // positions of side posts as fraction of length
+let archPositions = [];   // positions of tent arches as fraction of length
 
-// ══════════════════════════════════════════════════════════
-// ПАРАМЕТРЫ БРЕНДОВ (из стандартов)
-// ══════════════════════════════════════════════════════════
-const BRAND = {
-  'Барсук': {
-    frameProfile:'60×40×2', extraMM:60, sideProfile:'20×20×1.5', sideThick:30,
-    boardH:300,
-    drawbarProfile:'60×60×2', axleProfile:'50×50×3', springs:3,
-    tentPVC:'ПВХ 500 г/м2', tentClr:'серый', espander:6, wheels:'R13',
-    frontFlap:'наглухо', rearFlap:'ремни'
-  },
-  'Самбарс': {
-    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
-    boardH:300,
-    drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:5,
-    tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
-    frontFlap:'поворотки', rearFlap:'поворотки'
-  },
-  'Бизон': {
-    frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
-    boardH:300,
-    drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:7,
-    tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
-    frontFlap:'поворотки', rearFlap:'поворотки'
-  }
-};
+function setTool(t) {
+  tool = t;
+  document.querySelectorAll('.toolbar button').forEach(b => b.classList.remove('active'));
+  document.getElementById('btn-' + ({delete:'del',addCross:'cross',addVert:'vert',addArch:'arch'}[t])).classList.add('active');
+}
+
+function resetAll() {
+  crossPositions = [];
+  vertPositions = [];
+  archPositions = [];
+  redraw();
+}
+
+function getParams() {
+  return {
+    L: parseInt(document.getElementById('L').value),
+    W: parseInt(document.getElementById('W').value),
+    sideH: parseInt(document.getElementById('sideH').value),
+    tentH: parseInt(document.getElementById('tentH').value),
+    brand: document.getElementById('brand').value,
+  };
+}
 
 const TUBES = {
-  '60×40×2':  {mass:2.93, color:'#5dade2'},
-  '60×60×2':  {mass:3.56, color:'#5dade2'},
-  '40×20×2':  {mass:1.35, color:'#7f8c8d'},
-  '80×40×3':  {mass:5.19, color:'#e74c3c'},
-  '50×50×3':  {mass:4.30, color:'#c0392b'},
-  '50×50×4':  {mass:5.60, color:'#c0392b'},
-  '25×25×2':  {mass:1.40, color:'#3498db'},
-  '20×20×1.5':{mass:0.84, color:'#27ae60'},
+  frame:    {name:'60×60×2', color:'#2c3e50', massPerM:3.56},
+  cross:    {name:'40×20×2', color:'#7f8c8d', massPerM:1.78},
+  drawbar:  {name:'80×40×3', color:'#e74c3c', massPerM:5.19},
+  side:     {name:'25×25×2', color:'#3498db', massPerM:1.39},
+  tent:     {name:'20×20×1,5',color:'#27ae60', massPerM:0.84},
 };
 
-// ══════════════════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════════════════
-let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1};
-let scale = 1.0, offX = 0, offY = 0;
-let dragging = false, dragSX, dragSY, dragOX, dragOY;
-
+// ═══ DRAWING ═══
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
+const tentCanvas = document.getElementById('tentCanvas');
+const tentCtx = tentCanvas.getContext('2d');
+const mainArea = document.getElementById('mainArea');
+const tentArea = document.getElementById('tentArea');
 
-// ══════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════
-function init() {
-  const sel = document.getElementById('modelSelect');
-  CATALOG.forEach((m,i) => {
-    const opt = document.createElement('option');
-    opt.value = i;
-    opt.textContent = `#${m.num} ${m.model} тент ${m.tent||'-'}см`;
-    sel.appendChild(opt);
-  });
-  sel.value = '9'; // Самбарс 1.5×3.0 default
-  onModelChange();
-}
+let scale = 0.3;
+let offsetX = 30, offsetY = 30;
+let dragging = false;
+let dragStartX, dragStartY, dragOffsetX, dragOffsetY;
+let zooming = false;
 
-// ══════════════════════════════════════════════════════════
-// MODEL SELECTION
-// ══════════════════════════════════════════════════════════
-let currentModelIdx = 9;
-
-function onModelChange() {
-  const idx = parseInt(document.getElementById('modelSelect').value);
-  currentModelIdx = idx;
-  const m = CATALOG[idx];
-
-  state.brand = m.brand;
-  state.W = m.w;
-  state.L = m.l;
-  state.tentH = m.tent || 0;
-
-  // Populate axles dropdown
-  const axSel = document.getElementById('axles');
-  axSel.innerHTML = '';
-  m.ax.forEach(a => {
-    const opt = document.createElement('option');
-    opt.value = a;
-    opt.textContent = a;
-    axSel.appendChild(opt);
-  });
-  axSel.value = m.ax[0];
-  state.axles = m.ax[0];
-
-  recalc();
-}
-
-function onAxleChange() {
-  state.axles = parseInt(document.getElementById('axles').value);
-  recalc();
-}
-
-// ══════════════════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════════════════
-function calcStep(total, divisor) {
-  const n = Math.max(1, Math.round(total / divisor));
-  return {n, step: total / n};
-}
-
-function roundXlysts(metalM) {
-  const withMargin = metalM * 1.10;
-  return Math.ceil(withMargin / 6);
-}
-
-function cut6m(pieces) {
-  const sorted = [...pieces].sort((a,b) => b - a);
-  const stocks = [];
-  for (const p of sorted) {
-    let placed = false;
-    for (let s of stocks) {
-      if (s.used + p <= 6.0 + 0.005) { s.used += p; s.items.push(p); placed = true; break; }
-    }
-    if (!placed) stocks.push({used: p, items: [p]});
-  }
-  return stocks;
-}
-
-// ══════════════════════════════════════════════════════════
-// MAIN CALC
-// ══════════════════════════════════════════════════════════
-function recalc() {
-  const {brand, W, L, tentH, axles} = state;
-  const bp = BRAND[brand];
-  const hasTent = tentH > 0;
-  const tentMM = tentH * 10;
-
-  // Frame
-  const frameW = W + bp.extraMM;
-  const frameL = L + bp.extraMM;
-  const fPerimeter = 2*(frameW + frameL)/1000;
-  // Cross members - with shock beams counted as cross members
-  const specialBeamsR = axles === 1 ? [frameL/2 + 550] : [frameL/2 + 100, frameL/2 + 1000];
-  specialBeamsR.sort((a,b) => a-b);
-
-  let totalCross = 0;
-  const segs = [];
-  let pr = 0;
-  for (const sp of specialBeamsR) { segs.push({start:pr, end:sp}); pr = sp; }
-  segs.push({start:pr, end:frameL});
-  segs.forEach(seg => {
-    const segLen = seg.end - seg.start;
-    if (segLen < 200) return;
-    const n = Math.max(0, Math.round(segLen / 600) - 1);
-    if (n > 0) totalCross += n;
-  });
-  const crossM = totalCross * frameW / 1000;
-  const centerM = (brand !== 'Барсук') ? frameL/1000 : 0;
-
-  // Drawbar
-  const dbCenter = 1.20;  // центральный луч всегда 120 см
-  const dbSideLen = (L <= 2500) ? 1.80 : 2.00;  // боковые: 180 см (2-2.5м) или 200 см (3м+)
-  const dbTotal = dbCenter + dbSideLen * 2;
-
-  // Axle
-  const axleM = ((frameW + 200)/1000) * axles;
-
-  // Sides
-  const sPerimeter = 2*(W + L)/1000;
-  const sFrame = 2 * sPerimeter; // top + bottom rails
-  // Перемычки: jLong/jShort вычисляются ниже
-  const jumpLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
-  const jumpShort = W < 1930 ? 1 : 2;
-  const totalJumpers = jumpLong * 2 + jumpShort * 2;
-  const sJumpers = totalJumpers * (bp.boardH / 1000);
-  const sTotal = sFrame + sJumpers;
-
-  // Tent frame
-  let tentArchCount = 0, tentFrameM = 0, tentArea = 0;
-  if (hasTent) {
-    // Количество дуг: передняя + задняя + промежуточные
-    if (tentH >= 120) {
-      const remaining = frameL - 800;
-      const rs = remaining > 0 ? calcStep(remaining, 700) : {n:0};
-      tentArchCount = 2 + rs.n;  // передняя(0) + промежуточные + задняя(frameL)
-    } else {
-      const s = calcStep(frameL, 700);
-      tentArchCount = s.n + 2;  // передняя(0) + s.n промежуточных + задняя(frameL)
-    }
-    tentArea = ((frameW + 2*tentMM)/1000) * (frameL/1000) * 1.15;
-    tentFrameM = tentArchCount;  // флаг: >0 значит тент есть
-  }
-
-  // Plywood
-  const floorArea = (W/1000) * (L/1000);
-  const sideArea = sPerimeter * (bp.boardH/1000);
-
-  // Пол: узкий (1250×2500) на w=1250 вдоль и w=1700/1930 поперёк, широкий (1500×3000) на w=1500
-  let floorSheets, hasFloorSeam = false, floorSheetType, floorSeams = 0;
-  if (W <= 1250) {
-    // Узкий лист вдоль: 2500 мм по длине
-    floorSheetType = '1250×2500 (вдоль)';
-    floorSheets = L <= 2500 ? 1 : 2;
-    hasFloorSeam = L > 2500;
-    if (hasFloorSeam) floorSeams = 1;
-  } else if (W <= 1500) {
-    // Широкий лист вдоль: 3000 мм по длине
-    floorSheetType = '1500×3000 (вдоль)';
-    floorSheets = L <= 3000 ? 1 : 2;
-    hasFloorSeam = L > 3000;
-    if (hasFloorSeam) floorSeams = 1;
-  } else {
-    // w=1700/1930: узкий лист ПОПЕРЁК - 2500 мм в ширину, 1250 мм вдоль
-    floorSheetType = '1250×2500 (поперёк)';
-    const alongStep = 1250; // длина куска вдоль прицепа
-    floorSheets = Math.ceil(L / alongStep);
-    floorSeams = floorSheets - 1;  // стык между каждыми соседними листами
-    hasFloorSeam = floorSeams > 0;
-  }
-  state.hasFloorSeam = hasFloorSeam;
-  state.floorSeams = floorSeams;
-  // Борта: всегда узкий лист
-  const sideSheets = Math.ceil(sideArea / 3.125);
-
-  // ═══ BOLTS ═══
-  // М8 борт→рама: отступ 250 мм, шаг ~800 мм
-  const sMidLen = frameL - 2*250;
-  const boltsPerLongSide = Math.max(2, Math.round(sMidLen / 800) + 1);
-  const sMidLenShort = Math.max(0, frameW - 2*250);
-  const boltsPerShortSide = Math.max(2, Math.round(sMidLenShort / 800) + 1);
-  const sBoltsCount = (boltsPerLongSide + boltsPerShortSide) * 2;  // 2 длинных + 2 коротких
-  // М6 пол→перемычки: шаг ~350 мм по ширине
-  const boltsPerCross = Math.max(2, Math.round(frameW / 350));
-  const totalCrossBeams = totalCross + specialBeamsR.length + floorSeams;
-  const floorBolts = boltsPerCross * totalCrossBeams;
-  // М6 каркас тента→борта: как М8 но М6, ×2 рамки
-  const tentBolts = hasTent ? Math.max(2, Math.round(sMidLen / 800) + 1) * 2 : 0;
-  // Ось/подвеска
-  const axleBolts = axles * 8;
-  // Заклёпки
-  const rivetsFloor = Math.ceil(2*(frameW + frameL) / 300);  // пол→лонжероны
-  const rivetsSides = Math.ceil(sPerimeter * 3);  // фанера бортов→рамка
-
-  // ═══ CUT PLANS ═══
-  // Metal pieces for cutting
-  const frameProfile = bp.frameProfile;
-  const drawbarProfile = bp.drawbarProfile;
-  const axleProfile = bp.axleProfile;
-
-  // Frame perimeter pieces
-  const fpLong = frameL/1000; // 2 pieces
-  const fpShort = frameW/1000; // 2 pieces
-  const fpCross = frameW/1000; // полная ширина (Барсук)
-  const fpCrossHalf = (frameW/2)/1000; // половинка (Самбарс/Бизон)
-
-  let allProfilePieces = [
-    {label:`Рама ${frameProfile}`, pieces:[fpLong, fpLong, fpShort, fpShort]},
-  ];
-  // Поперечины: для Самбарса - двойное количество половинок (слева и справа от центр. балки)
-  if (brand !== 'Барсук') {
-    allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross * 2).fill(fpCrossHalf)});
-  } else {
-    allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)});
-  }
-  if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
-  // Доп. перемычки под швы фанеры пола (по одной на каждый стык)
-  if (hasFloorSeam) {
-    const extraCrossM = (frameW/1000);
-    for (let s = 0; s < floorSeams; s++) {
-      if (brand !== 'Барсук') {
-        allProfilePieces.push({label:`Перемычка под шов пола 40×20×2 (2 половинки)`, pieces:[extraCrossM/2, extraCrossM/2]});
-      } else {
-        allProfilePieces.push({label:`Перемычка под шов пола 40×20×2`, pieces:[extraCrossM]});
-      }
-    }
-  }
-  allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, dbSideLen, dbSideLen, (frameW)/1000]});  // центр + 2 бока + перемычка
-  // Аморт. балки - как перемычки: на Самбарсе/Бизоне делятся центр. балкой на половинки
-  if (brand !== 'Барсук') {
-    allProfilePieces.push({label:`Аморт. балка ${frameProfile} (2 половинки)`, pieces:[fpCrossHalf, fpCrossHalf]});
-    if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile} (2 половинки)`, pieces:[fpCrossHalf, fpCrossHalf]});
-  } else {
-    allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
-    if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile}`, pieces:[(frameW)/1000]});
-  }
-  if (sTotal > 0) {
-    // Борта: 2 длинных + 2 коротких (по размеру РАМЫ, не заявленному)
-    const sidePieces = [frameL/1000, frameL/1000, frameW/1000, frameW/1000];
-    for (let i = 0; i < totalJumpers; i++) sidePieces.push(bp.boardH/1000);
-    allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
-  }
-  if (tentFrameM > 0) {
-    // Боковые рамки: 2 рамки × (верх + низ) = 4 куска по frameL
-    const frameRails = [frameL/1000, frameL/1000, frameL/1000, frameL/1000];
-    // Стойки рамок: tentArchCount шт × totalFrameH (борт + тент)
-    const totalFrameM = (bp.boardH + tentMM) / 1000;
-    const framePosts = Array(tentArchCount).fill(totalFrameM);
-    // Дуги Π-образные: tentArchCount шт × (ширина + 2×100 мм ножки)
-    const archPieceM = (frameW + 240) / 1000;  // frameW + 40 зазор + 2×100 ножки
-    const arches = Array(tentArchCount).fill(archPieceM);
-    allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:[...frameRails, ...framePosts, ...arches]});
-    // Проставки 25×25×2 - отдельный профиль
-    allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(tentArchCount * 2).fill(0.10)});
-  }
-  allProfilePieces.push({label:`Ось ${axleProfile}`, pieces:Array(axles).fill((frameW + 200)/1000)});
-
-  // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
-  const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);
-  const consumables = {
-    cuts: totalCuts,
-    wire: (totalCuts * 0.007).toFixed(3),
-    gas: (totalCuts * 0.007).toFixed(3),
-    cutDiscs: Math.ceil(totalCuts / 18),
-    grindDiscs: Math.ceil(totalCuts / 55),
-    gloves: Math.max(1, Math.ceil(totalCuts / 100)),
-    kragi: Math.max(1, Math.ceil(totalCuts / 200)),
-  };
-
-  // ═══ RENDER ═══
-  renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);
-  renderCutPlan(allProfilePieces);
-  renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
-  if (hasTent) {
-    document.getElementById('tentPlanBlock').style.display = 'block';
-    renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
-  } else {
-    document.getElementById('tentPlanBlock').style.display = 'none';
-  }
-  renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides);
-  renderBrackets(bp, state);
-  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
-  renderConsumables(consumables);
-  updateMeta();
-  redrawCanvas();
-}
-
-// ══════════════════════════════════════════════════════════
-// RENDER HELPERS
-// ══════════════════════════════════════════════════════════
-function renderMetalSpec(pieces, bp, hasTent, archCount) {
-  let html = '<table><tr><th>Профиль</th><th>Назначение</th><th class="num">Метров</th><th class="num">Хлыстов 6м</th></tr>';
-  for (const grp of pieces) {
-    const totalM = grp.pieces.reduce((a,b) => a+b, 0);
-    const xlysts = roundXlysts(totalM);
-    const parts = grp.label.split(' ');
-    const prof = parts.pop();
-    const label = parts.join(' ');
-    html += `<tr><td>${prof}</td><td>${label}</td><td class="num">${totalM.toFixed(1)}</td><td class="num">${xlysts}</td></tr>`;
-  }
-  html += '</table>';
-  document.getElementById('metalSpec').innerHTML = html;
-}
-
-function renderCutPlan(pieces) {
-  let html = '';
-  for (const grp of pieces) {
-    const stocks = cut6m(grp.pieces);
-    html += `<div class="cut-block"><b>${grp.label}</b> - ${stocks.length} хлыст(ов)`;
-    stocks.forEach((s, i) => {
-      html += `<div class="cut-bar">`;
-      const colors = ['#e94560','#3498db','#27ae60','#f39c12','#9b59b6','#1abc9c','#e67e22','#2ecc71'];
-      s.items.forEach((p, j) => {
-        const w = (p / 6.0 * 100).toFixed(1);
-        html += `<div class="cut-seg" style="width:${w}%;background:${colors[j%colors.length]}">${p.toFixed(2)}</div>`;
-      });
-      const waste = 6.0 - s.used;
-      if (waste > 0.01) html += `<div class="cut-seg cut-waste" style="width:${(waste/6.0*100).toFixed(1)}%">${waste.toFixed(2)}</div>`;
-      html += `</div>`;
-    });
-    html += '</div>';
-  }
-  document.getElementById('cutPlan').innerHTML = html;
-}
-
-function renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType) {
-  const seamNote = hasFloorSeam ? ` (${floorSeams} швов + доп. перемычки 40×20×2)` : '';
-
-  // Визуальный раскрой
-  let html = `<div class="cut-block"><b>ПОЛ</b> - ${floorSheetType} | ${floorSheets} лист(а)${seamNote}`;
-
-  if (floorSheets === 1) {
-    const fW = W <= 1250 ? 1250 : W <= 1500 ? 1500 : 1250;
-    const fL = W <= 1250 ? 2500 : W <= 1500 ? 3000 : 2500;
-    const usedPct = ((W * L) / (fW * fL) * 100).toFixed(0);
-    html += `<div class="cut-bar"><div class="cut-seg" style="width:${usedPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м</div><div class="cut-seg cut-waste" style="width:${100-parseInt(usedPct)}%">обрезь</div></div>`;
-  } else if (W > 1500) {
-    // Поперёк: несколько листов 1250 мм вдоль
-    html += `<div class="cut-bar">`;
-    const segPct = (1250 / L * 100).toFixed(0);
-    for (let i = 0; i < floorSheets; i++) {
-      html += `<div class="cut-seg" style="width:${segPct}%;background:${i%2===0?'#e94560':'#f39c12'}">лист ${i+1}</div>`;
-    }
-    html += `</div><span class="sub">стыки каждые 1250 мм от задней части (${floorSeams} шт)</span>`;
-  } else {
-    // Вдоль: основной + добор
-    const mainL = W <= 1250 ? 2500 : 3000;
-    const extraL = L - mainL;
-    const mainPct = (mainL / L * 100).toFixed(0);
-    const extraPct = (extraL / L * 100).toFixed(0);
-    html += `<div class="cut-bar"><div class="cut-seg" style="width:${mainPct}%;background:#e94560">${(W/1000).toFixed(2)}×${(mainL/1000).toFixed(1)} м</div><div class="cut-seg" style="width:${extraPct}%;background:#f39c12">+${(extraL/1000).toFixed(2)} м</div></div><span class="sub">шов на ${(mainL/1000).toFixed(1)} м от заднего края</span>`;
-  }
-  html += '</div>';
-
-  // Борта - всегда узкий лист
-  const sidePcs = Math.ceil(sideArea / 3.125);
-  html += `<div class="cut-block"><b>БОРТА</b> - узкий лист 1250×2500 | ${sidePcs} лист(а) - ${brand === 'Барсук' ? 'обрезки, швы на перемычках' : 'цельные, без швов'}</div>`;
-
-  html += `<div class="summary" style="margin-top:6px"><table>
-    <tr><td>Пол</td><td class="val">${floorSheets} лист(а) ${floorSheetType}</td></tr>
-    <tr><td>Борта</td><td class="val">${sidePcs} лист(а) 1250×2500</td></tr>
-    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО</b></td><td class="val"><b>${floorSheets + sidePcs}</b> листов</td></tr>
-  </table></div>`;
-  document.getElementById('plywoodPlan').innerHTML = html;
-}
-
-function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
-  const isBarsuk = st.brand === 'Барсук';
-  const aero = tH >= 120;
-  const hemMM = 220;
-  const leftAddMM = 260;
-  const rightAddMM = 120;
-  const rollW = 2500;  // ширина рулона мм
-
-  // Детали (ширина × длина в мм, до разворота)
-  const mainW = fW + 2*tMM + 2*hemMM;  // ширина основного полотна
-  const mainL = fL + leftAddMM + rightAddMM;  // длина
-  const frontAddMM = isBarsuk ? 50 : 260;
-  const frontW = aero ? tMM - 300 + hemMM : tMM + hemMM;  // ширина переднего клапана
-  const frontL = fW + frontAddMM*2;  // длина
-  const rearW = tMM + hemMM + 240;  // ширина заднего клапана
-  const rearL = fW + 240;  // длина
-
-  // Расход от рулона 2500 мм (погонные метры)
-  const rollCut = (dw, dl) => {
-    const along = Math.ceil(dw / rollW) * dl;
-    const across = Math.ceil(dl / rollW) * dw;
-    return Math.min(along, across);
-  };
-  const mainRM = (rollCut(mainW, mainL) / 1000).toFixed(2);
-  const frontRM = (rollCut(frontW, frontL) / 1000).toFixed(2);
-  const rearRM = (rollCut(rearW, rearL) / 1000).toFixed(2);
-  const totalRM = (parseFloat(mainRM) + parseFloat(frontRM) + parseFloat(rearRM)).toFixed(2);
-  // Нижний периметр (люверсы 10 мм, эспандер)
-  const lowerPerimeter = 2*(fL + fW)/1000;  // по низу: 2 бока + перед + зад
-  const louvers10 = Math.ceil(lowerPerimeter / 0.15);
-  const espanderM = (lowerPerimeter * 1.1).toFixed(1);
-  // Люверсы на клапанах
-  const valveLouvers = (isBarsuk ? 4 : 6) * 2;
-  const turnBuckles = isBarsuk ? 0 : Math.ceil((2*fL + 2*fW) / 500) * 2;
-  const straps = isBarsuk ? 4 : 0;
-
-  let html = `<table>
-    <tr><td colspan="2"><b>Раскрой (рулон 2500 мм)</b></td></tr>
-    <tr><td>Основное полотно ${(mainW/1000).toFixed(2)}×${(mainL/1000).toFixed(2)} м</td><td class="num"><b>${mainRM}</b> пог.м</td></tr>
-    <tr><td>Передний клапан (+${frontAddMM}×2)</td><td class="num"><b>${frontRM}</b> пог.м</td></tr>
-    <tr><td>Задний клапан (+120×2)</td><td class="num"><b>${rearRM}</b> пог.м</td></tr>
-    <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО от рулона</b></td><td class="num"><b>${totalRM}</b> пог.м</td></tr>
-    <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
-  </table>
-  <table style="margin-top:8px">
-    <tr><td colspan="2"><b>Фурнитура</b></td></tr>
-    <tr><td>Эспандер ${bp.espander} мм</td><td class="num">${espanderM} м</td></tr>
-    <tr><td>Люверсы 10 мм</td><td class="num">${louvers10} шт (шаг ~150 мм)</td></tr>
-    <tr><td>Люверсы ${isBarsuk ? 27 : 32} мм</td><td class="num">${valveLouvers} шт</td></tr>`;
-  if (!isBarsuk) html += `<tr><td>Поворотки</td><td class="num">${turnBuckles} шт</td></tr>`;
-  if (isBarsuk) html += `<tr><td>Ремешки + скобы</td><td class="num">${straps} компл</td></tr>`;
-  html += `<tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
-    <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
-    <tr><td>Срок службы</td><td>~${isBarsuk ? 2 : 7} лет</td></tr>
-  </table>`;
-  document.getElementById('tentPlan').innerHTML = html;
-}
-
-function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
-  const isBarsuk = st.brand === 'Барсук';
-  const hingeBolts = (isBarsuk ? 2 : 4) * 4;  // 2/4 петли × 4 болта М8×80
-  const lockBolts = (isBarsuk ? 2 : 4) * 4;   // 2/4 замка × 4 болта М6×35
-  const dumpLockBolts = 2 * 4;                  // 2 замка самосвала × 4 болта М8×80
-  let html = `<table>
-    <tr><th>Узел</th><th>Тип</th><th class="num">Кол-во</th></tr>
-    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Крепёж</b></td></tr>
-    <tr><td>Борта → рама</td><td>М8×100 + гайка + шайба</td><td class="num">${sBolts}</td></tr>
-    <tr><td>Пол → перемычки</td><td>М6 мебельный потай + гайка</td><td class="num">${fBolts}</td></tr>
-    <tr><td>Заклёпки пол→лонжероны</td><td>4.8×25</td><td class="num">~${rivF}</td></tr>
-    <tr><td>Заклёпки фанеры бортов</td><td>4.8×25</td><td class="num">~${rivS}</td></tr>
-    <tr><td>Ось / подвеска</td><td>М12×90 + М12×70</td><td class="num">${aBolts}</td></tr>
-    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td></tr>`;
-  if (tBolts > 0) {
-    html += `<tr><td>Каркас тента → борта</td><td>М6×35 + гайка</td><td class="num">${tBolts}</td></tr>`;
-  }
-  html += `<tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Петли и замки</b></td></tr>
-    <tr><td>Петли борта</td><td>М8×80 + гайка</td><td class="num">${hingeBolts} шт (${isBarsuk ? '2 задние' : '4 перед+зад'} петли × 4)</td></tr>
-    <tr><td>Замки бортовые</td><td>М6×35 + цинговая гайка</td><td class="num">${lockBolts} шт (${isBarsuk ? '2 задних' : '4 перед+зад'} замка × 4)</td></tr>
-    <tr><td>Замки самосвала</td><td>М8×80 + гайка</td><td class="num">${dumpLockBolts} шт (2 замка × 4)</td></tr>`;
-  if (isBarsuk) {
-    html += `<tr><td>Передний борт (крепление)</td><td>М8×80</td><td class="num">4 шт (вместо петель и замков)</td></tr>`;
-  }
-  html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td></tr>
-  </table>`;
-  document.getElementById('boltMap').innerHTML = html;
-}
-
-function renderBrackets(bp, st) {
-  const a = st.axles;
-  const html = `<table>
-    <tr><th>Деталь</th><th>Кол-во</th><th>Расположение</th></tr>
-    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Самосвал</b></td></tr>
-    <tr><td>Пластины дышла</td><td class="num">2 шт</td><td>на концах боковых лучей, 120×60×5 мм</td></tr>
-    <tr><td>Пластины рамы</td><td class="num">2 шт</td><td>на лонжеронах рамы, 120×60×5 мм</td></tr>
-    <tr><td>Болт + крепёж</td><td class="num">2 компл</td><td>М12×80 + 2 гайки М12 + 3 шайбы</td></tr>
-    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Подвеска</b></td></tr>
-    <tr><td>Кронштейны рессор</td><td class="num">${a*4} шт</td><td>2 на каждую рессору, расстояние между крайними 670 мм</td></tr>
-    <tr><td>Пятки рессор</td><td class="num">${a*2} шт</td><td>за задним кронштейном, 60×60 мм</td></tr>
-    <tr><td>Кронштейны амортизаторов</td><td class="num">${a*4} шт</td><td>2 на каждую ось: на оси и на аморт. балке</td></tr>
-    <tr><td>Кронштейны крыльев</td><td class="num">${a*4} шт</td><td>2 на каждое пластиковое крыло</td></tr>
-    <tr><td>Косынки (Самбарс)</td><td class="num">${st.brand === 'Барсук' ? 0 : 4} шт</td><td>по внутренним углам рамы</td></tr>
-    <tr><td>Проставки дуг (тент)</td><td class="num">${st.tentH > 0 ? (1 + Math.max(0, calcStep(st.L + BRAND[st.brand].extraMM - 800, 700).n))*2 : 0} шт</td><td>25×25×2, длина 100 мм</td></tr>
-  </table>`;
-  const el = document.getElementById('bracketSpec');
-  if (el) el.innerHTML = html;
-}
-
-function renderConsumables(c) {
-  const el = document.getElementById('consumables');
-  if (!el) return;
-  const html = `<table>
-    <tr><td>Резов (пилов)</td><td class="num"><b>${c.cuts}</b></td></tr>
-    <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td></tr>
-    <tr><td>Газ CO2</td><td class="num">${c.gas} кг</td></tr>
-    <tr><td>Диски отрезные 125×1.2</td><td class="num">${c.cutDiscs} шт</td></tr>
-    <tr><td>Диски лепестковые</td><td class="num">${c.grindDiscs} шт</td></tr>
-    <tr><td>Перчатки</td><td class="num">${c.gloves} пар</td></tr>
-    <tr><td>Краги</td><td class="num">${c.kragi} пар</td></tr>
-    <tr><td colspan="2" class="sub">нормы: ~7 г проволоки/пил, диск на 18 резов, лепесток на 55 швов</td></tr>
-  </table>`;
-  document.getElementById('consumables').innerHTML = html;
-}
-
-function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetType) {
-  let totalMetal = 0, totalMass = 0;
-  pieces.forEach(grp => {
-    const tm = grp.pieces.reduce((a,b)=>a+b,0);
-    const parts = grp.label.split(' ');
-    const prof = parts[parts.length-1];
-    const massPerM = TUBES[prof] ? TUBES[prof].mass : 0;
-    totalMetal += tm;
-    totalMass += tm * massPerM;
-  });
-  const xlysts = pieces.reduce((sum, g) => sum + roundXlysts(g.pieces.reduce((a,b)=>a+b,0)), 0);
-  document.getElementById('summary').innerHTML = `<table>
-    <tr><td>Металла всего</td><td class="val">${totalMetal.toFixed(1)} м</td></tr>
-    <tr><td>Вес металла</td><td class="val">${totalMass.toFixed(1)} кг</td></tr>
-    <tr><td>Хлыстов 6м</td><td class="val">~${xlysts} шт</td></tr>
-    <tr><td>Фанера</td><td class="val">${fSheets + sSheets} листов<br><span class="sub">пол: ${floorSheetType}</span></td></tr>
-    <tr><td>Тент</td><td class="val">${tentArea > 0 ? tentArea.toFixed(1)+' м2' : '-'}</td></tr>
-    <tr><td>Колёса</td><td class="val">${bp.wheels} ×${st.axles*2}</td></tr>
-    <tr><td>Рессоры</td><td class="val">${bp.springs}-лист ×${st.axles*2}</td></tr>
-  </table>`;
-}
-
-function updateMeta() {
-  const {brand, W, L, tentH, axles} = state;
-  const bp = BRAND[brand];
-  const frameW = W + bp.extraMM;
-  const frameL = L + bp.extraMM;
-  const axlePos = (frameL/2 + 105);  // ось: центр + 55см (балка) - 44.5см = +10.5см
-  document.getElementById('metaInfo').innerHTML =
-    `<b>${brand}</b> ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м<br>
-    Рама: ${frameW}×${frameL} мм | Ось от переда: ${axlePos.toFixed(0)} мм<br>
-    Борт: ${bp.boardH} мм | Тент: ${tentH||'-'} см | Осей: ${axles}`;
-}
-
-// ══════════════════════════════════════════════════════════
-// CANVAS DRAWING
-// ══════════════════════════════════════════════════════════
 function resizeCanvas() {
-  canvas.width = Math.max(window.innerWidth - 380, 600);
-  canvas.height = Math.max(window.innerHeight, 900);
+  canvas.width = mainArea.clientWidth;
+  canvas.height = Math.max(window.innerHeight - 60, 400);
 }
 resizeCanvas();
 window.onresize = resizeCanvas;
 
-let baseScale = 0.30;  // крупнее чтобы было видно детали
-// Zoom removed - all elements in single scale. Pan via offX/offY.
-
-function redrawCanvas() {
-  const {brand, W, L, tentH, axles} = state;
-  const bp = BRAND[brand];
-  const frameW = W + bp.extraMM;
-  const frameL = L + bp.extraMM;
-  const hasTent = tentH > 0;
-  const tentMM = tentH * 10;
-  const boardH = bp.boardH; // mm - высота борта всегда 30 см
-
-  canvas.width = canvas.width;
-  const sc = baseScale;  // fixed scale, no zoom
-
-  // Grid
-  ctx.strokeStyle = '#1e1e30';
-  ctx.lineWidth = 0.3;
-  for (let x = 0; x < canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-  for (let y = 0; y < canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-
-  // ═══════════════════════════════════════════════
-  // LAYOUT: 4 views arranged vertically
-  // ═══════════════════════════════════════════════
-  const margin = 20;
-  const labelH = 18;
-  let curY = 10 + offY;
-
-  const drawLabel = (x, y, text, color) => {
-    ctx.fillStyle = color || '#e94560';
-    ctx.font = `bold 13px DejaVu Sans`;
-    ctx.fillText(text, x, y + 14);
-  };
-
-  const drawDim = (x, y, text, color) => {
-    ctx.fillStyle = color || '#f39c12';
-    ctx.font = '10px DejaVu Sans';
-    ctx.fillText(text, x, y);
-  };
-
-  const drawDimArrow = (x1, y1, x2, y2, text, pos) => {
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 0.8;
-    ctx.setLineDash([3,2]);
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#f39c12';
-    ctx.font = '9px DejaVu Sans';
-    const mx = (x1+x2)/2, my = (y1+y2)/2;
-    if (pos === 'top') ctx.fillText(text, mx-15, my-4);
-    else if (pos === 'left') ctx.fillText(text, mx-60, my+3);
-    else ctx.fillText(text, mx+5, my+10);
-  };
-
-  // ─────────────────────────────────────────────
-  // 1. TOP VIEW: РАМА + ДЫШЛО (вид сверху)
-  // ─────────────────────────────────────────────
-  drawLabel(margin, curY, '1. РАМА (вид сверху)', '#e94560');
-  curY += labelH + 5;
-
-  const rX = margin + 60 + offX;
-  const rY = curY;
-  const rW = frameW * sc;
-  const rL = frameL * sc;
-
-  // Frame rectangle
-  ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = Math.max(5, 6*scale);
-  ctx.strokeRect(rX, rY, rW, rL);
-
-  // Center beam (Sambars/Bizon)
-  if (brand !== 'Барсук') {
-    ctx.strokeStyle = '#5dade2';
-    ctx.lineWidth = Math.max(2, 3*scale);
-    ctx.setLineDash([8,4]);
-    ctx.beginPath(); ctx.moveTo(rX+rW/2, rY); ctx.lineTo(rX+rW/2, rY+rL); ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  // Cross members + shock beams in same plane
-  // Shock beams REPLACE regular cross members - no 40×20 next to them
-  // Divide frame into segments between special beams, place cross members evenly
-
-  // Special beam positions (mm from front edge of frame)
-  const specialBeams = [];
-  if (axles === 1) {
-    specialBeams.push(frameL/2 + 550);
-  } else {
-    specialBeams.push(frameL/2 + 100);
-    specialBeams.push(frameL/2 + 1000);
-  }
-  specialBeams.sort((a,b) => a-b);
-
-  // Draw shock beams (frame profile, не 40×20)
-  ctx.strokeStyle = '#e67e22';
-  ctx.lineWidth = Math.max(4, 5);
-  specialBeams.forEach(pos => {
-    const y = rY + rL - (pos / frameL) * rL;
-    if (brand !== 'Барсук') {
-      // Самбарс/Бизон: две половинки (делится центр. балкой)
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW/2 - 2, y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(rX + rW/2 + 2, y); ctx.lineTo(rX + rW, y); ctx.stroke();
-    } else {
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW, y); ctx.stroke();
-    }
-  });
-
-  // Regular cross members in segments between special beams
-  const segments = [];
-  let prev = 0;
-  for (const sp of specialBeams) {
-    segments.push({start: prev, end: sp});
-    prev = sp;
-  }
-  segments.push({start: prev, end: frameL});
-
-  let totalCross = 0;
-  const crossPositions = [];
-  segments.forEach(seg => {
-    const segLen = seg.end - seg.start;
-    if (segLen < 200) return;
-    const n = Math.max(0, Math.round(segLen / 600) - 1);
-    if (n <= 0) return;
-    const step = segLen / (n + 1);
-    for (let i = 1; i <= n; i++) {
-      crossPositions.push(seg.start + step * i);
-    }
-    totalCross += n;
-  });
-
-  // Draw regular cross members (40×20) - on Sambars, two halves per position
-  ctx.strokeStyle = '#7f8c8d';
-  ctx.lineWidth = Math.max(2, 3);
-  crossPositions.forEach(pos => {
-    const y = rY + rL - (pos / frameL) * rL;
-    if (brand !== 'Барсук') {
-      // Самбарс: две половинки слева и справа от центр. балки
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW/2 - 2, y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(rX + rW/2 + 2, y); ctx.lineTo(rX + rW, y); ctx.stroke();
-    } else {
-      // Барсук: цельная поперечина
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
-    }
-  });
-
-  // Corner gussets
-  if (brand !== 'Барсук') {
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1;
-    const gs = 25;
-    [[rX,rY,1,1],[rX+rW,rY,-1,1],[rX,rY+rL,1,-1],[rX+rW,rY+rL,-1,-1]].forEach(([cx,cy,sx,sy]) => {
-      ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*gs,cy+sy*gs); ctx.stroke();
-    });
-  }
-
-  // ── ОСЬ И ПОДВЕСКА (разметка на раме) ──
-  // ВАЖНО: дышло снизу = ПЕРЕД прицепа. Верх схемы = ЗАД.
-  // Координата Y растёт вниз → "в зад" = вверх = минус по Y
-  const trueCenter = rY + rL/2;                    // истинный центр рамы
-
-  // True center (dashed grey)
-  ctx.setLineDash([3,5]);
-  ctx.strokeStyle = '#666';
-  ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(rX-20, trueCenter); ctx.lineTo(rX+rW+20, trueCenter); ctx.stroke();
-  ctx.fillStyle = '#666';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText('центр рамы', rX+rW+22, trueCenter+3);
-
-  // Нарисовать комплект подвески (аморт.балка + кронштейны) для каждой оси
-  // shockY - позиция АМОРТ. БАЛКИ. Ось находится на 445 мм ПЕРЕД ней (к дышлу).
-  function drawAxleSet(shockY, label, color) {
-    const axleY = shockY + 445*sc;      // ось на 445 мм перед аморт. балкой
-    const springFront = axleY + 335*sc;  // передний кронштейн рессоры = к дышлу
-    const springRear = axleY - 335*sc;   // задний кронштейн рессоры = от дышла
-
-    // Axle center (dashed)
-    ctx.setLineDash([4,3]);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(rX-25, axleY); ctx.lineTo(rX+rW+25, axleY); ctx.stroke();
-    ctx.fillStyle = color;
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('ось', rX+rW+28, axleY+3);
-
-    // Spring brackets - rectangles 60mm wide, 2 per spring (front + rear)
-    const brW = 60*sc;
-    const brH = 20*sc;  // visual height
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#f39c12';
-    [springFront, springRear].forEach(sy => {
-      // Draw two brackets (left and right side of frame)
-      ctx.fillRect(rX + 10, sy, brW, brH);
-      ctx.fillRect(rX + rW - 10 - brW, sy, brW, brH);
-    });
-
-    // Shock absorber brackets - on the shock beam, 150mm from frame edges
-    const shockBrW = 30*sc;
-    const shockBrH = 15*sc;
-    ctx.fillStyle = '#e74c3c';
-    ctx.fillRect(rX + 150*sc, shockY - shockBrH/2, shockBrW, shockBrH);
-    ctx.fillRect(rX + rW - 150*sc - shockBrW, shockY - shockBrH/2, shockBrW, shockBrH);
-  }
-
-  if (axles === 1) {
-    // Одноосная: аморт. балка на 55 см в зад от центра рамы
-    drawAxleSet(trueCenter - 550*sc, 'аморт +55см', '#e67e22');
-  } else {
-    // Двухосная: передняя балка на +10см, задняя на +100см от центра
-    drawAxleSet(trueCenter - 100*sc, 'аморт 1 +10см', '#e67e22');
-    drawAxleSet(trueCenter - 1000*sc, 'аморт 2 +100см', '#c0392b');
-  }
-
-  ctx.setLineDash([]);
-
-  // ── ПЕРЕМЫЧКИ ПОД ШВЫ ФАНЕРЫ ПОЛА (опционально, другой цвет) ──
-  if (state.hasFloorSeam && state.floorSeams > 0) {
-    const seamStep = W <= 1500 ? (W <= 1250 ? 2500 : 3000) : 1250;
-    ctx.strokeStyle = '#00bcd4';
-    ctx.lineWidth = Math.max(3, 4);
-    ctx.setLineDash([6, 4]);
-    for (let s = 1; s <= state.floorSeams; s++) {
-      const seamFromRear = s * seamStep;
-      const sy = rY + (seamFromRear / frameL) * rL;
-      ctx.beginPath(); ctx.moveTo(rX, sy); ctx.lineTo(rX + rW, sy); ctx.stroke();
-    }
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#00bcd4';
-    ctx.font = '8px DejaVu Sans';
-    ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rL + 48);
-  }
-
-  // ── БОЛТЫ ПОЛА М6 (поперечины + аморт. балки, шаг ~350 мм по ширине) ──
-  const floorBoltStepMM = 350;
-  const boltsPerCross = Math.max(2, Math.round(frameW / floorBoltStepMM));
-  // Обычные поперечины
-  let totalFloorBolts = boltsPerCross * crossPositions.length;
-  crossPositions.forEach(pos => {
-    const cy = rY + rL - (pos / frameL) * rL;
-    for (let b = 1; b <= boltsPerCross; b++) {
-      const bx = rX + (b / (boltsPerCross + 1)) * rW;
-      ctx.fillStyle = '#f39c12';
-      ctx.beginPath(); ctx.arc(bx, cy, 2, 0, Math.PI*2); ctx.fill();
-    }
-  });
-  // Амортизаторные балки - тоже перемычки, в них тоже крепится пол
-  specialBeams.forEach(pos => {
-    const sy = rY + rL - (pos / frameL) * rL;
-    totalFloorBolts += boltsPerCross;
-    for (let b = 1; b <= boltsPerCross; b++) {
-      const bx = rX + (b / (boltsPerCross + 1)) * rW;
-      ctx.fillStyle = '#f39c12';
-      ctx.beginPath(); ctx.arc(bx, sy, 2, 0, Math.PI*2); ctx.fill();
-    }
-  });
-  ctx.fillStyle = '#f39c12';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`• М6 пол→перемычки (поперечины + аморт. балки): ${totalFloorBolts} шт (шаг ~350 мм)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
-  // Заклёпки 4.8×25 по лонжеронам
-  const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
-  ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rL + (state.hasFloorSeam ? 76 : 50));
-
-  // ── Front/Rear labels ──
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 14px DejaVu Sans';
-  ctx.fillText('▼ ПЕРЕД (дышло)', rX + rW/2 - 70, rY + rL + 20);
-  ctx.fillStyle = '#888';
-  ctx.fillText('▲ ЗАД', rX + rW/2 - 25, rY - 6);
-
-  // ── ДЫШЛО ──
-  const dbSideLen = (L <= 2500) ? 1.80 : 2.00;
-  const dbLen = dbSideLen * 1000;  // 1800 или 2000 мм
-  const dby = rY + rL;              // передний край рамы
-  const apexY = dby + dbLen * sc;   // hitch позиция
-
-  const DRAW_Y_OFF = 10;
-  // Side beam attachment points - к ВНУТРЕННЕЙ стенке лонжерона
-  const ATTACH_INSET = bp.frameProfile.includes('60×60') ? 30 : 25;  // отступ от края рамы
-  const ATTACH_L = rX + ATTACH_INSET*sc;
-  const ATTACH_R = rX + rW - ATTACH_INSET*sc;
-
-  const HITCH_Y = apexY + DRAW_Y_OFF;          // точка фаркопа
-  const JOINT_Y = HITCH_Y - 150*sc;             // 15 см ОТ hitch К РАМЕ (вверх по canvas)
-  const FRONT_Y = dby;                           // передний край рамы - ровно!
-  const ATTACH_Y = dby - 220*sc;                // крепление к лонжеронам: 22 см внутри
-  const MID_X = rX + rW/2;
-
-  const crossL = ATTACH_L;                      // перемычка: от левого до правого луча
-  const crossR = ATTACH_R;
-
-  // 1. Центральный луч (пунктир): hitch → joint → front edge
-  ctx.setLineDash([4,3]);
-  ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = Math.max(2, 3*scale);
-  ctx.beginPath();
-  ctx.moveTo(MID_X, HITCH_Y);
-  ctx.lineTo(MID_X, JOINT_Y);
-  ctx.lineTo(MID_X, FRONT_Y);
-  ctx.stroke();
-
-  // 2. Боковые лучи (пунктир, толще): joint → attachments
-  ctx.lineWidth = Math.max(4, 5*scale);
-  ctx.beginPath();
-  ctx.moveTo(MID_X, JOINT_Y);
-  ctx.lineTo(ATTACH_L, ATTACH_Y);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(MID_X, JOINT_Y);
-  ctx.lineTo(ATTACH_R, ATTACH_Y);
-  ctx.stroke();
-  ctx.setLineDash([]);
-
-  // 3. Перемычка - между точками пересечения боковых лучей с передним краем
-  const leftX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_L - MID_X) / (ATTACH_Y - JOINT_Y);
-  const rightX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_R - MID_X) / (ATTACH_Y - JOINT_Y);
-
-  ctx.strokeStyle = '#e74c3c';
-  ctx.lineWidth = Math.max(4, 5*scale);
-  ctx.beginPath();
-  ctx.moveTo(leftX, FRONT_Y);
-  ctx.lineTo(rightX, FRONT_Y);
-  ctx.stroke();
-
-  // 4. Маркеры
-  // Hitch - красный круг
-  ctx.fillStyle = '#e74c3c';
-  ctx.beginPath();
-  ctx.arc(MID_X, HITCH_Y, 7, 0, Math.PI*2);
-  ctx.fill();
-
-  // Joint - бело-красный круг с "15см"
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(MID_X, JOINT_Y, 7, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = '#e74c3c';
-  ctx.beginPath();
-  ctx.arc(MID_X, JOINT_Y, 5, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 8px DejaVu Sans';
-  ctx.fillText('15см', MID_X + 10, JOINT_Y + 3);
-
-  // Кронштейны самосвала - пластины 120×60×5 мм (на дышле + ответные на раме)
-  const brL = 120 * sc;  // длина пластины 120 мм
-  const brW = 60 * sc;   // ширина пластины 60 мм
-  [ATTACH_L, ATTACH_R].forEach(sx => {
-    // Пластина (наложенные: одна на дышле, одна на раме)
-    ctx.fillStyle = 'rgba(231, 76, 60, 0.25)';
-    ctx.fillRect(sx - brL/2, ATTACH_Y - brW/2, brL, brW);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.8;
-    ctx.setLineDash([]);
-    ctx.strokeRect(sx - brL/2, ATTACH_Y - brW/2, brL, brW);
-
-    // Болт М12×80 (жёлтый кружок с белым центром)
-    ctx.fillStyle = '#f1c40f';
-    ctx.beginPath();
-    ctx.arc(sx, ATTACH_Y, 5, 0, Math.PI*2);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(sx, ATTACH_Y, 2.5, 0, Math.PI*2);
-    ctx.fill();
-
-    // Подпись кронштейна
-    ctx.fillStyle = '#e74c3c';
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('пл. 120×60×5', sx + brL/2 + 2, ATTACH_Y - 2);
-    ctx.fillText('M12×80', sx + brL/2 + 2, ATTACH_Y + 10);
-  });
-
-  // 5. Подписи
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText('▼ Hitch', MID_X - 20, HITCH_Y + 18);
-  ctx.fillText('120 см', MID_X - 55, (HITCH_Y + FRONT_Y)/2);      // вся длина центр. луча
-  ctx.fillText('15 см', MID_X + 8, (HITCH_Y + JOINT_Y)/2 + 4);   // отрезок до joint
-  ctx.fillText(`${dbSideLen*100} см`, ATTACH_R + 5, (JOINT_Y + ATTACH_Y)/2 + 3);
-  ctx.fillText('~22 см', ATTACH_R + 5, ATTACH_Y + brW/2 + 12);
-
-  // Размеры рамы
-  drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');
-  drawDimArrow(rX-15, rY, rX-15, rY+rL, `${frameL} мм`, 'left');
-
-  // Annotations
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ` + ${state.floorSeams} под швы пола` : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
-  if (axles === 1) annoText += ` | аморт. балка: +55 см`;
-  if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
-  ctx.fillText(annoText, rX, rY+rL+12);
-  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rL+24);
-  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rL+36);
-
-  curY = apexY + 30;
-
-  // ─────────────────────────────────────────────
-  // 2. SIDE VIEW: БОРТА (длинный + короткий)
-  // ─────────────────────────────────────────────
-  drawLabel(margin, curY, '2. БОРТА (длинный и короткий)', '#3498db');
-  curY += labelH + 5;
-
-  const bX = rX;
-  const bY = curY;
-  const bW = frameL * sc;  // length = frame length for side view
-  const bH = boardH * sc;  // высота борта
-
-  // ── ДЛИННЫЙ БОРТ ──
-  ctx.strokeStyle = '#3498db';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(bX, bY, bW, bH);
-  ctx.fillStyle = 'rgba(52,152,219,0.08)';
-  ctx.fillRect(bX+2, bY+2, bW-4, bH-4);
-
-  ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(bX, bY+1); ctx.lineTo(bX+bW, bY+1); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bX, bY+bH-1); ctx.lineTo(bX+bW, bY+bH-1); ctx.stroke();
-
-  // Vertical posts (перемычки)
-  const jLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
-  const jShort = W < 1930 ? 1 : 2;
-  const totalJumpers = jLong * 2 + jShort * 2;
-
-  ctx.strokeStyle = '#2980b9';
-  ctx.lineWidth = 1.5;
-  for (let i = 1; i <= jLong; i++) {
-    const vx = bX + (bW * i) / (jLong + 1);
-    ctx.beginPath(); ctx.moveTo(vx, bY); ctx.lineTo(vx, bY+bH); ctx.stroke();
-  }
-
-  drawDimArrow(bX, bY-8, bX+bW, bY-8, `${frameL} мм`, 'top');
-  drawDimArrow(bX-15, bY, bX-15, bY+bH, `${boardH} мм`, 'left');
-
-  ctx.fillStyle = '#3498db';
-  ctx.font = 'bold 10px DejaVu Sans';
-  ctx.fillText(`ДЛИННЫЙ борт (×2): ${jLong} перемычек, шаг ~${Math.round(frameL/(jLong+1))} мм`, bX, bY+bH+12);
-  // Болты М8 на нижней части борта (отступ 250 мм от краёв, шаг ~800 мм)
-  const sMidLen = frameL - 2*250;
-  const sBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
-  for (let i = 0; i < sBoltN; i++) {
-    const bx = bX + ((i + 0.5) / sBoltN) * bW;
-    ctx.fillStyle = '#e74c3c';
-    ctx.beginPath(); ctx.arc(bx, bY + bH - 5, 3, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.arc(bx, bY + bH - 5, 1.5, 0, Math.PI*2); ctx.fill();
-  }
-  ctx.fillStyle = '#e74c3c';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`• М8 борт→рама: ${sBoltN*2} шт (шаг ~800, отступ 250)`, bX, bY+bH+24);
-
-  curY = bY + bH + 38;
-
-  // ── КОРОТКИЙ БОРТ ──
-  const sbX = bX;
-  const sbY = curY;
-  const sbW = frameW * sc;
-  const sbH = boardH * sc;
-
-  ctx.strokeStyle = '#3498db';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(sbX, sbY, sbW, sbH);
-  ctx.fillStyle = 'rgba(52,152,219,0.08)';
-  ctx.fillRect(sbX+2, sbY+2, sbW-4, sbH-4);
-
-  ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(sbX, sbY+1); ctx.lineTo(sbX+sbW, sbY+1); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sbX, sbY+sbH-1); ctx.lineTo(sbX+sbW, sbY+sbH-1); ctx.stroke();
-
-  ctx.strokeStyle = '#2980b9';
-  ctx.lineWidth = 1.5;
-  for (let i = 1; i <= jShort; i++) {
-    const vx = sbX + (sbW * i) / (jShort + 1);
-    ctx.beginPath(); ctx.moveTo(vx, sbY); ctx.lineTo(vx, sbY+sbH); ctx.stroke();
-  }
-
-  drawDimArrow(sbX, sbY-8, sbX+sbW, sbY-8, `${frameW} мм`, 'top');
-  drawDimArrow(sbX-15, sbY, sbX-15, sbY+sbH, `${boardH} мм`, 'left');
-
-  ctx.fillStyle = '#3498db';
-  ctx.font = 'bold 10px DejaVu Sans';
-  ctx.fillText(`КОРОТКИЙ борт (×2): ${jShort} перемычек, шаг ~${Math.round(frameW/(jShort+1))} мм`, sbX, sbY+sbH+12);
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.boardH / 1000).toFixed(1)} м`, sbX, sbY+sbH+24);
-
-  curY = sbY + sbH + 36;
-
-  // ─────────────────────────────────────────────
-  // 3. TENT FRAME (каркас тента - вид сбоку)
-  // ─────────────────────────────────────────────
-  if (hasTent) {
-    drawLabel(margin, curY, '3. КАРКАС ТЕНТА (вид сбоку)', '#27ae60');
-    curY += labelH + 5;
-
-    const tX = bX;
-    const tY = curY;
-    const tW = frameL * sc;
-    const totalFrameH = boardH + tentMM;  // полная высота рамки: борт + тент
-    const tH = totalFrameH * sc;
-    const hasAeroSkos = tentH >= 120;    // аэро скос только ≥120 см
-
-    // ── Боковая рамка: рисуем контур без лишнего металла над скосом ──
-    ctx.fillStyle = 'rgba(39, 174, 96, 0.1)';
-    ctx.beginPath();
-    if (hasAeroSkos) {
-      // Полигон: низ горизонтально, верх с наклоном 0-800 мм
-      ctx.moveTo(tX, tY + tH);                    // низ-лево
-      ctx.lineTo(tX + tW, tY + tH);               // низ-право
-      ctx.lineTo(tX + tW, tY);                    // верх-право
-      ctx.lineTo(tX + 800*sc, tY);                // верх после скоса
-      ctx.lineTo(tX, tY + 300*sc);                // верх скоса (передняя стойка)
-      ctx.closePath();
-    } else {
-      ctx.rect(tX, tY, tW, tH);
-    }
-    ctx.fill();
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-
-    // Нижняя труба (жирная)
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(tX, tY + tH); ctx.lineTo(tX + tW, tY + tH); ctx.stroke();
-    // Верхняя труба (жирная)
-    ctx.beginPath();
-    if (hasAeroSkos) {
-      ctx.moveTo(tX, tY + 300*sc);
-      ctx.lineTo(tX + 800*sc, tY);
-      ctx.lineTo(tX + tW, tY);
-    } else {
-      ctx.moveTo(tX, tY);
-      ctx.lineTo(tX + tW, tY);
-    }
-    ctx.stroke();
-
-    // Вертикальные стойки рамки - столько же сколько дуг, на тех же позициях
-    let archPositions = [];
-    if (hasAeroSkos) {
-      // Со скосом: передняя дуга (0), вторая на 800 мм, остальные через ~700 мм
-      const remainingArch = frameL - 800;
-      const rs = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
-      archPositions.push(0);          // передний край (укороченная)
-      archPositions.push(800);        // первая после скоса
-      for (let i = 1; i <= rs.n; i++) archPositions.push(800 + i * rs.step);
-      // последняя уже = frameL, не добавляем
-    } else {
-      // Без скоса: все дуги равномерно, включая края
-      const s = calcStep(frameL, 700);
-      const step = frameL / (s.n + 1);
-      archPositions.push(0);  // передний край
-      for (let i = 1; i <= s.n; i++) archPositions.push(i * step);
-      archPositions.push(frameL);  // задний край
-    }
-    const archCount = archPositions.length;
-
-    ctx.strokeStyle = '#1e8449';
-    ctx.lineWidth = 1.5;
-    archPositions.forEach((pos, i) => {
-      const ax = tX + pos * sc;
-      const postTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
-      ctx.beginPath();
-      ctx.moveTo(ax, tY + tH);
-      ctx.lineTo(ax, postTopY);
-      ctx.stroke();
-    });
-
-    // Подписи для аэро скоса
-    if (hasAeroSkos) {
-      ctx.fillStyle = '#f39c12';
-      ctx.font = '8px DejaVu Sans';
-      ctx.fillText('-300', tX - 28, tY + 150*sc);
-      ctx.fillText('800 мм', tX + 350*sc, tY + tH/2 + 10);
-      ctx.fillText('аэро скос', tX + 300*sc, tY + 120*sc);
-    }
-
-    // Дуги (Π-образные перемычки) - на тех же позициях что и стойки
-    archPositions.forEach((pos, i) => {
-      const ax = tX + pos * sc;
-      const archTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
-      ctx.strokeStyle = '#27ae60';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(ax, archTopY);
-      ctx.lineTo(ax, archTopY + 100*sc);
-      ctx.stroke();
-
-      // Метка проставки (внутри рамки, у верхнего края)
-      ctx.fillStyle = '#f39c12';
-      ctx.fillRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
-      ctx.strokeStyle = '#d35400';
-      ctx.lineWidth = 0.8;
-      ctx.setLineDash([1, 2]);
-      ctx.strokeRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
-      ctx.setLineDash([]);
-    });
-
-    // Аэро скос - наклонная верхняя труба рамки на первых 800 мм
-    if (hasAeroSkos) {
-      ctx.setLineDash([2,3]);
-      ctx.strokeStyle = '#f39c12';
-      ctx.lineWidth = 1;
-      // Линия скоса уже нарисована как часть верхней трубы, просто подпишем
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#f39c12';
-      ctx.font = '8px DejaVu Sans';
-      ctx.fillText('аэро скос', tX + 300*sc, tY + 150*sc);
-      ctx.fillText('300 мм ↓', tX - 30, tY + 150*sc);
-    }
-
-    // Размеры
-    drawDimArrow(tX, tY-8, tX+tW, tY-8, `${frameL} мм`, 'top');
-    drawDimArrow(tX-15, tY, tX-15, tY+tH, `${totalFrameH} мм (борт ${boardH}+тент ${tentMM})`, 'left');
-
-    // Аннотации
-    ctx.fillStyle = '#888';
-    ctx.font = '9px DejaVu Sans';
-    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт, высота ${boardH}+${tentMM}=${totalFrameH} мм | стоек = дуг: ${archCount} шт`, tX, tY+tH+12);
-    ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+24);
-    ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка -300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
-    // Болты тента: М6, такой же шаг как борта→рама
-    const tentBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
-    for (let i = 0; i < tentBoltN; i++) {
-      const bx = tX + ((i + 0.5) / tentBoltN) * tW;
-      ctx.fillStyle = '#27ae60';
-      ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 3, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 1.5, 0, Math.PI*2); ctx.fill();
-    }
-    ctx.fillStyle = '#27ae60';
-    ctx.font = '8px DejaVu Sans';
-    ctx.fillText(`• М6 каркас→борта: ${tentBoltN*2} шт (шаг ~800 мм)`, tX, tY+tH+48);
-
-    curY = tY + tH + 62;
-  }
-
-  // ─────────────────────────────────────────────
-  // Cross-section: спереди/сзади (одинаковый вид)
-  // ─────────────────────────────────────────────
-  const xsLabelNum = hasTent ? '4' : '3';
-  drawLabel(margin, curY, `${xsLabelNum}. ВИД СЗАДИ (тент + борт + рама + задняя рамка)`, '#9b59b6');
-  curY += labelH + 5;
-
-  const secX = rX + 60;
-  const secW = frameW * sc;
-  const boardVisH = boardH * sc;       // высота борта 300 мм
-
-  // ── ВЕРТИКАЛЬНАЯ КОМПОНОВКА ──
-  // Рамка тента = борт (300 мм) + тент (tentMM) - начинается от рамы ВВЕРХ
-  // Тент над бортом = tentMM, борт внутри нижней части
-  let tentTopY = curY;                  // верх рамки тента (и дуги)
-  let frameY;                            // уровень рамы
-  if (hasTent) {
-    const totalFrameH = (boardH + tentMM);  // полная высота рамки: борт + тент
-    frameY = tentTopY + totalFrameH * sc;
-  } else {
-    frameY = tentTopY + boardVisH;
-  }
-  const boardTopY = frameY - boardVisH;  // верх бортов
-
-  // ── КАРКАС ТЕНТА ──
-  if (hasTent) {
-    const tbLeft = secX + 10;
-    const tbRight = secX + secW - 10;
-    const totalFrameH = boardH + tentMM;
-
-    // Боковые рамки тента 20×20×1.5 (вертикальные, от верха до рамы)
-    const fw = Math.max(6, 20*sc);
-    ctx.fillStyle = 'rgba(39, 174, 96, 0.25)';
-    ctx.fillRect(tbLeft - fw, tentTopY, fw, totalFrameH * sc);
-    ctx.fillRect(tbRight, tentTopY, fw, totalFrameH * sc);
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(tbLeft - fw, tentTopY, fw, totalFrameH * sc);
-    ctx.strokeRect(tbRight, tentTopY, fw, totalFrameH * sc);
-    ctx.fillStyle = '#27ae60';
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('рамка', tbLeft - fw - 48, tentTopY + totalFrameH*sc/2 - 6);
-    ctx.fillText('тента', tbLeft - fw - 48, tentTopY + totalFrameH*sc/2 + 5);
-    ctx.fillText('20×20', tbLeft - fw - 48, tentTopY + totalFrameH*sc/2 + 16);
-
-    // Дуга Π-образная на верху рамок
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.moveTo(tbLeft, tentTopY);
-    ctx.lineTo(tbLeft, tentTopY + 100*sc);
-    ctx.moveTo(tbLeft, tentTopY);
-    ctx.lineTo(tbRight, tentTopY);
-    ctx.moveTo(tbRight, tentTopY);
-    ctx.lineTo(tbRight, tentTopY + 100*sc);
-    ctx.stroke();
-
-    // Проставки внутри рамок (пунктир)
-    ctx.setLineDash([1, 2]);
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 1;
-    const spW = 25 * sc;
-    ctx.strokeRect(tbLeft - spW/2, tentTopY, spW, 100*sc);
-    ctx.strokeRect(tbRight - spW/2, tentTopY, spW, 100*sc);
-    ctx.setLineDash([]);
-
-    drawDimArrow(tbLeft, tentTopY - 10, tbRight, tentTopY - 10, `${frameW+40} мм`, 'top');
-    drawDim(secX + secW/2 - 50, tentTopY - 22, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
-    // Высота тента - от верха борта до верха рамки
-    drawDimArrow(tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, `тент ${tentH} см`, 'left');
-  }
-
-  // ── БОРТА ──
-  const bLeft = secX + 10;
-  const bRight = secX + secW - 10;
-  ctx.strokeStyle = '#3498db';
-  ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.moveTo(bLeft, boardTopY); ctx.lineTo(bLeft, frameY); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, boardTopY); ctx.lineTo(bRight, frameY); ctx.stroke();
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(bLeft - 5, boardTopY + 3); ctx.lineTo(bLeft, boardTopY + 3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, boardTopY + 3); ctx.lineTo(bRight + 5, boardTopY + 3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bLeft - 5, frameY - 3); ctx.lineTo(bLeft, frameY - 3); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bRight, frameY - 3); ctx.lineTo(bRight + 5, frameY - 3); ctx.stroke();
-  ctx.fillStyle = 'rgba(52,152,219,0.1)';
-  ctx.fillRect(bLeft, boardTopY + 3, bRight - bLeft, frameY - boardTopY - 6);
-  drawDim(bLeft - 30, (boardTopY + frameY)/2, `${boardH} мм`, '#3498db');
-  // Размерная стрелка высоты борта
-  if (!hasTent) drawDimArrow(bLeft - 18, frameY, bLeft - 18, boardTopY, `${boardH} мм`, 'left');
-
-  // ── РАМА ──
-  ctx.strokeStyle = '#5dade2';
-  ctx.lineWidth = 6;
-  ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`${bp.frameProfile}`, secX + secW/2 - 20, frameY + 12);
-
-  // ── ЗАДНЯЯ РАМКА (под рамой) ──
-  const rearY = frameY;
-  const postW = 20 * sc;
-  const postVisH = 180 * sc;
-
-  // Стойки
-  ctx.fillStyle = '#e67e22';
-  ctx.fillRect(secX, rearY, postW, postVisH);
-  ctx.fillRect(secX + secW - postW, rearY, postW, postVisH);
-  ctx.strokeStyle = '#d35400';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(secX, rearY, postW, postVisH);
-  ctx.strokeRect(secX + secW - postW, rearY, postW, postVisH);
-
-  // Перемычка (горизонтальная внизу, 40 мм высота профиля)
-  const crossBarH = 40 * sc;
-  const crossBarY = rearY + postVisH - crossBarH;
-  ctx.fillStyle = '#e67e22';
-  ctx.fillRect(secX, crossBarY, secW, crossBarH);
-  ctx.strokeStyle = '#d35400';
-  ctx.strokeRect(secX, crossBarY, secW, crossBarH);
-
-  // Размеры задней рамки
-  drawDimArrow(secX + secW + 8, rearY, secX + secW + 8, rearY + postVisH, '180 мм', 'left');
-  drawDim(secX + secW/2 - 40, crossBarY + crossBarH + 10, `40×20×2`, '#e67e22');
-
-  // ── ПЛАСТИНА ГОС. НОМЕРА (по центру) ──
-  const plateW = 400 * sc;
-  const plateH = 180 * sc;
-  const plateX = secX + (secW - plateW) / 2;
-  const plateY = rearY + (postVisH - plateH) / 2;
-  ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
-  ctx.fillRect(plateX, plateY, plateW, plateH);
-  ctx.strokeStyle = '#f39c12';
-  ctx.lineWidth = 1.5;
-  ctx.setLineDash([3, 2]);
-  ctx.strokeRect(plateX, plateY, plateW, plateH);
-  ctx.setLineDash([]);
-  ctx.fillStyle = '#f39c12';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText('400×180×1', plateX + plateW/2 - 28, plateY + plateH/2 + 3);
-  ctx.fillText('гос. номер', plateX + plateW/2 - 26, plateY + plateH/2 - 6);
-
-  // ── КРОНШТЕЙНЫ ПОДФАРНИКОВ (П-образные, вплотную к стойкам) ──
-  const ltW = 200 * sc;
-  const ltH = 180 * sc;
-  const ltCenterY = rearY + postVisH/2;
-
-  // Левый: вплотную к левой стойке
-  const ltLCenterX = secX + postW + ltW/2;
-  // Правый: вплотную к правой стойке
-  const ltRCenterX = secX + secW - postW - ltW/2;
-
-  function drawPBracket(cx, cy, w, h) {
-    const left = cx - w/2;
-    const top = cy - h/2;
-    ctx.fillStyle = 'rgba(155, 89, 182, 0.15)';
-    ctx.fillRect(left, top, w, h);
-    ctx.strokeStyle = '#9b59b6';
-    ctx.lineWidth = 1.5;
-    ctx.strokeRect(left, top, w, h);
-    ctx.fillStyle = 'rgba(155, 89, 182, 0.1)';
-    ctx.fillRect(left + 3, top + 3, w - 6, h - 6);
-    ctx.strokeStyle = '#9b59b6';
-    ctx.setLineDash([2, 2]);
-    ctx.strokeRect(left + 3, top + 3, w - 6, h - 6);
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#9b59b6';
-    ctx.font = '7px DejaVu Sans';
-    ctx.fillText('180×200×140', left + 2, top - 3);
-  }
-
-  drawPBracket(ltLCenterX, ltCenterY, ltW, ltH);
-  drawPBracket(ltRCenterX, ltCenterY, ltW, ltH);
-
-  // ── ПОДПИСИ ──
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`Ось: ${bp.axleProfile} | Рессоры: ${bp.springs}-лист. ×${axles*2}`, secX, frameY - 4);
-  ctx.fillStyle = '#e67e22';
-  ctx.font = 'bold 8px DejaVu Sans';
-  ctx.fillText('40×20×2', secX - 42, rearY + postVisH/2 + 3);
-  ctx.fillText('40×20×2', secX + secW + 5, rearY + postVisH/2 + 3);
-  const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText(`Задняя рамка: 2 стойки 180 мм + перемычка ${frameW} мм = ${rearMetalM} м (40×20×2) | пластина номера 400×180×1 | подфарники 2×П-обр. 180×200×140×1`, secX, rearY + postVisH + 14);
-
-  // Ширина
-  ctx.fillStyle = '#f39c12';
-  ctx.font = '10px DejaVu Sans';
-  ctx.fillText(`${W} мм (заявл.) | ${frameW} мм (рама)`, secX + secW/2 - 70, boardTopY - 8);
-
-  curY = rearY + postVisH + 30;
-
-  // ─────────────────────────────────────────────
-  // ТЕНТ (раскрой: основное полотно + клапаны)
-  // ─────────────────────────────────────────────
-  if (hasTent) {
-    drawLabel(margin, curY, '5. ТЕНТ (раскрой)', '#e74c3c');
-    curY += labelH + 5;
-
-    const tLayoutX = rX + 380;  // отступ чтобы клапаны влезли (rFlapW до ~350px)
-    const tLayoutY = curY;
-    const aero = tentH >= 120;
-    const tScale = sc * 0.7;
-
-    // Основное полотно (единый кусок: задний бок + крыша + передний бок)
-    // Расположение: сверху задний бок → крыша (со скосом спереди) → передний бок
-    const mainW = (frameL + 260 + 120) * tScale;  // +260 слева (зад) +120 справа (перед)
-    const mainLeftAdd = 260 * tScale;
-    const mainRightAdd = 120 * tScale;
-    const sideH = tentMM * tScale;
-    const hemH = 220 * tScale;            // подворот 220 мм
-    const roofH = frameW * tScale;
-    const mainH = (sideH + hemH) + roofH + (sideH + hemH);
-    const fold1Y = tLayoutY + sideH + hemH;       // сгиб: задний бок / крыша
-    const fold2Y = fold1Y + roofH;                 // сгиб: крыша / передний бок
-    const hem1Y = tLayoutY + sideH;                // граница подворота верхнего бока
-    const hem2Y = fold2Y + sideH + hemH;           // низ основного полотна
-
-    // Основное полотно — полный прямоугольник (крыша НЕ режется)
-    ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';
-    ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 2.5;
-    ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
-
-    // Линии сгиба КРЫША/БОК
-    ctx.setLineDash([3,5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW, fold1Y); ctx.stroke();
-    ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Припуски слева/справа (пунктир)
-    const frameLeftX = tLayoutX + mainLeftAdd;      // граница: левый припуск / основная часть
-    const frameRightX = tLayoutX + mainW - mainRightAdd; // граница: основная часть / правый припуск
-    ctx.setLineDash([4,4]);
-    ctx.strokeStyle = '#888';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(frameLeftX, tLayoutY); ctx.lineTo(frameLeftX, tLayoutY + mainH); ctx.stroke();
-    ctx.moveTo(frameRightX, tLayoutY); ctx.lineTo(frameRightX, tLayoutY + mainH); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#888';
-    ctx.font = '7px DejaVu Sans';
-    ctx.fillText('260', tLayoutX + 2, tLayoutY + mainH/2 + 3);
-    ctx.fillText('120', frameRightX + 2, tLayoutY + mainH/2 + 3);
-
-    // Линии подворота (220 мм — красные пунктиры по схеме)
-    ctx.setLineDash([5, 5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    // Верхний край (верх боковины)
-    ctx.moveTo(tLayoutX, tLayoutY + hemH); ctx.lineTo(tLayoutX + mainW, tLayoutY + hemH);
-    // Нижний к��ай (низ боковины)
-    ctx.moveTo(tLayoutX, tLayoutY + mainH - hemH); ctx.lineTo(tLayoutX + mainW, tLayoutY + mainH - hemH);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Линии скоса на боковинах (крыша не режется - полная ширина mainW)
-    if (aero) {
-      ctx.setLineDash([2,2]);
-      ctx.strokeStyle = '#f39c12';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      // Верхний бок: от переднего края (-300) к сгибу на 800 мм
-      ctx.moveTo(tLayoutX + mainW, fold1Y - 300*tScale);
-      ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y);
-      // Нижний бок: от сгиба на 800 мм к переднему краю (+300)
-      ctx.moveTo(tLayoutX + mainW - 800*tScale, fold2Y);
-      ctx.lineTo(tLayoutX + mainW, fold2Y + 300*tScale);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#f39c12';
-      ctx.font = '7px DejaVu Sans';
-      ctx.fillText('скос -30', tLayoutX + mainW - 600*tScale, fold1Y - 150*tScale);
-    }
-
-    // Подписи секций
-    ctx.fillStyle = '#e74c3c';
-    ctx.font = 'bold 9px DejaVu Sans';
-    ctx.fillText('БОК', tLayoutX + 6, tLayoutY + sideH/2 + 4);
-    ctx.fillText('КРЫША', tLayoutX + mainW/2 - 24, fold1Y + roofH/2 + 4);
-    ctx.fillText('БОК', tLayoutX + 6, fold2Y + sideH/2 + 4);
-    ctx.fillStyle = '#fff';
-    ctx.font = '8px DejaVu Sans';
-    ctx.fillText('ОСНОВНОЕ ПОЛОТНО', tLayoutX + mainW/2 - 55, tLayoutY + mainH/2);
-
-    // Размеры
-    drawDimArrow(tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, `${frameW+2*tentMM} мм`, 'left');
-    drawDimArrow(tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, `${frameL+380} мм (рамка ${frameL}+260+120)`, 'top');
-
-    // Передний клапан (развёрнут, Барсук +50 / Самбарс +260 с каждой стороны)
-    const flapGap = 5;
-    const frontAdd = brand === 'Барсук' ? 50 : 260;
-    const fFlapH = (frameW + frontAdd*2) * tScale;
-    const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale + hemH;
-    const fFlapX = tLayoutX + mainW + flapGap;
-    const fFlapY = fold1Y - frontAdd * tScale;
-    const fFlapHemX = fFlapX + fFlapW - hemH;  // подворот 220 мм от дальнего края
-    ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
-    ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
-    // Подвороты переднего клапана
-    ctx.setLineDash([5,5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    // Вертикальная — подворот 220 мм
-    ctx.moveTo(fFlapHemX, fFlapY); ctx.lineTo(fFlapHemX, fFlapY + fFlapH);
-    // Горизонтальные — на frontAdd от верха/низа
-    ctx.moveTo(fFlapX, fFlapY + frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + frontAdd*tScale);
-    ctx.moveTo(fFlapX, fFlapY + fFlapH - frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + fFlapH - frontAdd*tScale);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.setLineDash([2,2]);
-    ctx.beginPath(); ctx.moveTo(tLayoutX + mainW, fFlapY); ctx.lineTo(tLayoutX + mainW, fFlapY + fFlapH); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#f39c12';
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText(`ПЕРЕД${aero?' -30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
-    drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW+frontAdd*2} мм`, 'left');
-
-    // Задний клапан (развёрнут, +120 верх +120 низ → высота frameW+240)
-    const rFlapW = (tentMM + 220 + 240) * tScale;
-    const rFlapH = (frameW + 240) * tScale;  // +120 верх +120 низ
-    const rFlapX = tLayoutX - rFlapW - flapGap;
-    const rFlapY = fold1Y - 120*tScale;  // верх на 120 мм выше крыши
-    const rFlapHemX = rFlapX + hemH;  // подворот 220 мм от левого края
-    ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
-    ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
-    // Подвороты заднего клапана
-    ctx.setLineDash([5,5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    // Вертикальная — подворот 220 мм
-    ctx.moveTo(rFlapHemX, rFlapY); ctx.lineTo(rFlapHemX, rFlapY + rFlapH);
-    // Горизонтальные на 120 мм от верха/низа → совпадают с fold1Y/fold2Y
-    ctx.moveTo(rFlapX, rFlapY + 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + 120*tScale);
-    ctx.moveTo(rFlapX, rFlapY + rFlapH - 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + rFlapH - 120*tScale);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // Линия припайки
-    ctx.setLineDash([2,2]);
-    ctx.beginPath(); ctx.moveTo(tLayoutX, rFlapY); ctx.lineTo(tLayoutX, rFlapY + rFlapH); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#f39c12';
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 + 4);
-    drawDimArrow(rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, `${frameW+240} мм`, 'left');
-    drawDimArrow(rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, `${tentMM+460} мм`, 'top');
-
-    ctx.fillStyle = '#888';
-    ctx.font = '8px DejaVu Sans';
-    ctx.fillText('клапаны припаиваются к крыше', tLayoutX + mainW/2 - 70, tLayoutY + mainH + 20);
-
-    curY = Math.max(tLayoutY + mainH, rFlapY + rFlapH) + 34;
-  }
-
-  // Total
-  const totalY = boardTopY - 15;
-  ctx.fillStyle = '#e0e0e0';
-  ctx.font = `bold ${Math.max(12, 14)}px DejaVu Sans`;
-  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY-10);
-}
-
-// ══════════════════════════════════════════════════════════
-// CANVAS INTERACTION
-// ══════════════════════════════════════════════════════════
+// Zoom & pan
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  offY -= e.deltaY;
-  redrawCanvas();
+  const factor = e.deltaY < 0 ? 1.1 : 0.9;
+  scale *= factor;
+  scale = Math.max(0.15, Math.min(1.0, scale));
+  redraw();
 });
 
 canvas.addEventListener('mousedown', e => {
-  dragging = true;
-  dragSX = e.clientX; dragSY = e.clientY;
-  dragOX = offX; dragOY = offY;
+  if (e.button === 1 || (e.button === 0 && e.altKey)) {
+    dragging = true;
+    dragStartX = e.clientX;
+    dragStartY = e.clientY;
+    dragOffsetX = offsetX;
+    dragOffsetY = offsetY;
+  }
 });
 canvas.addEventListener('mousemove', e => {
   if (dragging) {
-    offX = dragOX + (e.clientX - dragSX);
-    offY = dragOY + (e.clientY - dragSY);
-    redrawCanvas();
+    offsetX = dragOffsetX + (e.clientX - dragStartX);
+    offsetY = dragOffsetY + (e.clientY - dragStartY);
+    redraw();
   }
 });
 window.addEventListener('mouseup', () => { dragging = false; });
 
-function resetView() {
-  offX = 0; offY = 0;
-  redrawCanvas();
+// Click to add/remove
+canvas.addEventListener('click', e => {
+  const {L, W, sideH, tentH} = getParams();
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  const ox = offsetX;
+  const oy = offsetY + 80;
+  const fw = W * scale;
+  const fl = L * scale;
+  const dbLen = 2000 * (L / 2570) * scale;
+  const sideOX = ox + fw + 50;
+
+  if (tool === 'delete') {
+    // Check cross members
+    for (let i = crossPositions.length-1; i >= 0; i--) {
+      const y = oy + fl * crossPositions[i];
+      const dist = Math.abs(my - y);
+      if (mx > ox && mx < ox + fw && dist < 15) {
+        crossPositions.splice(i, 1);
+        redraw(); return;
+      }
+    }
+    // Check side posts
+    for (let i = vertPositions.length-1; i >= 0; i--) {
+      const x = sideOX + fl * vertPositions[i];
+      const dist = Math.abs(mx - x);
+      if (my > oy && my < oy + sideH*scale && dist < 15) {
+        vertPositions.splice(i, 1);
+        redraw(); return;
+      }
+    }
+    // Check tent arches
+    for (let i = archPositions.length-1; i >= 0; i--) {
+      const x = sideOX + fl * archPositions[i];
+      const th = tentH * scale;
+      const ty = oy - th - 10;
+      const dist = Math.abs(mx - x);
+      if (my > ty && my < ty + th && dist < 15) {
+        archPositions.splice(i, 1);
+        redraw(); return;
+      }
+    }
+  } else if (tool === 'addCross') {
+    // Add cross member where clicked
+    if (mx > ox && mx < ox + fw && my > oy && my < oy + fl) {
+      const frac = (my - oy) / fl;
+      // Don't add too close to existing
+      const tooClose = crossPositions.some(p => Math.abs(p - frac) < 0.05);
+      if (!tooClose) {
+        crossPositions.push(frac);
+        crossPositions.sort((a,b)=>a-b);
+        redraw();
+      }
+    }
+  } else if (tool === 'addVert') {
+    if (mx > sideOX && mx < sideOX + fl && my > oy && my < oy + sideH*scale) {
+      const frac = (mx - sideOX) / fl;
+      const tooClose = vertPositions.some(p => Math.abs(p - frac) < 0.05);
+      if (!tooClose) {
+        vertPositions.push(frac);
+        vertPositions.sort((a,b)=>a-b);
+        redraw();
+      }
+    }
+  } else if (tool === 'addArch') {
+    const th = tentH * scale;
+    const ty = oy - th - 10;
+    if (mx > sideOX && mx < sideOX + fl && my > ty && my < ty + th) {
+      const frac = (mx - sideOX) / fl;
+      const tooClose = archPositions.some(p => Math.abs(p - frac) < 0.05);
+      if (!tooClose) {
+        archPositions.push(frac);
+        archPositions.sort((a,b)=>a-b);
+        redraw();
+      }
+    }
+  }
+});
+
+function getFrameTube() {
+  const b = document.getElementById('brand').value;
+  return b === 'barsuk' ? TUBES.frame6040 : TUBES.frame60;
 }
 
-// ══════════════════════════════════════════════════════════
-init();
-recalc();
+function hasCenterBeam() {
+  return document.getElementById('brand').value !== 'barsuk';
+}
+
+function onModelChange() {
+  const b = document.getElementById('brand').value;
+  if (b === 'barsuk') {
+    document.getElementById('W').value = '1250';
+    document.getElementById('L').value = '2000';
+  } else if (b === 'bizon') {
+    document.getElementById('W').value = '2000';
+    document.getElementById('L').value = '3000';
+  }
+  crossPositions = [];
+  vertPositions = [];
+  archPositions = [];
+  redraw();
+}
+
+function drawFrame(L, W) {
+  const ox = offsetX;
+  const oy = offsetY + 80;
+  const fw = W * scale;
+  const fl = L * scale;
+  const frameTube = getFrameTube();
+
+  // Frame outer
+  ctx.strokeStyle = frameTube.color;
+  ctx.lineWidth = 8;
+  ctx.strokeRect(ox, oy, fw, fl);
+
+  // Center beam (only for Sambars/Bizon)
+  if (hasCenterBeam()) {
+    ctx.lineWidth = 6;
+    ctx.beginPath();
+    ctx.moveTo(ox + fw/2, oy);
+    ctx.lineTo(ox + fw/2, oy + fl);
+    ctx.stroke();
+  }
+
+  // Cross members
+  ctx.strokeStyle = TUBES.cross.color;
+  ctx.lineWidth = 5;
+  const totalCross = [...crossPositions];
+  // Add end cross members if none at 0 and 1
+  if (!totalCross.some(p => p < 0.05)) totalCross.unshift(0.05);
+  if (!totalCross.some(p => p > 0.95)) totalCross.push(0.95);
+  totalCross.forEach(frac => {
+    const y = oy + fl * frac;
+    ctx.beginPath();
+    ctx.moveTo(ox, y);
+    ctx.lineTo(ox + fw, y);
+    ctx.stroke();
+  });
+
+  // Corner gussets
+  ctx.strokeStyle = '#c0392b';
+  ctx.lineWidth = 1.5;
+  const cs = 30;
+  [[ox,oy,1,1],[ox+fw,oy,-1,1],[ox,oy+fl,1,-1],[ox+fw,oy+fl,-1,-1]].forEach(([cx,cy,sx,sy])=>{
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*cs,cy+sy*cs); ctx.stroke();
+  });
+
+  // Drawbar
+  const dbLen = 2000 * (L / 2570);
+  const dbBase = W * 0.9;
+  const dbx = ox + (fw - dbBase*scale)/2;
+  const dby = oy + fl;
+  const apexX = ox + fw/2;
+  const apexY = dby + dbLen * scale;
+
+  ctx.strokeStyle = TUBES.drawbar.color;
+  ctx.lineWidth = 7;
+  ctx.beginPath(); ctx.moveTo(dbx, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(dbx + dbBase*scale, dby); ctx.lineTo(apexX, apexY); ctx.stroke();
+  ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.moveTo(dbx, dby + 150*scale); ctx.lineTo(dbx + dbBase*scale, dby + 150*scale); ctx.stroke();
+  ctx.fillStyle = '#e74c3c';
+  ctx.beginPath(); ctx.arc(apexX, apexY, 10, 0, Math.PI*2); ctx.fill();
+
+  return {
+    ox, oy, fw, fl,
+    dbLen, dbBase, apexX, apexY, dbx, dby,
+    totalCross: totalCross,
+  };
+}
+
+function drawSides(L, W, sideH, frameData) {
+  const {ox, oy, fw, fl} = frameData;
+  const sx = ox + fw + 50;
+  const sh = sideH * scale;
+
+  ctx.strokeStyle = TUBES.side.color;
+  ctx.lineWidth = 3;
+  ctx.strokeRect(sx, oy, fl, sh);
+
+  // Horizontal rails
+  const nH = sideH >= 500 ? 2 : 1;
+  ctx.lineWidth = 2;
+  for (let i = 1; i <= nH; i++) {
+    const hy = oy + (sh * i) / (nH + 1);
+    ctx.beginPath(); ctx.moveTo(sx, hy); ctx.lineTo(sx + fl, hy); ctx.stroke();
+  }
+
+  // Vertical posts
+  const totalVert = [...vertPositions];
+  if (!totalVert.some(p => p < 0.03)) totalVert.unshift(0);
+  if (!totalVert.some(p => p > 0.97)) totalVert.push(1);
+  totalVert.sort((a,b)=>a-b);
+
+  totalVert.forEach(frac => {
+    const vx = sx + fl * frac;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(vx, oy); ctx.lineTo(vx, oy + sh); ctx.stroke();
+  });
+
+  ctx.fillStyle = '#3498db';
+  ctx.font = '11px DejaVu Sans';
+  ctx.fillText(`${sideH}`, sx - 30, oy + sh/2);
+
+  return {sx, sh, totalVert};
+}
+
+function drawTent(L, W, tentH, frameData) {
+  if (tentH <= 0) return {totalArch:[]};
+  const {ox, oy, fw, fl} = frameData;
+  const tx = ox + fw + 50;
+  const th = tentH * scale;
+  const ty = oy - th - 10;
+
+  ctx.setLineDash([6,4]);
+  ctx.strokeStyle = TUBES.tent.color;
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(tx, ty, fl, th);
+  ctx.setLineDash([]);
+
+  // Horizontal rails
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(tx, ty + th/2); ctx.lineTo(tx + fl, ty + th/2); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx, ty); ctx.lineTo(tx + fl, ty); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tx, ty + th); ctx.lineTo(tx + fl, ty + th); ctx.stroke();
+
+  // Arches
+  const totalArch = [...archPositions];
+  if (!totalArch.some(p => p < 0.03)) totalArch.unshift(0);
+  if (!totalArch.some(p => p > 0.97)) totalArch.push(1);
+  totalArch.sort((a,b)=>a-b);
+
+  totalArch.forEach(frac => {
+    const ax = tx + fl * frac;
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(ax, ty); ctx.lineTo(ax, ty + th); ctx.stroke();
+  });
+
+  ctx.fillStyle = '#27ae60';
+  ctx.font = '11px DejaVu Sans';
+  ctx.fillText(`${tentH}`, tx - 30, ty + th/2);
+
+  return {tx, ty, th, totalArch};
+}
+
+function redraw() {
+  const {L, W, sideH, tentH, brand} = getParams();
+  canvas.width = canvas.width; // clear
+
+  // Grid
+  ctx.strokeStyle = '#f0f0f0';
+  ctx.lineWidth = 0.5;
+  for (let x = 0; x < canvas.width; x += 25*scale*2) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+  }
+  for (let y = 0; y < canvas.height; y += 25*scale*2) {
+    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+  }
+
+  // Draw
+  const fd = drawFrame(L, W);
+  const sd = drawSides(L, W, sideH, fd);
+  const td = drawTent(L, W, tentH, fd);
+
+  // Labels
+  ctx.fillStyle = '#222';
+  ctx.font = 'bold 14px DejaVu Sans';
+  const brandNames = {barsuk:'Барсук', sambars:'Самбарс', bizon:'Бизон'};
+  ctx.fillText(`Прицеп ${brandNames[brand]||brand} ${(L/1000).toFixed(1)}×${(W/1000).toFixed(1)} м  |  Борт ${sideH} мм  |  Тент ${tentH||'нет'}`, offsetX, 25);
+
+  // Dimensions
+  ctx.strokeStyle = '#C0392B';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([4,3]);
+  // W
+  ctx.beginPath(); ctx.moveTo(fd.ox, fd.oy - 12); ctx.lineTo(fd.ox + fd.fw, fd.oy - 12); ctx.stroke();
+  ctx.fillText(`${W}`, fd.ox + fd.fw/2 - 20, fd.oy - 16);
+  // L
+  ctx.beginPath(); ctx.moveTo(fd.ox - 15, fd.oy); ctx.lineTo(fd.ox - 15, fd.oy + fd.fl); ctx.stroke();
+  ctx.fillText(`${L}`, fd.ox - 55, fd.oy + fd.fl/2);
+  // Total
+  const totL = L + fd.dbLen;
+  ctx.fillText(`${totL.toFixed(0)} мм общая`, fd.apexX - 35, fd.apexY + 18);
+  // Drawbar len
+  ctx.fillText(`${fd.dbLen.toFixed(0)}`, fd.apexX + 12, fd.dby + (fd.apexY-fd.dby)/2);
+  ctx.setLineDash([]);
+
+  // ═══ CALC SPEC ═══
+  const nCross = fd.totalCross.length;
+  const nVert = sd.totalVert.length;
+  const nArch = td.totalArch ? td.totalArch.length : 0;
+  const nHSide = sideH >= 500 ? 2 : 1;
+
+  const frameMain = (L*2 + W*2)/1000;
+  const frameCenter = hasCenterBeam() ? L/1000 : 0;
+  const frameCross = (W * nCross)/1000;
+  const frameTube = getFrameTube();
+
+  const dbSides = Math.sqrt((W*0.9/2)*(W*0.9/2) + fd.dbLen*fd.dbLen) * 2 / 1000;
+  const dbCrossBar = W * 0.9 / 1000;
+
+  // Side boards: 4 sides (2 long + 2 short)
+  // Long sides: nVert posts per side × sideH + nHSide rails × L
+  const sideLongPosts = nVert * (sideH/1000) * 2;
+  const sideShortPosts = (Math.floor(nVert * W/L) + 2) * (sideH/1000) * 2;
+  const sideLongRails = nHSide * (L/1000) * 2;
+  const sideShortRails = nHSide * (W/1000) * 2;
+  const sideMeters = sideLongPosts + sideShortPosts + sideLongRails + sideShortRails;
+
+  // Tent frame
+  const tentVert = tentH > 0 ? nArch * (tentH/1000) * 2 : 0;
+  const tentHoriz = tentH > 0 ? (L/1000)*3 + (W/1000)*2 : 0;
+  const tentFrontBack = tentH > 0 ? (tentH/1000 + W/1000)*4 : 0;
+  const tentMeters = tentVert + tentHoriz + tentFrontBack;
+
+  const items = [
+    {name:'Рама', tube:frameTube.name, meters: frameMain + frameCenter + frameCross, mass:0,
+     desc:`${frameMain.toFixed(1)}м периметр${frameCenter>0?' + '+frameCenter.toFixed(1)+'м центр':''} + ${frameCross.toFixed(1)}м поперечин (${nCross} шт)`},
+    {name:'Дышло', tube:'80×40×3', meters: dbSides + dbCrossBar, mass:0,
+     desc:`${dbSides.toFixed(1)}м стороны + ${dbCrossBar.toFixed(1)}м перемычка`},
+    {name:'Борта', tube:'25×25×1,5', meters: sideMeters, mass:0,
+     desc:`${nVert} стоек + ${nHSide} реек ×4 стороны, ${sideH}мм`},
+    {name:'Каркас тента', tube:'20×20×1,5', meters: tentMeters, mass:0,
+     desc: tentH > 0 ? `${nArch} дуг × 2 стороны + ${tentHoriz.toFixed(1)}м гориз.` : 'не используется'},
+  ];
+
+  items.forEach(it => {
+    const t = Object.values(TUBES).find(tb => tb.name === it.tube);
+    it.mass = it.meters * (t ? t.massPerM : 0);
+  });
+
+  let totM = 0, totKg = 0;
+  let html = '<table>';
+  items.forEach(it => {
+    if (it.meters <= 0) return;
+    totM += it.meters; totKg += it.mass;
+    html += `<tr><td><b>${it.name}</b></td><td>${it.tube}</td></tr>`;
+    html += `<tr><td colspan="2" style="color:#888">${it.desc}</td></tr>`;
+    html += `<tr><td>Метраж</td><td style="text-align:right">${it.meters.toFixed(1)} м</td></tr>`;
+    html += `<tr><td>Вес</td><td style="text-align:right">${it.mass.toFixed(1)} кг</td></tr>`;
+    html += `<tr><td colspan="2" style="height:3px"></td></tr>`;
+  });
+  html += '</table>';
+  document.getElementById('spec').innerHTML = html;
+  document.getElementById('total').innerHTML = `<table>
+    <tr><td>Метраж</td><td style="text-align:right;font-weight:bold">${totM.toFixed(1)} м</td></tr>
+    <tr><td>Вес металла</td><td style="text-align:right;font-weight:bold">${totKg.toFixed(1)} кг</td></tr>
+    <tr><td>~Стоимость</td><td style="text-align:right">~${(totKg*85).toFixed(0)} ₽</td></tr>
+  </table>`;
+
+  // ═══ TENT FABRIC CUTTING ═══
+  if (tentH > 0) {
+    const tc = calcTentCutting(L, W, tentH, brand);
+    if (tc) {
+      let thtml = `<div style="font-size:10px;color:#555;margin-bottom:4px">Рулон ${tc.rollW} мм | ${tc.onePiece ? '✓ Цельное полотно' : '⚠ ' + tc.N + ' полосы, шов на крыше'}</div><table>`;
+      tc.pieces.forEach(p => {
+        thtml += `<tr><td><b>${p.name}</b></td><td style="text-align:right;font-size:10px">${p.dims} мм</td></tr>`;
+        thtml += `<tr><td style="color:#888;font-size:10px;padding-left:8px">${p.orientation}</td><td style="text-align:right;font-weight:bold;font-size:10px">${p.linear.toFixed(1)} п.м.</td></tr>`;
+      });
+      thtml += `<tr class="total"><td>Расход рулона</td><td style="text-align:right;font-weight:bold">${tc.totalLM.toFixed(1)} п.м.</td></tr>`;
+      thtml += `<tr><td>Площадь (с нахлёстом ×1.1)</td><td style="text-align:right">${tc.totalSQM.toFixed(2)} м²</td></tr>`;
+      if (tc.hasAero) thtml += `<tr><td colspan="2" style="color:#888;font-size:10px">Скос 300 мм, передний клапан ↓</td></tr>`;
+      thtml += `</table>`;
+      document.getElementById('tentCut').innerHTML = thtml;
+      document.getElementById('tentRollLabel').textContent = `${tc.rollW} мм`;
+      tentArea.style.display = 'block';
+      drawTentCutting(tc);
+    }
+  } else {
+    document.getElementById('tentCut').innerHTML = '<span style="color:#aaa;font-size:11px">Без тента</span>';
+    tentArea.style.display = 'none';
+  }
+
+  // Update toolbar info
+  const info = document.querySelector('.toolbar span:last-child');
+  if (info) info.textContent = `L=${L}мм W=${W}мм | поперечин:${nCross} стоек:${nVert} дуг:${nArch} | зум:${(scale*100).toFixed(0)}%`;
+}
+
+// ═══ TENT FABRIC CUTTING ═══
+function calcTentCutting(L, W, tentH, brand) {
+  if (tentH <= 0) return null;
+  const rollW = parseInt(document.getElementById('rollW').value) || 2500;
+  const seam = 30; // мм на шов
+  const waste = 1.10; // коэффициент нахлёста/отходов
+
+  // Скос: передний клапан на 300 мм короче при тенте ≥1200
+  const hasAero = tentH >= 1200;
+  const frontH = hasAero ? tentH - 300 : tentH;
+  const backH = tentH;
+
+  const mainW = W + 2 * tentH; // полная ширина основного полотна (поперёк рулона)
+  const mainL = L; // длина основного полотна (вдоль рулона)
+
+  // Всегда L вдоль рулона, W+2*tentH поперёк.
+  // Если не влазит в ширину рулона → N полос, шов на крыше.
+  const N = Math.ceil(mainW / rollW);
+  const onePiece = N === 1;
+
+  let pieces = [];
+  let totalLinear = 0;
+  let totalArea = 0;
+  let strips = []; // для визуализации
+
+  for (let i = 0; i < N; i++) {
+    const xStart = i * rollW;
+    const xEnd = Math.min((i + 1) * rollW, mainW);
+    const stripW = xEnd - xStart;
+
+    // Определяем что попало в эту полосу
+    let parts = [];
+    let remaining = xStart;
+
+    // Левая боковина: 0..tentH
+    if (remaining < tentH) {
+      const partEnd = Math.min(tentH, xEnd);
+      parts.push({name:'бок', w: partEnd - remaining});
+      remaining = partEnd;
+    }
+    // Крыша: tentH..tentH+W
+    if (remaining < tentH + W) {
+      const partEnd = Math.min(tentH + W, xEnd);
+      parts.push({name:'крыша', w: partEnd - remaining});
+      remaining = partEnd;
+    }
+    // Правая боковина: tentH+W..mainW
+    if (remaining < mainW) {
+      const partEnd = Math.min(mainW, xEnd);
+      parts.push({name:'бок', w: partEnd - remaining});
+      remaining = partEnd;
+    }
+
+    strips.push({w: stripW, parts, xStart});
+    
+    const label = onePiece ? 'Основное полотно (цельное)' : `Полоса ${i+1}/${N}`;
+    pieces.push({name: label, dims:`${mainL}×${stripW}`,
+      orientation:`L=${mainL} мм вдоль рулона`, linear: mainL/1000});
+    totalLinear += mainL;
+    totalArea += mainL * stripW;
+  }
+
+  // ── Передний клапан ──
+  let flapDesc = `Передний клапан`;
+  if (hasAero) flapDesc += ` (скос -300)`;
+
+  // ── Оптимальная раскладка клапанов ──
+  // Вариант A: W вдоль рулона, H поперёк → W п.м. каждый
+  const flapA_sideBySide = (frontH + backH + seam <= rollW);
+  const flapA_linear = flapA_sideBySide ? W : W * 2;
+  // Вариант B: H вдоль рулона, W поперёк → H п.м. каждый
+  const flapB_sideBySide = (W * 2 + seam <= rollW);
+  const flapB_linear = flapB_sideBySide ? Math.max(frontH, backH) : frontH + backH;
+
+  let flapLayout;
+  if (flapA_linear <= flapB_linear) {
+    // W вдоль рулона
+    const linear = flapA_sideBySide ? W : W * 2;
+    const across = flapA_sideBySide ? frontH + backH + seam : Math.max(frontH, backH);
+    flapLayout = {orient: 'W', sideBySide: flapA_sideBySide, linear, across, frontH, backH};
+  } else {
+    // H вдоль рулона
+    const linear = flapB_sideBySide ? Math.max(frontH, backH) : frontH + backH;
+    const across = flapB_sideBySide ? W * 2 + seam : W;
+    flapLayout = {orient: 'H', sideBySide: flapB_sideBySide, linear, across, frontH, backH};
+  }
+
+  const flapLinear = flapLayout.linear;
+
+  pieces.push({name: flapDesc, dims:`${W}×${frontH}`,
+    orientation: flapLayout.orient === 'W' ? `W=${W} мм вдоль рулона` : `H=${frontH} мм вдоль рулона`, linear: flapLinear/1000});
+  if (!flapLayout.sideBySide) {
+    pieces.push({name:'Задний клапан', dims:`${W}×${backH}`,
+      orientation: flapLayout.orient === 'W' ? `W=${W} мм вдоль рулона` : `H=${backH} мм вдоль рулона`, linear: flapLinear/1000});
+  } else {
+    // Бок о бок: задний уже учтён в той же строке
+    const p = pieces[pieces.length-1];
+    p.name = 'Клапаны (пер.+зад.)';
+    p.dims = `${W}×${frontH} + ${W}×${backH}`;
+    p.orientation += ` | бок о бок`;
+  }
+
+  totalLinear += flapLinear;
+  totalArea += W * frontH + backH * W;
+
+  // ── Итоги ──
+  const totalLM = totalLinear / 1000;
+  const totalSQM = totalArea / 1e6 * waste;
+
+  return {
+    pieces, totalLM, totalSQM, rollW,
+    onePiece, N, strips, flapLayout,
+    hasAero, frontH, backH,
+    mainW, mainL, tentH, W
+  };
+}
+
+// ═══ DRAW TENT CUTTING ON CANVAS ═══
+function drawTentCutting(tc) {
+  const pad = 40, leftPad = 105, botPad = 20;
+  const rollW = tc.rollW;
+  const totalLM = tc.totalLM * 1000; // back to mm
+
+  // Compute layout positions (top to bottom along roll)
+  let y = 0;
+  const rows = [];
+
+  // Main strips
+  for (let i = 0; i < tc.N; i++) {
+    const stripW = Math.min(rollW, tc.mainW - i * rollW);
+    rows.push({kind:'main', w: stripW, h: tc.mainL, y, label: tc.N === 1 ? 'Осн. полотно (цельное)' : `Полоса ${i+1}/${tc.N}`, sub: tc.strips[i].parts});
+    y += tc.mainL;
+  }
+
+  // Flaps
+  const fl = tc.flapLayout;
+  if (fl.orient === 'W') {
+    if (fl.sideBySide) {
+      rows.push({kind:'flap', w: fl.across, h: tc.W, y, label: 'Клапаны (пер.+зад.)', subFlat: true,
+        sub: [{name:'пер', w: fl.frontH, h: tc.W}, {name:'зад', w: fl.backH, h: tc.W}]});
+      y += tc.W;
+    } else {
+      rows.push({kind:'flap', w: fl.frontH, h: tc.W, y, label: 'Пер. клапан' + (tc.hasAero?' (скос)':'')});
+      y += tc.W;
+      rows.push({kind:'flap', w: fl.backH, h: tc.W, y, label: 'Зад. клапан'});
+      y += tc.W;
+    }
+  } else {
+    // H ориентация
+    if (fl.sideBySide) {
+      rows.push({kind:'flap', w: fl.across, h: Math.max(fl.frontH, fl.backH), y, label: 'Клапаны (пер.+зад.)', subFlat: true,
+        sub: [{name:'пер', w: tc.W, h: fl.frontH}, {name:'зад', w: tc.W, h: fl.backH}]});
+      y += Math.max(fl.frontH, fl.backH);
+    } else {
+      rows.push({kind:'flap', w: tc.W, h: fl.frontH, y, label: 'Пер. клапан' + (tc.hasAero?' (скос)':'')});
+      y += fl.frontH;
+      rows.push({kind:'flap', w: tc.W, h: fl.backH, y, label: 'Зад. клапан'});
+      y += fl.backH;
+    }
+  }
+
+  const totalH = y;
+
+  // Canvas sizing
+  const maxW = rollW; // max across-roll width
+  const w = Math.min(900, mainArea.clientWidth - 40);
+  const sx = (w - pad - leftPad) / maxW;
+  const rowH = 14; // px per mm gap for seams between rows
+  const seamPx = 6;
+  const h = pad + rows.length * seamPx + totalH * sx + botPad + 40;
+
+  tentCanvas.width = w;
+  tentCanvas.height = h;
+  tentCanvas.style.width = w + 'px';
+  tentCanvas.style.height = h + 'px';
+
+  const ctx = tentCtx;
+  ctx.clearRect(0, 0, w, h);
+
+  // ── Roll background ──
+  const rx = leftPad;
+  const rw = maxW * sx;
+  ctx.fillStyle = '#fefefe';
+  ctx.fillRect(rx, pad, rw, totalH * sx + rows.length * seamPx);
+  ctx.strokeStyle = '#ccc';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(rx, pad, rw, totalH * sx + rows.length * seamPx);
+
+  // ── Draw rows ──
+  let cy = pad;
+  rows.forEach((row, ri) => {
+    if (ri > 0) {
+      // Seam between rows
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = '#e74c3c';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(rx, cy);
+      ctx.lineTo(rx + rw, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      cy += seamPx;
+    }
+
+    const ry = cy;
+    const rh = row.h * sx;
+    const rw2 = row.w * sx;
+
+    if (row.kind === 'main') {
+      // Main panel: color-coded sub-parts
+      let px = rx;
+      row.sub.forEach(part => {
+        const pw = part.w * sx;
+        if (part.name === 'бок') {
+          ctx.fillStyle = '#d5f5e3';
+          ctx.fillRect(px, ry, pw, rh);
+        } else if (part.name === 'крыша') {
+          ctx.fillStyle = '#eaf2f8';
+          ctx.fillRect(px, ry, pw, rh);
+        }
+        px += pw;
+      });
+      // Frame
+      ctx.strokeStyle = '#2c3e50';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(rx, ry, rw2, rh);
+
+      // Label
+      ctx.fillStyle = '#2c3e50';
+      ctx.font = 'bold 10px DejaVu Sans';
+      ctx.textAlign = 'left';
+      ctx.fillText(row.label, rx + 4, ry + rh/2 + 4);
+
+      // Dimensions inside
+      ctx.fillStyle = '#555';
+      ctx.font = '8px DejaVu Sans';
+      ctx.fillText(`${Math.round(row.w)}×${tc.mainL}`, rx + rw2/2 - 25, ry + rh/2 + 4);
+    } else if (row.kind === 'flap') {
+      ctx.fillStyle = '#fef9e7';
+      ctx.fillRect(rx, ry, rw2, rh);
+      ctx.strokeStyle = '#f39c12';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(rx, ry, rw2, rh);
+
+      if (row.subFlat && row.sub) {
+        // Side by side sub-flaps
+        let fx = rx;
+        row.sub.forEach(sub => {
+          const fw = sub.w * sx;
+          const fh = sub.h * sx;
+          ctx.fillStyle = '#fdebd0';
+          ctx.fillRect(fx, ry, fw, fh);
+          ctx.strokeStyle = '#e67e22';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
+          ctx.strokeRect(fx, ry, fw, fh);
+          ctx.setLineDash([]);
+          fx += fw;
+        });
+      }
+
+      ctx.fillStyle = '#7d6608';
+      ctx.font = 'bold 9px DejaVu Sans';
+      ctx.textAlign = 'left';
+      ctx.fillText(row.label, rx + 4, ry + rh/2 + 3);
+    }
+
+    cy += rh;
+  });
+
+  // ── Roll width label at top ──
+  ctx.fillStyle = '#2c3e50';
+  ctx.font = 'bold 10px DejaVu Sans';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${rollW} мм`, rx + rw/2, pad - 8);
+
+  // ←→ arrows
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(rx, pad - 14); ctx.lineTo(rx + rw, pad - 14); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(rx, pad - 14); ctx.lineTo(rx + 5, pad - 17); ctx.lineTo(rx + 5, pad - 11); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(rx + rw, pad - 14); ctx.lineTo(rx + rw - 5, pad - 17); ctx.lineTo(rx + rw - 5, pad - 11); ctx.fill();
+
+  // ── п.м. scale on left ──
+  ctx.fillStyle = '#888';
+  ctx.font = '9px DejaVu Sans';
+  ctx.textAlign = 'right';
+  let my = pad;
+  rows.forEach((row, ri) => {
+    const m = my / sx / 1000;
+    ctx.fillText(m.toFixed(1), rx - 8, my + 10);
+    my += row.h * sx;
+  });
+  // Final tick
+  ctx.fillText((totalH / 1000).toFixed(1), rx - 8, cy + 6);
+
+  ctx.fillStyle = '#2c3e50';
+  ctx.font = 'bold 9px DejaVu Sans';
+  ctx.textAlign = 'right';
+  ctx.fillText('п.м.', rx - 8, pad - 8);
+
+  // ── Legend ──
+  const lx = rx, ly = cy + 10;
+  const items = [
+    {color:'#d5f5e3', label:'Боковины'},
+    {color:'#eaf2f8', label:'Крыша'},
+    {color:'#fef9e7', label:'Клапаны'},
+    {dash:'#e74c3c', label:'Шов/стык'},
+  ];
+  let lpx = lx;
+  items.forEach(item => {
+    if (item.color) {
+      ctx.fillStyle = item.color;
+      ctx.fillRect(lpx, ly, 10, 10);
+      ctx.strokeStyle = '#aaa';
+      ctx.lineWidth = 0.5;
+      ctx.strokeRect(lpx, ly, 10, 10);
+    } else {
+      ctx.setLineDash([4, 3]);
+      ctx.strokeStyle = item.dash;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(lpx, ly + 5);
+      ctx.lineTo(lpx + 15, ly + 5);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.fillStyle = '#555';
+    ctx.font = '9px DejaVu Sans';
+    ctx.textAlign = 'left';
+    ctx.fillText(item.label, lpx + 13, ly + 9);
+    lpx += ctx.measureText(item.label).width + 22;
+  });
+
+  // Total
+  ctx.fillStyle = '#2c3e50';
+  ctx.font = 'bold 10px DejaVu Sans';
+  ctx.textAlign = 'right';
+  ctx.fillText(`Итого: ${tc.totalLM.toFixed(1)} п.м.  |  ${tc.totalSQM.toFixed(2)} м²`, rx + rw, ly + 24);
+}
+
+redraw();
 </script>
 </body>
 </html>

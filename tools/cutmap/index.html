@@ -631,7 +631,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     visHtml += mkBar(s.parts, 14, `Полоса ${i+1}/${N}`, s.w);
     visHtml += `<div style="font-size:9px;color:#888;margin:1px 0">↕ ${(mainL/1000).toFixed(2)} м (полоса ${i+1}: ${s.w} мм)</div>`;
     if (i < N - 1) {
-      visHtml += `<div style="border-top:2px dashed #e74c3c;margin:2px 0" title="Шов между полосами"></div>`;
+      visHtml += `<div style="height:14px;margin:4px 0;border-top:3px dashed #ff4444;border-bottom:3px dashed #ff4444;display:flex;align-items:center;justify-content:flex-end"><span style="background:#ff4444;color:#fff;font-size:8px;font-weight:bold;padding:1px 6px;border-radius:3px;margin-right:4px">ШОВ ${Math.round((i+1)*rollW)} мм — стык полос на крыше</span></div>`;
     }
   });
 

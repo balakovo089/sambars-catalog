@@ -553,44 +553,128 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const hemMM = 220;
   const leftAddMM = 260;
   const rightAddMM = 120;
-  const rollW = 2500;  // ширина рулона мм
+  const rollW = 2500;
+  const seamGap = 30; // зазор между деталями на рулоне
 
-  // Детали (ширина × длина в мм, до разворота)
-  const mainW = fW + 2*tMM + 2*hemMM;  // ширина основного полотна
-  const mainL = fL + leftAddMM + rightAddMM;  // длина
+  // Детали (ширина × длина в мм)
+  const mainW = fW + 2*tMM + 2*hemMM;  // ширина основного полотна (поперёк рулона)
+  const mainL = fL + leftAddMM + rightAddMM;  // длина (вдоль рулона)
   const frontAddMM = isBarsuk ? 50 : 260;
-  const frontW = aero ? tMM - 300 + hemMM : tMM + hemMM;  // ширина переднего клапана
-  const frontL = fW + frontAddMM*2;  // длина
-  const rearW = tMM + hemMM + 240;  // ширина заднего клапана
-  const rearL = fW + 240;  // длина
+  const frontW = aero ? tMM - 300 + hemMM : tMM + hemMM;  // "ширина" переднего клапана
+  const frontL = fW + frontAddMM*2;  // "длина" переднего клапана
+  const rearW = tMM + hemMM + 240;
+  const rearL = fW + 240;
 
-  // Расход от рулона 2500 мм (погонные метры)
-  const rollCut = (dw, dl) => {
-    const along = Math.ceil(dw / rollW) * dl;
-    const across = Math.ceil(dl / rollW) * dw;
-    return Math.min(along, across);
+  // ═══ Раскрой основного полотна (L всегда вдоль рулона) ═══
+  const N = Math.ceil(mainW / rollW);
+  const mainLinear = N * mainL;
+  let mainStrips = [];
+  for (let i = 0; i < N; i++) {
+    const sw = Math.min(rollW, mainW - i * rollW);
+    // Что в этой полосе?
+    let parts = [];
+    let x = i * rollW; // позиция от начала развёртки
+    // Левый hem
+    if (x < hemMM) { const e = Math.min(hemMM, x + sw); parts.push({n:'hem', w: e - x, c:'#333'}); x = e; }
+    // Левая боковина
+    if (x < hemMM + tMM) { const e = Math.min(hemMM + tMM, i*rollW + sw); parts.push({n:'бок', w: e - x, c:'#27ae60'}); x = e; }
+    // Крыша
+    if (x < hemMM + tMM + fW) { const e = Math.min(hemMM + tMM + fW, i*rollW + sw); parts.push({n:'крыша', w: e - x, c:'#2980b9'}); x = e; }
+    // Правая боковина
+    if (x < hemMM + 2*tMM + fW) { const e = Math.min(hemMM + 2*tMM + fW, i*rollW + sw); parts.push({n:'бок', w: e - x, c:'#27ae60'}); x = e; }
+    // Правый hem
+    if (x < mainW) { const e = Math.min(mainW, i*rollW + sw); parts.push({n:'hem', w: e - x, c:'#333'}); x = e; }
+    mainStrips.push({w: sw, parts});
+  }
+
+  // ═══ Оптимальная раскладка клапанов ═══
+  const tryOrient = (w1, l1, w2, l2) => {
+    // Ориентация A: "ширина" поперёк рулона, "длина" вдоль
+    const aSide = (w1 + w2 + seamGap <= rollW);
+    const aLin = aSide ? Math.max(l1, l2) : l1 + l2;
+    // Ориентация B: "длина" поперёк, "ширина" вдоль
+    const bSide = (l1 + l2 + seamGap <= rollW);
+    const bLin = bSide ? Math.max(w1, w2) : w1 + w2;
+    if (aLin <= bLin) return {side: aSide, lin: aLin, across: aSide ? w1 + w2 + seamGap : Math.max(w1, w2), orient: 'W'};
+    return {side: bSide, lin: bLin, across: bSide ? l1 + l2 + seamGap : Math.max(l1, l2), orient: 'L'};
   };
-  const mainRM = (rollCut(mainW, mainL) / 1000).toFixed(2);
-  const frontRM = (rollCut(frontW, frontL) / 1000).toFixed(2);
-  const rearRM = (rollCut(rearW, rearL) / 1000).toFixed(2);
-  const totalRM = (parseFloat(mainRM) + parseFloat(frontRM) + parseFloat(rearRM)).toFixed(2);
-  // Нижний периметр (люверсы 10 мм, эспандер)
-  const lowerPerimeter = 2*(fL + fW)/1000;  // по низу: 2 бока + перед + зад
+  const flap = tryOrient(frontW, frontL, rearW, rearL);
+
+  const totalMM = mainLinear + flap.lin;
+  const totalRM = (totalMM / 1000).toFixed(2);
+  const mainRMm = (mainLinear / 1000).toFixed(2);
+  const flapRMm = (flap.lin / 1000).toFixed(2);
+
+  // ═══ Визуализация HTML ═══
+  const barW = '100%';
+  const mkBar = (parts, h, label, mm) => {
+    let s = `<div class="cut-bar" style="height:${h}px;margin-top:3px" title="${label}: ${mm} мм">`;
+    parts.forEach(p => {
+      s += `<div class="cut-seg" style="flex:${p.w};background:${p.c}" title="${p.n} ${p.w} мм">${p.w > 60 ? p.w : ''}</div>`;
+    });
+    s += `</div>`;
+    return s;
+  };
+
+  let visHtml = '<div style="margin-top:6px"><b>Карта раскроя на рулоне 2500 мм</b></div>';
+  visHtml += `<div style="font-size:10px;color:#888;margin:2px 0">← поперёк ${rollW} мм →</div>`;
+  
+  // Шкала
+  visHtml += '<div class="cut-bar" style="height:3px;background:transparent;margin:2px 0">';
+  for (let t = 0; t < rollW; t += 500) {
+    visHtml += `<div class="cut-seg" style="flex:500;font-size:7px;color:#555">${t}</div>`;
+  }
+  visHtml += '</div>';
+
+  // Основное полотно
+  mainStrips.forEach((s, i) => {
+    visHtml += mkBar(s.parts, 14, `Полоса ${i+1}/${N}`, s.w);
+    visHtml += `<div style="font-size:9px;color:#888;margin:1px 0">↕ ${(mainL/1000).toFixed(2)} м (полоса ${i+1}: ${s.w} мм)</div>`;
+    if (i < N - 1) {
+      visHtml += `<div style="border-top:2px dashed #e74c3c;margin:2px 0" title="Шов между полосами"></div>`;
+    }
+  });
+
+  // Клапаны
+  visHtml += `<div style="border-top:1px solid #e94560;margin-top:6px;padding-top:4px;font-size:10px;color:#e94560">Клапаны (${flap.orient === 'W' ? 'шириной' : 'длиной'} поперёк рулона${flap.side ? ', бок о бок' : ''})</div>`;
+  
+  if (flap.side) {
+    // Бок о бок: два клапана рядом
+    const fp = [
+      {n:'Пер.клапан', w: flap.orient==='W' ? frontW : frontL, c:'#f39c12'},
+      {n:'seam', w: seamGap, c:'#1a1a2e'},
+      {n:'Зад.клапан', w: flap.orient==='W' ? rearW : rearL, c:'#e67e22'},
+    ];
+    visHtml += mkBar(fp, 12, 'Клапаны бок о бок', flap.across);
+    visHtml += `<div style="font-size:9px;color:#888;margin:1px 0">↕ ${(flap.lin/1000).toFixed(2)} м</div>`;
+  } else {
+    const fp1 = [{n:'Пер.клапан', w: flap.orient==='W' ? frontW : frontL, c:'#f39c12'}];
+    visHtml += mkBar(fp1, 12, 'Передний клапан', flap.orient==='W' ? frontW : frontL);
+    visHtml += `<div style="font-size:9px;color:#888;margin:1px 0">↕ ${flap.orient==='W' ? (frontL/1000).toFixed(2) : (frontW/1000).toFixed(2)} м</div>`;
+    const fp2 = [{n:'Зад.клапан', w: flap.orient==='W' ? rearW : rearL, c:'#e67e22'}];
+    visHtml += mkBar(fp2, 12, 'Задний клапан', flap.orient==='W' ? rearW : rearL);
+    visHtml += `<div style="font-size:9px;color:#888;margin:1px 0">↕ ${flap.orient==='W' ? (rearL/1000).toFixed(2) : (rearW/1000).toFixed(2)} м</div>`;
+  }
+
+  // Нижний периметр
+  const lowerPerimeter = 2*(fL + fW)/1000;
   const louvers10 = Math.ceil(lowerPerimeter / 0.15);
   const espanderM = (lowerPerimeter * 1.1).toFixed(1);
-  // Люверсы на клапанах
   const valveLouvers = (isBarsuk ? 4 : 6) * 2;
   const turnBuckles = isBarsuk ? 0 : Math.ceil((2*fL + 2*fW) / 500) * 2;
   const straps = isBarsuk ? 4 : 0;
 
   let html = `<table>
     <tr><td colspan="2"><b>Раскрой (рулон 2500 мм)</b></td></tr>
-    <tr><td>Основное полотно ${(mainW/1000).toFixed(2)}×${(mainL/1000).toFixed(2)} м</td><td class="num"><b>${mainRM}</b> пог.м</td></tr>
-    <tr><td>Передний клапан (+${frontAddMM}×2)</td><td class="num"><b>${frontRM}</b> пог.м</td></tr>
-    <tr><td>Задний клапан (+120×2)</td><td class="num"><b>${rearRM}</b> пог.м</td></tr>
+    <tr><td>Основное полотно ${(mainW/1000).toFixed(2)}×${(mainL/1000).toFixed(2)} м</td><td class="num"><b>${mainRMm}</b> пог.м</td></tr>
+    <tr><td class="sub">${N} полос${N>1?'ы, шов на крыше':''} по ${(mainL/1000).toFixed(2)} м</td></tr>
+    <tr><td>Передний клапан (+${frontAddMM}×2)</td><td class="num"><b>${flapRMm}</b> пог.м</td></tr>
+    <tr><td>Задний клапан (+120×2)</td><td class="num"></td></tr>
+    <tr><td class="sub">${flap.side ? 'Бок о бок' : 'Последовательно'}, ${flap.orient==='W' ? 'шириной поперёк' : 'длиной поперёк'}</td></tr>
     <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО от рулона</b></td><td class="num"><b>${totalRM}</b> пог.м</td></tr>
     <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
   </table>
+  ${visHtml}
   <table style="margin-top:8px">
     <tr><td colspan="2"><b>Фурнитура</b></td></tr>
     <tr><td>Эспандер ${bp.espander} мм</td><td class="num">${espanderM} м</td></tr>

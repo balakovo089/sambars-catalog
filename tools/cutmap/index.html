@@ -2098,16 +2098,14 @@ function updatePrintLayout() {
 
   // Рисуем схему на временном canvas в уменьшенном масштабе
   const tmpCanvas = document.createElement('canvas');
-  const printScale = 0.35;
   const origW = canvas.width;
   const origH = canvas.height;
+  const printScale = 0.35;
   tmpCanvas.width = origW * printScale;
   tmpCanvas.height = origH * printScale;
   const tmpCtx = tmpCanvas.getContext('2d');
-  tmpCtx.scale(printScale, printScale);
-  // Копируем основной canvas в уменьшенном масштабе
-  tmpCtx.scale(printScale, printScale);
-  tmpCtx.drawImage(canvas, 0, 0);
+  // Копируем ВЕСЬ основной canvas с масштабированием
+  tmpCtx.drawImage(canvas, 0, 0, origW, origH, 0, 0, tmpCanvas.width, tmpCanvas.height);
 
   const imgData = tmpCanvas.toDataURL('image/png');
 

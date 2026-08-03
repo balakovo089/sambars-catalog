@@ -667,9 +667,26 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   const flapLouvers = Math.ceil((flapH - 2*louvGap) / louvStep) + 1;
   const louvers10 = 2 * wLouvers + 2 * flapLouvers;
   const espanderM = (lowerPerimeter * 1.1).toFixed(1);
-  const valveLouvers = (isBarsuk ? 4 : 6) * 2;
-  const turnBuckles = isBarsuk ? 0 : Math.ceil((2*fL + 2*fW) / 500) * 2;
-  const straps = isBarsuk ? 4 : 0;
+  const valveGap = 150;  // отступ от верха/низа клапана
+  const valveStep = 300;  // шаг между поворотками/скобами
+  const fFlapValveH = fW + frontAddMM*2;  // высота переднего клапана
+  const rFlapValveH = fW + 240;           // высота заднего клапана
+  const fValvesPerSide = Math.ceil((fFlapValveH - 2*valveGap) / valveStep) + 1;
+  const rValvesPerSide = Math.ceil((rFlapValveH - 2*valveGap) / valveStep) + 1;
+  let turnBuckles, valveLouvers, straps, strapLen;
+  if (isBarsuk) {
+    // Барсук: только задний клапан, скобы + ремень
+    straps = 2 * rValvesPerSide;  // скобы с двух сторон
+    valveLouvers = straps;        // подкладки d27 под каждую скобу
+    turnBuckles = 0;
+    strapLen = tMM;               // длина ремня = высота чистового тента
+  } else {
+    // Самбарс: поворотки d37 + подкладка d32 на обоих клапанах
+    turnBuckles = 2 * fValvesPerSide + 2 * rValvesPerSide;
+    valveLouvers = turnBuckles;  // подкладки d32 под каждую поворотку
+    straps = 0;
+    strapLen = 0;
+  }
 
   let html = `<table>
     <tr><td colspan="2"><b>Раскрой (рулон 2500 мм)</b></td></tr>
@@ -689,9 +706,10 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td>Эспандер ${bp.espander} мм</td><td class="num">${espanderM} м</td></tr>
     <tr><td>Люверсы d10 (отступ ${louvGap} мм)</td><td class="num">${louvers10} шт (шаг ~${louvStep} мм)</td></tr>
     <tr><td>Гайка эриксона + болт М8 потай</td><td class="num">${louvers10 + 4} шт (люверсы + 4)</td></tr>
-    <tr><td>Люверсы ${isBarsuk ? 27 : 32} мм</td><td class="num">${valveLouvers} шт</td></tr>`;
-  if (!isBarsuk) html += `<tr><td>Поворотки</td><td class="num">${turnBuckles} шт</td></tr>`;
-  if (isBarsuk) html += `<tr><td>Ремешки + скобы</td><td class="num">${straps} компл</td></tr>`;
+    <tr><td>${isBarsuk ? 'Подкладка d27' : 'Подкладка d32'}</td><td class="num">${valveLouvers} шт</td></tr>`;
+  if (!isBarsuk) html += `<tr><td>Поворотки d37</td><td class="num">${turnBuckles} шт (перед ${fValvesPerSide}×2 + зад ${rValvesPerSide}×2)</td></tr>`;
+  if (isBarsuk) html += `<tr><td>Скобы + ремень</td><td class="num">${straps} шт (задний клапан, по ${rValvesPerSide} с каждой стороны)</td></tr>
+    <tr><td>Ремень (длина = высота каркаса)</td><td class="num">${straps} шт × ${(strapLen/1000).toFixed(2)} м</td></tr>`;
   html += `<tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
     <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
     <tr><td>Срок службы</td><td>~${isBarsuk ? 2 : 7} лет</td></tr>

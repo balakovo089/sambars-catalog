@@ -1974,6 +1974,33 @@ function redrawCanvas() {
       drawValvesOnFlap(rFlapX, rFlapY, rFlapW, rFlapH, rFlapW / tScale, '#e67e22', 'circle');
     }
 
+    // ═══ Ремни (Барсук) — вертикально вдоль рядов люверсов ═══
+    if (brand === 'Барсук') {
+      ctx.setLineDash([8, 4]);
+      ctx.strokeStyle = '#2ecc71';
+      ctx.lineWidth = 2;
+      const strapY1 = tLayoutY + hemH;
+      const strapY2 = tLayoutY + mainH - hemH;
+      const strapLenPx = strapY2 - strapY1;
+      // Левый ремень — по первому люверсу
+      const strapX1 = frameLeftX + louvOffsetMM * tScale;
+      ctx.beginPath();
+      ctx.moveTo(strapX1, strapY1);
+      ctx.lineTo(strapX1, strapY2);
+      ctx.stroke();
+      // Правый ремень — по последнему люверсу
+      const strapX2 = frameRightX - louvOffsetMM * tScale;
+      ctx.beginPath();
+      ctx.moveTo(strapX2, strapY1);
+      ctx.lineTo(strapX2, strapY2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      // Подпись
+      ctx.fillStyle = '#2ecc71';
+      ctx.font = '7px DejaVu Sans';
+      ctx.fillText(`ремень 2 шт × ${(tentMM/1000).toFixed(2)} м`, strapX2 + 4, strapY1 + strapLenPx/2 + 3);
+    }
+
     ctx.fillStyle = '#f1c40f';
     ctx.font = '7px DejaVu Sans';
     ctx.fillText('люверсы d10 (50/300 мм)', tLayoutX + 6, tLayoutY + mainH + 30);

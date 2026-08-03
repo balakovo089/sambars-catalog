@@ -1887,33 +1887,30 @@ function redrawCanvas() {
     }
 
     // 2. Клапаны: вертикально, отступ 50мм от краёв (включая подворот)
-    const flapHem = 220;
-    const flapOffset = flapHem + louvOffsetMM;
-    const startOffset_Px = flapOffset * tScale;
-
-    // Передний клапан (справа): люверсы у правого края
-    const fFlapL = frameW + (brand === 'Барсук' ? 50 : 260)*2;
-    const fFlapCnt = Math.ceil((fFlapL - 2*flapOffset) / louvStepMM) + 1;
-    const fFlapStep = (fFlapCnt > 1) ? ((fFlapL - 2*flapOffset) / (fFlapCnt - 1)) * tScale : 0;
-    for (let i = 0; i < fFlapCnt; i++) {
-      const ly = fFlapY + startOffset_Px + i * fFlapStep;
-      const lx = fFlapX + fFlapW - startOffset_Px;
-      ctx.beginPath();
-      ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Задний клапан (слева): люверсы у левого края
-    const rFlapL = frameW + 240;
-    const rFlapCnt = Math.ceil((rFlapL - 2*flapOffset) / louvStepMM) + 1;
-    const rFlapStep = (rFlapCnt > 1) ? ((rFlapL - 2*flapOffset) / (rFlapCnt - 1)) * tScale : 0;
-    for (let i = 0; i < rFlapCnt; i++) {
-      const ly = rFlapY + startOffset_Px + i * rFlapStep;
-      const lx = rFlapX + startOffset_Px;
-      ctx.beginPath();
-      ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
-      ctx.fill();
-    }
+    const drawFlapLouvers = (x, y, w, h_mm, isRight) => {
+      const hemMM = 220; 
+      const startOffset = hemMM + louvOffsetMM; 
+      const usableH = h_mm - 2*startOffset;
+      const fLouvCount = Math.ceil(usableH / louvStepMM) + 1;
+      const fLouvStepPx = (fLouvCount > 1) ? (usableH / (fLouvCount - 1)) * tScale : 0;
+      for (let i = 0; i < fLouvCount; i++) {
+        const ly = y + (startOffset * tScale) + i * fLouvStepPx;
+        // isRight=true (передний/правый клапан) -> правый край: x + w - startOffset_X
+        // isRight=false (задний/левый клапан) -> левый край: x + startOffset_X
+        const startOffset_X = (hemMM + louvOffsetMM) * tScale;
+        // Передний (справа) - люверсы слева от внешнего края клапана
+        // w в функции — это ширина всего развернутого клапана
+        // для isRight=true (передний клапан): x + w - startOffset
+        // для isRight=false (задний клапан): x + startOffset
+        const lx = isRight ? x + w - startOffset_X : x + startOffset_X;
+        ctx.beginPath();
+        ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+    const fAdd = brand === 'Барсук' ? 50 : 260;
+    drawFlapLouvers(fFlapX, fFlapY, fFlapW, frameW + fAdd*2, true);
+    drawFlapLouvers(rFlapX, rFlapY, rFlapW, frameW + 240, false);
     ctx.fillStyle = '#f1c40f';
     ctx.font = '7px DejaVu Sans';
     ctx.fillText('люверсы d10 (50/300 мм)', tLayoutX + 6, tLayoutY + mainH + 30);

@@ -1999,7 +1999,7 @@ function redrawCanvas() {
       
       ctx.fillStyle = '#2ecc71';
       ctx.font = '7px DejaVu Sans';
-      ctx.fillText(`ремень 2 шт × ${(rInnerW/tScale)/1000} м`, rInnerX, rY1 - 5);
+      ctx.fillText(`ремень 2 шт × ${(tentMM/1000).toFixed(2)} м`, rInnerX, rY1 - 5);
     }
 
     ctx.fillStyle = '#f1c40f';

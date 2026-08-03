@@ -1935,16 +1935,24 @@ function redrawCanvas() {
 
     // ═══ Поворотки / Скобы на клапанах (горизонтально: верх и низ) ═══
     const drawValvesOnFlap = (x, y, w, h, w_mm, color, shape) => {
-      const gapPx = 150 * tScale;
+      const hemMM = 220;
+      const gapX = 150 * tScale;
+      const gapY = 150 * tScale;
       const stepPx = 300 * tScale;
-      const cnt = Math.ceil((w_mm - 2*150) / 300) + 1;
-      const usableW = w - 2*gapPx;
-      const actualStep = cnt > 1 ? usableW / (cnt - 1) : 0;
+
+      const innerY1 = y + hemMM * tScale + gapY;
+      const innerY2 = y + h - (hemMM * tScale + gapY);
+      const innerX = x + hemMM * tScale;
+      const usableW = w - 2 * hemMM * tScale;
+      
+      const cnt = Math.ceil((w_mm - 2*220 - 2*150) / 300) + 1;
+      const actualStep = cnt > 1 ? (usableW - 2*gapX) / (cnt - 1) : 0;
+
       ctx.fillStyle = color;
       for (let side = 0; side < 2; side++) {
-        const ly = side === 0 ? y + gapPx : y + h - gapPx;
+        const ly = side === 0 ? innerY1 : innerY2;
         for (let i = 0; i < cnt; i++) {
-          const lx = x + gapPx + i * actualStep;
+          const lx = innerX + gapX + i * actualStep;
           if (shape === 'square') {
             const s = 4;
             ctx.fillRect(lx - s/2, ly - s/2, s, s);

@@ -658,7 +658,11 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
 
   // Нижний периметр
   const lowerPerimeter = 2*(fL + fW)/1000;
-  const louvers10 = Math.ceil(lowerPerimeter / 0.15);
+  const louvGap = 50;  // отступ от краёв
+  const louvStep = 300;
+  const fLlouvers = Math.ceil((fL - 2*louvGap) / louvStep) + 1;
+  const fWlouvers = Math.ceil((fW - 2*louvGap) / louvStep) + 1;
+  const louvers10 = 2 * (fLlouvers + fWlouvers);
   const espanderM = (lowerPerimeter * 1.1).toFixed(1);
   const valveLouvers = (isBarsuk ? 4 : 6) * 2;
   const turnBuckles = isBarsuk ? 0 : Math.ceil((2*fL + 2*fW) / 500) * 2;
@@ -680,7 +684,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   <table style="margin-top:8px">
     <tr><td colspan="2"><b>Фурнитура</b></td></tr>
     <tr><td>Эспандер ${bp.espander} мм</td><td class="num">${espanderM} м</td></tr>
-    <tr><td>Люверсы 10 мм</td><td class="num">${louvers10} шт (шаг ~150 мм)</td></tr>
+    <tr><td>Люверсы d10 (отступ ${louvGap} мм)</td><td class="num">${louvers10} шт (шаг ~${louvStep} мм)</td></tr>
     <tr><td>Люверсы ${isBarsuk ? 27 : 32} мм</td><td class="num">${valveLouvers} шт</td></tr>`;
   if (!isBarsuk) html += `<tr><td>Поворотки</td><td class="num">${turnBuckles} шт</td></tr>`;
   if (isBarsuk) html += `<tr><td>Ремешки + скобы</td><td class="num">${straps} компл</td></tr>`;
@@ -1772,6 +1776,28 @@ function redrawCanvas() {
     ctx.font = '7px DejaVu Sans';
     ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold1Y + reinfPx/2 + 3);
     ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold2Y - reinfPx/2 + 3);
+
+    // ═══ Люверсы d10 по нижнему периметру (отступ 50 мм, шаг ~300 мм) ═══
+    const edgeMM = frameL + 380;  // длина края полотна с припусками (мм)
+    const louvOffsetMM = 50;
+    const louvStepMM = 300;
+    const louvCountPerEdge = Math.ceil((edgeMM - 2*louvOffsetMM) / louvStepMM) + 1;
+    const louvActualStepMM = (edgeMM - 2*louvOffsetMM) / (louvCountPerEdge - 1);
+    const louvR = 2.5;
+    ctx.fillStyle = '#f1c40f';
+    for (let e = 0; e < 2; e++) {
+      const edgeY = e === 0 ? tLayoutY : tLayoutY + mainH;
+      for (let i = 0; i < louvCountPerEdge; i++) {
+        const lx = tLayoutX + (louvOffsetMM + i * louvActualStepMM) * tScale;
+        ctx.beginPath();
+        ctx.arc(lx, edgeY, louvR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    // Подпись
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '7px DejaVu Sans';
+    ctx.fillText(`люверсы d10 × ${2*louvCountPerEdge} шт (шаг ~${louvStepMM} мм)`, tLayoutX + mainW + 3, tLayoutY + mainH - reinfPx - 4);
 
     // Подписи секций
     ctx.fillStyle = '#e74c3c';

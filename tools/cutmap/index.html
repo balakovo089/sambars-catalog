@@ -657,13 +657,13 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   }
 
   // Нижний периметр
+  const lowerPerimeter = 2*(fW + fL)/1000;
   const louvGap = 50;  // отступ от краёв
   const louvStep = 300;
-  // Только по ширине полотна frameW (верх/низ основного)
-  const wLouvers = Math.ceil((frameW - 2*louvGap) / louvStep) + 1;
+  // Только по ширине полотна fW (верх/низ основного)
+  const wLouvers = Math.ceil((fW - 2*louvGap) / louvStep) + 1;
   // На клапанах — вертикально
-  const frontAdd = isBarsuk ? 50 : 260;
-  const flapH = (frameW + frontAdd*2);
+  const flapH = (fW + frontAddMM*2);
   const flapLouvers = Math.ceil((flapH - 2*louvGap) / louvStep) + 1;
   const louvers10 = 2 * wLouvers + 2 * flapLouvers;
   const espanderM = (lowerPerimeter * 1.1).toFixed(1);

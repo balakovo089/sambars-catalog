@@ -1974,28 +1974,32 @@ function redrawCanvas() {
       drawValvesOnFlap(rFlapX, rFlapY, rFlapW, rFlapH, rFlapW / tScale, '#e67e22', 'circle');
     }
 
-    // ═══ Ремни (Барсук) — вертикально через скобы заднего клапана ═══
+    // ═══ Ремни (Барсук) — горизонтально через верхний и нижний ряды скоб ═══
     if (brand === 'Барсук') {
-      const rValveCnt = Math.ceil((rFlapW / tScale - 2*220 - 2*150) / 300) + 1;
-      const rValveStep = rValveCnt > 1 ? (rFlapW - 2*220*tScale - 2*150*tScale) / (rValveCnt - 1) : 0;
-      const rInnerX = rFlapX + 220 * tScale;
-      const rY1 = rFlapY + 220 * tScale + 150 * tScale;
-      const rY2 = rFlapY + rFlapH - (220 * tScale + 150 * tScale);
+      const valveGapPx = 150 * tScale;
+      const rInnerX = rFlapX + (220 + 150) * tScale;
+      const rInnerW = rFlapW - 2 * (220 + 150) * tScale;
+      const rY1 = rFlapY + (220 + 150) * tScale;
+      const rY2 = rFlapY + rFlapH - (220 + 150) * tScale;
 
       ctx.setLineDash([6, 3]);
       ctx.strokeStyle = '#2ecc71';
       ctx.lineWidth = 2;
-      for (let s = 0; s < 2; s++) {
-        const sx = s === 0 ? rInnerX + 150 * tScale : rInnerX + 150 * tScale + (rValveCnt - 1) * rValveStep;
-        ctx.beginPath();
-        ctx.moveTo(sx, rY1);
-        ctx.lineTo(sx, rY2);
-        ctx.stroke();
-      }
+      // Верхний ремень
+      ctx.beginPath();
+      ctx.moveTo(rInnerX, rY1);
+      ctx.lineTo(rInnerX + rInnerW, rY1);
+      ctx.stroke();
+      // Нижний ремень
+      ctx.beginPath();
+      ctx.moveTo(rInnerX, rY2);
+      ctx.lineTo(rInnerX + rInnerW, rY2);
+      ctx.stroke();
       ctx.setLineDash([]);
+      
       ctx.fillStyle = '#2ecc71';
       ctx.font = '7px DejaVu Sans';
-      ctx.fillText(`ремень 2 шт × ${(tentMM/1000).toFixed(2)} м`, rInnerX + 155 * tScale + (rValveCnt-1)*rValveStep, rY1 + (rY2-rY1)/2 + 3);
+      ctx.fillText(`ремень 2 шт × ${(rInnerW/tScale)/1000} м`, rInnerX, rY1 - 5);
     }
 
     ctx.fillStyle = '#f1c40f';

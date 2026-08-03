@@ -50,17 +50,26 @@ canvas{display:block;cursor:grab}
 ::-webkit-scrollbar-thumb{background:#0f3460;border-radius:3px}
 
 /* ── Печать ── */
+.print-only { display: none; }
 @media print {
-  @page { size: A4 landscape; margin: 8mm; }
-  body { display: block !important; background: #fff !important; color: #000 !important; }
-  .sidebar { 
-    display: block !important; width: 100% !important; position: static !important; 
-    background: #fff !important; color: #000 !important; padding: 0 !important;
+  @page { size: A4; margin: 12mm; }
+  body { display: block !important; background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
+  .sidebar, .main, .toolbar, .legend { display: none !important; }
+  #printLayout { 
+    display: block !important; 
+    font-family: 'DejaVu Sans', Arial, sans-serif;
+    font-size: 10pt;
+    color: #000;
   }
-  .main { display: block !important; width: 100% !important; background: #fff !important; }
-  canvas { width: 100% !important; height: auto !important; filter: invert(1) hue-rotate(180deg); }
-  .toolbar, .legend { display: none !important; }
-  h2, h3, .section, .summary, table, label, select, .meta-info { color: #000 !important; border-color: #000 !important; }
+  #printLayout h1 { font-size: 16pt; margin: 0 0 6pt; }
+  #printLayout h2 { font-size: 13pt; margin: 10pt 0 4pt; border-bottom: 1px solid #000; }
+  #printLayout h3 { font-size: 11pt; margin: 8pt 0 2pt; }
+  #printLayout table { width: 100%; border-collapse: collapse; margin: 4pt 0; font-size: 9pt; }
+  #printLayout th, #printLayout td { padding: 2pt 4pt; text-align: left; border: 0.5pt solid #ccc; }
+  #printLayout th { background: #eee; font-weight: bold; }
+  #printLayout .num { text-align: right; }
+  #printLayout .print-canvas { width: 100%; page-break-before: always; }
+  #printLayout canvas { width: 100% !important; height: auto !important; }
 }
 </style>
 </head>
@@ -124,6 +133,9 @@ canvas{display:block;cursor:grab}
     <span style="color:#9b59b6">▬▬</span> Подфарники
   </div>
 </div>
+
+<!-- ═══ Печатный макет ═══ -->
+<div id="printLayout"></div>
 
 <script>
 // ══════════════════════════════════════════════════════════
@@ -243,11 +255,13 @@ function onModelChange() {
   state.axles = m.ax[0];
 
   recalc();
+  setTimeout(updatePrintLayout, 100);
 }
 
 function onAxleChange() {
   state.axles = parseInt(document.getElementById('axles').value);
   recalc();
+  setTimeout(updatePrintLayout, 100);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2058,6 +2072,60 @@ window.addEventListener('mouseup', () => { dragging = false; });
 function resetView() {
   offX = 0; offY = 0;
   redrawCanvas();
+}
+
+// ══════════════════════════════════════════════════════════
+// ПЕЧАТНЫЙ МАКЕТ
+// ══════════════════════════════════════════════════════════
+function updatePrintLayout() {
+  const pl = document.getElementById('printLayout');
+  const m = MODELS.find(x => x.model === state.model);
+  const bp = BRAND[state.brand];
+
+  // Собираем контент из сайдбара
+  const modelSel = document.getElementById('modelSelect');
+  const meta = document.querySelector('.meta-info');
+  const plywood = document.getElementById('plywoodPlan');
+  const tent = document.getElementById('tentPlan');
+  const consum = document.getElementById('consumables');
+  const bolts = document.getElementById('boltMap');
+  const brackets = document.getElementById('bracketSpec');
+  const summary = document.getElementById('summary');
+
+  const h = (id, title, el) => {
+    if (!el || !el.innerHTML.trim()) return '';
+    return `<h2>${title}</h2>${el.innerHTML}`;
+  };
+
+  // Рисуем схему на временном canvas в уменьшенном масштабе
+  const tmpCanvas = document.createElement('canvas');
+  const printScale = 0.35;
+  const origW = canvas.width;
+  const origH = canvas.height;
+  tmpCanvas.width = origW * printScale;
+  tmpCanvas.height = origH * printScale;
+  const tmpCtx = tmpCanvas.getContext('2d');
+  tmpCtx.scale(printScale, printScale);
+  // Копируем основной canvas в уменьшенном масштабе
+  tmpCtx.scale(printScale, printScale);
+  tmpCtx.drawImage(canvas, 0, 0);
+
+  const imgData = tmpCanvas.toDataURL('image/png');
+
+  pl.innerHTML = `
+    <h1>📐 Спецификация: ${state.brand} ${(state.W/1000).toFixed(2)}×${(state.L/1000).toFixed(1)} м</h1>
+    ${meta ? meta.innerHTML : ''}
+    ${h('plywood', '🪵 РАСКРОЙ ПОЛА', plywood)}
+    ${h('tent', '⛺ ТЕНТ', tent)}
+    ${h('consum', '📦 РАСХОДНИКИ', consum)}
+    ${h('bolts', '🔩 БОЛТОВАЯ КАРТА', bolts)}
+    ${h('brackets', '🔧 КРОНШТЕЙНЫ', brackets)}
+    ${h('summary', '⚖️ СВОДКА', summary)}
+    <div class="print-canvas">
+      <h2>📐 ЧЕРТЁЖ</h2>
+      <img src="${imgData}" style="width:100%; filter: invert(1) hue-rotate(180deg);" alt="Чертёж прицепа"/>
+    </div>
+  `;
 }
 
 // ══════════════════════════════════════════════════════════

@@ -2098,14 +2098,29 @@ function updatePrintLayout() {
     return `<h2>${title}</h2>${el.innerHTML}`;
   };
 
-  // ═══ Захват полного чертежа ═══
+  // ═══ Захват полного чертежа (2 части: верх и низ) ═══
   const savedW = canvas.width, savedH = canvas.height;
   const savedOffX = offX, savedOffY = offY;
-  canvas.width = 2000;
+  canvas.width = 2200;
   canvas.height = 6000;
   offX = 0; offY = 0;
   redrawCanvas();
-  const imgData = canvas.toDataURL('image/jpeg', 0.65);
+
+  // Разрезаем: верх (секции 1-3) и низ (секции 4-5)
+  const midY = Math.round(canvas.height * 0.55);
+  const topH = midY, botH = canvas.height - midY;
+
+  const topC = document.createElement('canvas');
+  topC.width = canvas.width; topC.height = topH;
+  topC.getContext('2d').drawImage(canvas, 0, 0, canvas.width, topH, 0, 0, canvas.width, topH);
+
+  const botC = document.createElement('canvas');
+  botC.width = canvas.width; botC.height = botH;
+  botC.getContext('2d').drawImage(canvas, 0, midY, canvas.width, botH, 0, 0, canvas.width, botH);
+
+  const imgTop = topC.toDataURL('image/jpeg', 0.65);
+  const imgBot = botC.toDataURL('image/jpeg', 0.65);
+
   canvas.width = savedW; canvas.height = savedH;
   offX = savedOffX; offY = savedOffY;
   redrawCanvas();

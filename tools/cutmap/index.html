@@ -68,7 +68,8 @@ canvas{display:block;cursor:grab}
   #printLayout th, #printLayout td { padding: 2pt 4pt; text-align: left; border: 0.5pt solid #ccc; }
   #printLayout th { background: #eee; font-weight: bold; }
   #printLayout .num { text-align: right; }
-  #printLayout .print-canvas { width: 100%; page-break-before: always; }
+  #printLayout .print-canvas { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  #printLayout .print-canvas h2 { grid-column: span 2; }
   #printLayout canvas { width: 100% !important; height: auto !important; }
 }
 </style>

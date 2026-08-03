@@ -657,12 +657,15 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   }
 
   // Нижний периметр
-  const lowerPerimeter = 2*(fL + fW)/1000;
   const louvGap = 50;  // отступ от краёв
   const louvStep = 300;
-  const fLlouvers = Math.ceil((fL - 2*louvGap) / louvStep) + 1;
-  const fWlouvers = Math.ceil((fW - 2*louvGap) / louvStep) + 1;
-  const louvers10 = 2 * (fLlouvers + fWlouvers);
+  // Только по ширине полотна frameW (верх/низ основного)
+  const wLouvers = Math.ceil((frameW - 2*louvGap) / louvStep) + 1;
+  // На клапанах — вертикально
+  const frontAdd = isBarsuk ? 50 : 260;
+  const flapH = (frameW + frontAdd*2);
+  const flapLouvers = Math.ceil((flapH - 2*louvGap) / louvStep) + 1;
+  const louvers10 = 2 * wLouvers + 2 * flapLouvers;
   const espanderM = (lowerPerimeter * 1.1).toFixed(1);
   const valveLouvers = (isBarsuk ? 4 : 6) * 2;
   const turnBuckles = isBarsuk ? 0 : Math.ceil((2*fL + 2*fW) / 500) * 2;
@@ -1777,47 +1780,48 @@ function redrawCanvas() {
     ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold1Y + reinfPx/2 + 3);
     ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold2Y - reinfPx/2 + 3);
 
-    // ═══ Люверсы d10 по нижнему периметру (отступ 50 мм, шаг ~300 мм) ═══
+    // ═══ Люверсы d10 ═══
     const louvOffsetMM = 50;
     const louvStepMM = 300;
     const louvR = 2.5;
     ctx.fillStyle = '#f1c40f';
 
-    // 1. Основное полотно: люверсы на линиях подворота ( hemH )
-    const edgeL = frameL + 380;
+    // 1. Основное полотно: люверсы только сверху/снизу на линиях подворота
+    // Отступ 50мм от боковых пунктиров (frameLeftX/frameRightX)
+    const edgeL = (frameRightX - frameLeftX);
     const louvCountPerEdge = Math.ceil((edgeL - 2*louvOffsetMM) / louvStepMM) + 1;
     const louvActualStepMM = (edgeL - 2*louvOffsetMM) / (louvCountPerEdge - 1);
     
     for (let e = 0; e < 2; e++) {
       const edgeY = e === 0 ? tLayoutY + hemH : tLayoutY + mainH - hemH;
       for (let i = 0; i < louvCountPerEdge; i++) {
-        const lx = tLayoutX + (louvOffsetMM + i * louvActualStepMM) * tScale;
+        const lx = frameLeftX + (louvOffsetMM + i * louvActualStepMM);
         ctx.beginPath();
         ctx.arc(lx, edgeY, louvR, 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    // 2. Клапаны: по внешним вертикальным краям (на чертеже справа у переднего и слева у заднего)
-    const drawFlapLouvers = (x, y, h, isRight) => {
+    // 2. Клапаны: ��о внешним вертикальным краям (отступ 50мм по вертикали)
+    const drawFlapLouvers = (x, y, w, h, isRight) => {
       const fLouvCount = Math.ceil((h - 2*louvOffsetMM) / louvStepMM) + 1;
       const fLouvActualStepMM = (h - 2*louvOffsetMM) / (fLouvCount - 1);
       for (let i = 0; i < fLouvCount; i++) {
         const ly = y + (louvOffsetMM + i * fLouvActualStepMM) * tScale;
-        const lx = isRight ? x + fFlapW - 10 : x + 10;
+        const lx = isRight ? x + w - 10 : x + 10;
         ctx.beginPath();
         ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
         ctx.fill();
       }
     };
-    drawFlapLouvers(fFlapX, fFlapY, fFlapH, true);
-    drawFlapLouvers(rFlapX, rFlapY, rFlapH, false);
+    drawFlapLouvers(fFlapX, fFlapY, fFlapW, fFlapH, true);
+    drawFlapLouvers(rFlapX, rFlapY, rFlapW, rFlapH, false);
 
-    // Подпись (суммарно)
-    const totalLouvs = 2*louvCountPerEdge + 2*Math.ceil((frameW+frontAdd*2 - 2*louvOffsetMM) / louvStepMM) + 2; 
+    // Подпись
     ctx.fillStyle = '#f1c40f';
     ctx.font = '7px DejaVu Sans';
-    ctx.fillText(`люверсы d10 (шаг ~${louvStepMM} мм)`, tLayoutX + mainW + 3, tLayoutY + mainH - reinfPx - 4);
+    ctx.fillText(`люверсы d10 (отступ 50мм, шаг ~300мм)`, tLayoutX + mainW + 3, tLayoutY + mainH - reinfPx - 4);
+
 
 
     // Подписи секций

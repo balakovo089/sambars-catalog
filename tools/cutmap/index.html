@@ -1898,7 +1898,11 @@ function redrawCanvas() {
         // isRight=true (передний/правый клапан) -> правый край: x + w - startOffset_X
         // isRight=false (задний/левый клапан) -> левый край: x + startOffset_X
         const startOffset_X = (hemMM + louvOffsetMM) * tScale;
-        const lx = isRight ? x + (w * tScale) - startOffset_X : x + startOffset_X;
+        // Передний (справа) - люверсы слева от внешнего края клапана
+        // w в функции — это ширина всего развернутого клапана
+        // для isRight=true (передний клапан): x + w - startOffset
+        // для isRight=false (задний клапан): x + startOffset
+        const lx = isRight ? x + w - startOffset_X : x + startOffset_X;
         ctx.beginPath();
         ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
         ctx.fill();

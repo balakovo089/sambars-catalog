@@ -2096,8 +2096,12 @@ function updatePrintLayout() {
     return `<h2>${title}</h2>${el.innerHTML}`;
   };
 
+  // Сбрасываем скролл, чтобы отрисовать ВЕСЬ чертёж
+  const savedOffX = offX, savedOffY = offY;
+  offX = 0; offY = 0;
+  redrawCanvas();
+
   // Рисуем схему на временном canvas в уменьшенном масштабе
-  redrawCanvas(); // <-- ПРИНУДИТЕЛЬНО ПЕРЕРИСОВАТЬ
   const tmpCanvas = document.createElement('canvas');
   const origW = canvas.width;
   const origH = canvas.height;
@@ -2107,6 +2111,10 @@ function updatePrintLayout() {
   const tmpCtx = tmpCanvas.getContext('2d');
   // Копируем ВЕСЬ основной canvas с масштабированием
   tmpCtx.drawImage(canvas, 0, 0, origW, origH, 0, 0, tmpCanvas.width, tmpCanvas.height);
+
+  // Восстанавливаем скролл
+  offX = savedOffX; offY = savedOffY;
+  redrawCanvas();
 
   const imgData = tmpCanvas.toDataURL('image/png');
 

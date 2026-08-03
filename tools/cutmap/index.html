@@ -567,23 +567,23 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
 
   // ═══ Раскрой основного полотна (L всегда вдоль рулона) ═══
   const N = Math.ceil(mainW / rollW);
+  const stripW = mainW / N;  // равномерная ширина каждой полосы (центровка швов на крыше)
   const mainLinear = N * mainL;
   let mainStrips = [];
   for (let i = 0; i < N; i++) {
-    const sw = Math.min(rollW, mainW - i * rollW);
-    // Что в этой полосе?
+    const sw = (i === N - 1) ? mainW - (N - 1) * stripW : stripW;  // последняя — остаток
     let parts = [];
-    let x = i * rollW; // позиция от начала развёртки
+    let x = i * stripW; // позиция от начала развёртки
     // Левый hem
     if (x < hemMM) { const e = Math.min(hemMM, x + sw); parts.push({n:'hem', w: e - x, c:'#333'}); x = e; }
     // Левая боковина
-    if (x < hemMM + tMM) { const e = Math.min(hemMM + tMM, i*rollW + sw); parts.push({n:'бок', w: e - x, c:'#27ae60'}); x = e; }
+    if (x < hemMM + tMM) { const e = Math.min(hemMM + tMM, i*stripW + sw); parts.push({n:'бок', w: e - x, c:'#27ae60'}); x = e; }
     // Крыша
-    if (x < hemMM + tMM + fW) { const e = Math.min(hemMM + tMM + fW, i*rollW + sw); parts.push({n:'крыша', w: e - x, c:'#2980b9'}); x = e; }
+    if (x < hemMM + tMM + fW) { const e = Math.min(hemMM + tMM + fW, i*stripW + sw); parts.push({n:'крыша', w: e - x, c:'#2980b9'}); x = e; }
     // Правая боковина
-    if (x < hemMM + 2*tMM + fW) { const e = Math.min(hemMM + 2*tMM + fW, i*rollW + sw); parts.push({n:'бок', w: e - x, c:'#27ae60'}); x = e; }
+    if (x < hemMM + 2*tMM + fW) { const e = Math.min(hemMM + 2*tMM + fW, i*stripW + sw); parts.push({n:'бок', w: e - x, c:'#27ae60'}); x = e; }
     // Правый hem
-    if (x < mainW) { const e = Math.min(mainW, i*rollW + sw); parts.push({n:'hem', w: e - x, c:'#333'}); x = e; }
+    if (x < mainW) { const e = Math.min(mainW, i*stripW + sw); parts.push({n:'hem', w: e - x, c:'#333'}); x = e; }
     mainStrips.push({w: sw, parts});
   }
 
@@ -1665,10 +1665,10 @@ function redrawCanvas() {
 
     // ═══ ШВЫ РАСКРОЯ (границы рулона 2500 мм) ═══
     const tentFullW = frameW + 2*tentMM + 2*220;  // полная ширина развёртки с hem
-    const rollW = 2500;
-    const Nstrips = Math.ceil(tentFullW / rollW);
+    const Nstrips = Math.ceil(tentFullW / 2500);
+    const stripW = tentFullW / Nstrips;  // равномерная ширина полосы (центровка швов на крыше)
     for (let i = 1; i < Nstrips; i++) {
-      const shovFromTop = i * rollW;  // мм от верхнего края развёртки
+      const shovFromTop = i * stripW;  // мм от верхнего края развёртки
       const shovY = tLayoutY + shovFromTop * tScale;
       ctx.setLineDash([10, 6]);
       ctx.strokeStyle = '#ff4444';
@@ -1682,7 +1682,7 @@ function redrawCanvas() {
       const inRoof = shovFromTop > (220 + tentMM) && shovFromTop < (220 + tentMM + frameW);
       ctx.fillStyle = '#ff4444';
       ctx.font = 'bold 9px DejaVu Sans';
-      ctx.fillText(`← ШОВ ${Math.round(i*rollW)} мм ${inRoof ? '(на крыше)' : '(на боковине)'}`, tLayoutX + mainW + 4, shovY + 4);
+      ctx.fillText(`← ШОВ ${Math.round(shovFromTop)} мм ${inRoof ? '(на крыше)' : '(на боковине)'}`, tLayoutX + mainW + 4, shovY + 4);
       // Короткая стрелка
       ctx.beginPath();
       ctx.moveTo(tLayoutX + mainW, shovY);

@@ -1864,39 +1864,44 @@ function redrawCanvas() {
     ctx.font = '8px DejaVu Sans';
     ctx.fillText('клапаны припаиваются к крыше', tLayoutX + mainW/2 - 70, tLayoutY + mainH + 20);
 
-    // ═══ Люверсы d10 (отступ 50 мм, шаг ~300 мм) ═══
+    // ═══ Люверсы d10 ═══
     const louvOffsetMM = 50;
     const louvStepMM = 300;
     const louvR = 2.5;
     ctx.fillStyle = '#f1c40f';
 
-    // Основное полотно: верхний и нижний ряд на линиях подворота
-    const edgeL_mm = frameW;
-    const louvCountPerEdge = Math.ceil((edgeL_mm - 2*louvOffsetMM) / louvStepMM) + 1;
-    const louvActualStepMM = (edgeL_mm - 2*louvOffsetMM) / (louvCountPerEdge - 1);
+    // 1. Основное полотно: только сверху/снизу (на линиях подворота), отступ 50мм от боковых пунктиров
+    const sideMarginX = (frameRightX - frameLeftX) - 2 * louvOffsetMM * tScale;
+    const louvCountPerEdge = Math.ceil(sideMarginX / (louvStepMM * tScale)) + 1;
+    const stepPx = louvCountPerEdge > 1 ? sideMarginX / (louvCountPerEdge - 1) : 0;
+    
     for (let e = 0; e < 2; e++) {
       const edgeY = e === 0 ? tLayoutY + hemH : tLayoutY + mainH - hemH;
       for (let i = 0; i < louvCountPerEdge; i++) {
-        const lx = frameLeftX + (louvOffsetMM + i * louvActualStepMM) * tScale;
+        const lx = frameLeftX + (louvOffsetMM * tScale) + i * stepPx;
         ctx.beginPath();
         ctx.arc(lx, edgeY, louvR, 0, Math.PI * 2);
         ctx.fill();
       }
     }
-    // Клапаны: вертикальные ряды по внешним краям
+
+    // 2. Клапаны: вертикально, отступ 50мм от краёв (включая подворот)
     const drawFlapLouvers = (x, y, w, h_mm, isRight) => {
-      const cnt = Math.ceil((h_mm - 2*louvOffsetMM) / louvStepMM) + 1;
-      const step = (h_mm - 2*louvOffsetMM) / (cnt - 1);
-      for (let i = 0; i < cnt; i++) {
-        const ly = y + (louvOffsetMM + i * step) * tScale;
-        const lx = isRight ? x + w - 4 : x + 4;
+      const hemMM = 220; 
+      const startOffset = hemMM + louvOffsetMM; 
+      const usableH = h_mm - 2*startOffset;
+      const fLouvCount = Math.ceil(usableH / louvStepMM) + 1;
+      const fLouvStepPx = (fLouvCount > 1) ? (usableH / (fLouvCount - 1)) * tScale : 0;
+      for (let i = 0; i < fLouvCount; i++) {
+        const ly = y + (startOffset * tScale) + i * fLouvStepPx;
+        const lx = isRight ? x + (w - hemMM - louvOffsetMM) * tScale : x + (hemMM + louvOffsetMM) * tScale;
         ctx.beginPath();
         ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
         ctx.fill();
       }
     };
-    const fAddCanvas = brand === 'Барсук' ? 50 : 260;
-    drawFlapLouvers(fFlapX, fFlapY, fFlapW, frameW + fAddCanvas*2, true);
+    const fAdd = brand === 'Барсук' ? 50 : 260;
+    drawFlapLouvers(fFlapX, fFlapY, fFlapW, frameW + fAdd*2, true);
     drawFlapLouvers(rFlapX, rFlapY, rFlapW, frameW + 240, false);
     ctx.fillStyle = '#f1c40f';
     ctx.font = '7px DejaVu Sans';

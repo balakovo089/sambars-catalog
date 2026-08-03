@@ -1895,9 +1895,10 @@ function redrawCanvas() {
       const fLouvStepPx = (fLouvCount > 1) ? (usableH / (fLouvCount - 1)) * tScale : 0;
       for (let i = 0; i < fLouvCount; i++) {
         const ly = y + (startOffset * tScale) + i * fLouvStepPx;
-        // Если isRight (прав клапан), то люверсы у левого края (x + hemMM + offset)
-        // Если !isRight (лев клапан), то люверсы у правого края (x + w - hemMM - offset)
-        const lx = isRight ? x + (hemMM + louvOffsetMM) * tScale : x + (w - hemMM - louvOffsetMM) * tScale;
+        // isRight=true (передний/правый клапан) -> правый край: x + w - startOffset_X
+        // isRight=false (задний/левый клапан) -> левый край: x + startOffset_X
+        const startOffset_X = (hemMM + louvOffsetMM) * tScale;
+        const lx = isRight ? x + (w * tScale) - startOffset_X : x + startOffset_X;
         ctx.beginPath();
         ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
         ctx.fill();

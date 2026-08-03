@@ -2097,6 +2097,7 @@ function updatePrintLayout() {
   };
 
   // Рисуем схему на временном canvas в уменьшенном масштабе
+  redrawCanvas(); // <-- ПРИНУДИТЕЛЬНО ПЕРЕРИСОВАТЬ
   const tmpCanvas = document.createElement('canvas');
   const origW = canvas.width;
   const origH = canvas.height;

@@ -688,6 +688,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td colspan="2"><b>Фурнитура</b></td></tr>
     <tr><td>Эспандер ${bp.espander} мм</td><td class="num">${espanderM} м</td></tr>
     <tr><td>Люверсы d10 (отступ ${louvGap} мм)</td><td class="num">${louvers10} шт (шаг ~${louvStep} мм)</td></tr>
+    <tr><td>Гайка эриксона + болт М8 потай</td><td class="num">${louvers10 + 4} шт (люверсы + 4)</td></tr>
     <tr><td>Люверсы ${isBarsuk ? 27 : 32} мм</td><td class="num">${valveLouvers} шт</td></tr>`;
   if (!isBarsuk) html += `<tr><td>Поворотки</td><td class="num">${turnBuckles} шт</td></tr>`;
   if (isBarsuk) html += `<tr><td>Ремешки + скобы</td><td class="num">${straps} компл</td></tr>`;

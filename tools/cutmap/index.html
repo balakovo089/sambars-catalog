@@ -673,6 +673,8 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td class="sub">${flap.side ? 'Бок о бок' : 'Последовательно'}, ${flap.orient==='W' ? 'шириной поперёк' : 'длиной поперёк'}</td></tr>
     <tr style="border-top:1px solid #0f3460"><td><b>ИТОГО от рулона</b></td><td class="num"><b>${totalRM}</b> пог.м</td></tr>
     <tr><td>ПВХ</td><td>${bp.tentPVC} (${bp.tentClr})</td></tr>
+    <tr style="border-top:1px solid #0f3460"><td>Усилители на сгибах</td><td class="num">2 шт × ${(mainL/1000).toFixed(2)} м = <b>${(2*mainL/1000).toFixed(2)}</b> пог.м</td></tr>
+    <tr><td class="sub">200 мм шириной, из обрезков (в расход ткани не идут)</td></tr>
   </table>
   ${visHtml}
   <table style="margin-top:8px">
@@ -1746,6 +1748,30 @@ function redrawCanvas() {
       ctx.font = '7px DejaVu Sans';
       ctx.fillText('скос -30', tLayoutX + mainW - 600*tScale, fold1Y - 150*tScale);
     }
+
+    // ═══ Усилители на сгибах (200 мм, из обрезков) ═══
+    const reinfMM = 200;  // ширина усилителя
+    const reinfPx = reinfMM * tScale;
+    // Верхний сгиб (fold1Y): усилитель уходит вниз на задний бок
+    ctx.fillStyle = 'rgba(46, 204, 113, 0.22)';
+    ctx.fillRect(tLayoutX, fold1Y, mainW, reinfPx);
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([3,3]);
+    ctx.strokeRect(tLayoutX, fold1Y, mainW, reinfPx);
+    ctx.setLineDash([]);
+    // Нижний сгиб (fold2Y): усилитель уходит вверх на передний бок
+    ctx.fillStyle = 'rgba(46, 204, 113, 0.22)';
+    ctx.fillRect(tLayoutX, fold2Y - reinfPx, mainW, reinfPx);
+    ctx.setLineDash([3,3]);
+    ctx.strokeStyle = '#27ae60';
+    ctx.strokeRect(tLayoutX, fold2Y - reinfPx, mainW, reinfPx);
+    ctx.setLineDash([]);
+    // Подписи усилителей
+    ctx.fillStyle = '#27ae60';
+    ctx.font = '7px DejaVu Sans';
+    ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold1Y + reinfPx/2 + 3);
+    ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold2Y - reinfPx/2 + 3);
 
     // Подписи секций
     ctx.fillStyle = '#e74c3c';

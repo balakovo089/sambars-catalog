@@ -708,8 +708,8 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td>Гайка эриксона + болт М8 потай</td><td class="num">${louvers10 + 4} шт (люверсы + 4)</td></tr>
     <tr><td>${isBarsuk ? 'Подкладка d27' : 'Подкладка d32'}</td><td class="num">${valveLouvers} шт</td></tr>`;
   if (!isBarsuk) html += `<tr><td>Поворотки d37</td><td class="num">${turnBuckles} шт (перед ${fValvesPerSide}×2 + зад ${rValvesPerSide}×2)</td></tr>`;
-  if (isBarsuk) html += `<tr><td>Скобы + ремень</td><td class="num">${straps} шт (задний клапан, по ${rValvesPerSide} с каждой стороны)</td></tr>
-    <tr><td>Ремень (длина = высота каркаса)</td><td class="num">${straps} шт × ${(strapLen/1000).toFixed(2)} м</td></tr>`;
+  if (isBarsuk) html += `<tr><td>Скобы</td><td class="num">${straps} шт (задний клапан, по ${rValvesPerSide} с каждой стороны)</td></tr>
+    <tr><td>Ремень (2 ряда люверсов)</td><td class="num">2 шт × ${(tMM/1000).toFixed(2)} м (длина = высота каркаса)</td></tr>`;
   html += `<tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
     <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
     <tr><td>Срок службы</td><td>~${isBarsuk ? 2 : 7} лет</td></tr>

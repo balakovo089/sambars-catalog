@@ -1932,6 +1932,37 @@ function redrawCanvas() {
       ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
       ctx.fill();
     }
+
+    // ═══ Поворотки / Скобы на клапанах ═══
+    const drawValvesOnFlap = (x, y, w, h_mm, color, shape) => {
+      const cnt = Math.ceil((h_mm - 2*150) / 300) + 1;
+      const actualStep = (cnt > 1) ? ((h_mm - 2*150) / (cnt - 1)) * tScale : 0;
+      ctx.fillStyle = color;
+      for (let side = 0; side < 2; side++) {
+        const lx = side === 0 ? x + startOffset_Px : x + w - startOffset_Px;
+        for (let i = 0; i < cnt; i++) {
+          const ly = y + 150 * tScale + i * actualStep;
+          if (shape === 'square') {
+            const s = 4;
+            ctx.fillRect(lx - s/2, ly - s/2, s, s);
+          } else {
+            ctx.beginPath();
+            ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+    };
+
+    if (brand === 'Барсук') {
+      // Только задний клапан — скобы (синие квадраты)
+      drawValvesOnFlap(rFlapX, rFlapY, rFlapW, frameW + 240, '#3498db', 'square');
+    } else {
+      // Оба клапана — поворотки (оранжевые круги)
+      drawValvesOnFlap(fFlapX, fFlapY, fFlapW, frameW + frontAdd*2, '#e67e22', 'circle');
+      drawValvesOnFlap(rFlapX, rFlapY, rFlapW, frameW + 240, '#e67e22', 'circle');
+    }
+
     ctx.fillStyle = '#f1c40f';
     ctx.font = '7px DejaVu Sans';
     ctx.fillText('люверсы d10 (50/300 мм)', tLayoutX + 6, tLayoutY + mainH + 30);

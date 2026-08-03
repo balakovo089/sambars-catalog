@@ -2096,43 +2096,31 @@ function updatePrintLayout() {
     return `<h2>${title}</h2>${el.innerHTML}`;
   };
 
-  // Сохраняем исходные размеры и скролл
+  // ═══ Захват полного чертежа ═══
   const savedW = canvas.width, savedH = canvas.height;
   const savedOffX = offX, savedOffY = offY;
-  // Расширяем canvas, чтобы вместить ВЕСЬ чертёж (6000px с запасом)
   canvas.width = 2000;
   canvas.height = 6000;
   offX = 0; offY = 0;
   redrawCanvas();
-
-  // Рисуем схему на временном canvas в уменьшенном масштабе
-  const tmpCanvas = document.createElement('canvas');
-  const printScale = 0.35;
-  tmpCanvas.width = canvas.width * printScale;
-  tmpCanvas.height = canvas.height * printScale;
-  const tmpCtx = tmpCanvas.getContext('2d');
-  tmpCtx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, tmpCanvas.width, tmpCanvas.height);
-
-  // Восстанавливаем исходные размеры и скролл
+  const imgData = canvas.toDataURL('image/jpeg', 0.65);
   canvas.width = savedW; canvas.height = savedH;
   offX = savedOffX; offY = savedOffY;
   redrawCanvas();
 
-  const imgData = tmpCanvas.toDataURL('image/png');
-
   pl.innerHTML = `
     <h1>📐 Спецификация: ${state.brand} ${(state.W/1000).toFixed(2)}×${(state.L/1000).toFixed(1)} м</h1>
     ${meta ? meta.innerHTML : ''}
-    ${h('plywood', '🪵 РАСКРОЙ ПОЛА', plywood)}
+    ${h('🔧 МЕТАЛЛ', metalSpec)}
+    ${h('📏 РАСКРОЙ ПРОФИЛЕЙ', cutPlan)}
+    ${h('🪵 РАСКРОЙ ПОЛА', plywood)}
     ${h('tent', '⛺ ТЕНТ', tent)}
     ${h('consum', '📦 РАСХОДНИКИ', consum)}
     ${h('bolts', '🔩 БОЛТОВАЯ КАРТА', bolts)}
     ${h('brackets', '🔧 КРОНШТЕЙНЫ', brackets)}
     ${h('summary', '⚖️ СВОДКА', summary)}
-    <div class="print-canvas">
-      <h2>📐 ЧЕРТЁЖ</h2>
-      <img src="${imgData}" style="width:100%; filter: invert(1) hue-rotate(180deg);" alt="Чертёж прицепа"/>
-    </div>
+    <h2>📐 ЧЕРТЁЖ</h2>
+    <img src="${imgData}" style="width:100%; filter:invert(1) hue-rotate(180deg); page-break-before:always;" alt="Чертёж"/>
   `;
 }
 

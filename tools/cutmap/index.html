@@ -52,10 +52,15 @@ canvas{display:block;cursor:grab}
 /* ── Печать ── */
 @media print {
   @page { size: A4 landscape; margin: 8mm; }
-  body { display: block; background: #fff; height: auto; overflow: visible; }
-  .sidebar, .toolbar, .legend { display: none !important; }
-  .main { background: #fff; overflow: visible; }
-  .main canvas { filter: invert(1) hue-rotate(180deg); max-width: 100%; height: auto; }
+  body { display: block !important; background: #fff !important; color: #000 !important; }
+  .sidebar { 
+    display: block !important; width: 100% !important; position: static !important; 
+    background: #fff !important; color: #000 !important; padding: 0 !important;
+  }
+  .main { display: block !important; width: 100% !important; background: #fff !important; }
+  canvas { width: 100% !important; height: auto !important; filter: invert(1) hue-rotate(180deg); }
+  .toolbar, .legend { display: none !important; }
+  h2, h3, .section, .summary, table, label, select, .meta-info { color: #000 !important; border-color: #000 !important; }
 }
 </style>
 </head>

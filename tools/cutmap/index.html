@@ -1778,15 +1778,18 @@ function redrawCanvas() {
     ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold2Y - reinfPx/2 + 3);
 
     // ═══ Люверсы d10 по нижнему периметру (отступ 50 мм, шаг ~300 мм) ═══
-    const edgeMM = frameL + 380;  // длина края полотна с припусками (мм)
     const louvOffsetMM = 50;
     const louvStepMM = 300;
-    const louvCountPerEdge = Math.ceil((edgeMM - 2*louvOffsetMM) / louvStepMM) + 1;
-    const louvActualStepMM = (edgeMM - 2*louvOffsetMM) / (louvCountPerEdge - 1);
     const louvR = 2.5;
     ctx.fillStyle = '#f1c40f';
+
+    // 1. Основное полотно: люверсы на линиях подворота ( hemH )
+    const edgeL = frameL + 380;
+    const louvCountPerEdge = Math.ceil((edgeL - 2*louvOffsetMM) / louvStepMM) + 1;
+    const louvActualStepMM = (edgeL - 2*louvOffsetMM) / (louvCountPerEdge - 1);
+    
     for (let e = 0; e < 2; e++) {
-      const edgeY = e === 0 ? tLayoutY : tLayoutY + mainH;
+      const edgeY = e === 0 ? tLayoutY + hemH : tLayoutY + mainH - hemH;
       for (let i = 0; i < louvCountPerEdge; i++) {
         const lx = tLayoutX + (louvOffsetMM + i * louvActualStepMM) * tScale;
         ctx.beginPath();
@@ -1794,10 +1797,28 @@ function redrawCanvas() {
         ctx.fill();
       }
     }
-    // Подпись
+
+    // 2. Клапаны: по внешним вертикальным краям (на чертеже справа у переднего и слева у заднего)
+    const drawFlapLouvers = (x, y, h, isRight) => {
+      const fLouvCount = Math.ceil((h - 2*louvOffsetMM) / louvStepMM) + 1;
+      const fLouvActualStepMM = (h - 2*louvOffsetMM) / (fLouvCount - 1);
+      for (let i = 0; i < fLouvCount; i++) {
+        const ly = y + (louvOffsetMM + i * fLouvActualStepMM) * tScale;
+        const lx = isRight ? x + fFlapW - 10 : x + 10;
+        ctx.beginPath();
+        ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    };
+    drawFlapLouvers(fFlapX, fFlapY, fFlapH, true);
+    drawFlapLouvers(rFlapX, rFlapY, rFlapH, false);
+
+    // Подпись (суммарно)
+    const totalLouvs = 2*louvCountPerEdge + 2*Math.ceil((frameW+frontAdd*2 - 2*louvOffsetMM) / louvStepMM) + 2; 
     ctx.fillStyle = '#f1c40f';
     ctx.font = '7px DejaVu Sans';
-    ctx.fillText(`люверсы d10 × ${2*louvCountPerEdge} шт (шаг ~${louvStepMM} мм)`, tLayoutX + mainW + 3, tLayoutY + mainH - reinfPx - 4);
+    ctx.fillText(`люверсы d10 (шаг ~${louvStepMM} мм)`, tLayoutX + mainW + 3, tLayoutY + mainH - reinfPx - 4);
+
 
     // Подписи секций
     ctx.fillStyle = '#e74c3c';

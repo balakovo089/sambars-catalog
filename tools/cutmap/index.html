@@ -48,6 +48,15 @@ canvas{display:block;cursor:grab}
 ::-webkit-scrollbar{width:6px}
 ::-webkit-scrollbar-track{background:#1a1a2e}
 ::-webkit-scrollbar-thumb{background:#0f3460;border-radius:3px}
+
+/* ── Печать ── */
+@media print {
+  @page { size: A4 landscape; margin: 8mm; }
+  body { display: block; background: #fff; height: auto; overflow: visible; }
+  .sidebar, .toolbar, .legend { display: none !important; }
+  .main { background: #fff; overflow: visible; }
+  .main canvas { filter: invert(1) hue-rotate(180deg); max-width: 100%; height: auto; }
+}
 </style>
 </head>
 <body>
@@ -95,6 +104,8 @@ canvas{display:block;cursor:grab}
   <div class="toolbar">
     <span style="color:#888">🖱 Перетаскивайте | ⚙ Колёсико - вверх/вниз</span>
     <button onclick="resetView()">Сброс</button>
+    <div class="sep"></div>
+    <button onclick="window.print()" title="Печать A4 альбомная">🖨️ Печать</button>
   </div>
   <div class="legend">
     <span style="color:#5dade2">▬▬</span> Рама<br>

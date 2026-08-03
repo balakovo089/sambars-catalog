@@ -205,7 +205,7 @@ const TUBES = {
 // ══════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════
-let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1};
+let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1, model:'Самбарс 1.5×3.0'};
 let scale = 1.0, offX = 0, offY = 0;
 let dragging = false, dragSX, dragSY, dragOX, dragOY;
 
@@ -241,6 +241,7 @@ function onModelChange() {
   state.W = m.w;
   state.L = m.l;
   state.tentH = m.tent || 0;
+  state.model = m.model;
 
   // Populate axles dropdown
   const axSel = document.getElementById('axles');
@@ -2079,8 +2080,6 @@ function resetView() {
 // ══════════════════════════════════════════════════════════
 function updatePrintLayout() {
   const pl = document.getElementById('printLayout');
-  const m = MODELS.find(x => x.model === state.model);
-  const bp = BRAND[state.brand];
 
   // Собираем контент из сайдбара
   const modelSel = document.getElementById('modelSelect');
@@ -2131,6 +2130,7 @@ function updatePrintLayout() {
 // ══════════════════════════════════════════════════════════
 init();
 recalc();
+setTimeout(updatePrintLayout, 300);
 </script>
 </body>
 </html>

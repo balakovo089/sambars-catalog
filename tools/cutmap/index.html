@@ -210,6 +210,7 @@ const TUBES = {
 let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1, model:'Самбарс 1.5×3.0'};
 let scale = 1.0, offX = 0, offY = 0;
 let dragging = false, dragSX, dragSY, dragOX, dragOY;
+let sectionRects = []; // [{id, y, h}] — границы секций для печати
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -918,6 +919,7 @@ function redrawCanvas() {
   // ─────────────────────────────────────────────
   drawLabel(margin, curY, '1. РАМА (вид сверху)', '#e94560');
   curY += labelH + 5;
+  sectionRects = []; let secY = curY;
 
   const rX = margin + 60 + offX;
   const rY = curY;
@@ -1255,6 +1257,7 @@ function redrawCanvas() {
   if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rL+36);
 
   curY = apexY + 30;
+  sectionRects.push({id:1, y:secY, h:curY - secY}); secY = curY;
 
   // ─────────────────────────────────────────────
   // 2. SIDE VIEW: БОРТА (длинный + короткий)
@@ -1348,6 +1351,7 @@ function redrawCanvas() {
   ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.boardH / 1000).toFixed(1)} м`, sbX, sbY+sbH+24);
 
   curY = sbY + sbH + 36;
+  sectionRects.push({id:2, y:secY, h:curY - secY}); secY = curY;
 
   // ─────────────────────────────────────────────
   // 3. TENT FRAME (каркас тента - вид сбоку)
@@ -1496,6 +1500,7 @@ function redrawCanvas() {
     ctx.fillText(`• М6 каркас→борта: ${tentBoltN*2} шт (шаг ~800 мм)`, tX, tY+tH+48);
 
     curY = tY + tH + 62;
+    sectionRects.push({id:3, y:secY, h:curY - secY}); secY = curY;
   }
 
   // ─────────────────────────────────────────────
@@ -1690,6 +1695,7 @@ function redrawCanvas() {
   ctx.fillText(`${W} мм (заявл.) | ${frameW} мм (рама)`, secX + secW/2 - 70, boardTopY - 8);
 
   curY = rearY + postVisH + 30;
+  sectionRects.push({id:4, y:secY, h:curY - secY}); secY = curY;
 
   // ─────────────────────────────────────────────
   // ТЕНТ (раскрой: основное полотно + клапаны)
@@ -2040,6 +2046,7 @@ function redrawCanvas() {
     ctx.fillText('люверсы d10 (50/300 мм)', tLayoutX + 6, tLayoutY + mainH + 30);
 
     curY = Math.max(tLayoutY + mainH, rFlapY + rFlapH) + 34;
+    sectionRects.push({id:5, y:secY, h:curY - secY});
   }
 
   // Total
@@ -2083,22 +2090,7 @@ function resetView() {
 function updatePrintLayout() {
   const pl = document.getElementById('printLayout');
 
-  // Собираем контент из сайдбара
-  const modelSel = document.getElementById('modelSelect');
-  const meta = document.querySelector('.meta-info');
-  const plywood = document.getElementById('plywoodPlan');
-  const tent = document.getElementById('tentPlan');
-  const consum = document.getElementById('consumables');
-  const bolts = document.getElementById('boltMap');
-  const brackets = document.getElementById('bracketSpec');
-  const summary = document.getElementById('summary');
-
-  const h = (id, title, el) => {
-    if (!el || !el.innerHTML.trim()) return '';
-    return `<h2>${title}</h2>${el.innerHTML}`;
-  };
-
-  // ═══ Захват полного чертежа (2 части: верх и низ) ═══
+  // ═══ Захват полного чертежа ═══
   const savedW = canvas.width, savedH = canvas.height;
   const savedOffX = offX, savedOffY = offY;
   canvas.width = 2200;
@@ -2106,43 +2098,67 @@ function updatePrintLayout() {
   offX = 0; offY = 0;
   redrawCanvas();
 
-  // Разрезаем: верх (секции 1-3) и низ (секции 4-5)
-  const midY = Math.round(canvas.height * 0.55);
-  const topH = midY, botH = canvas.height - midY;
-
-  const topC = document.createElement('canvas');
-  topC.width = canvas.width; topC.height = topH;
-  topC.getContext('2d').drawImage(canvas, 0, 0, canvas.width, topH, 0, 0, canvas.width, topH);
-
-  const botC = document.createElement('canvas');
-  botC.width = canvas.width; botC.height = botH;
-  botC.getContext('2d').drawImage(canvas, 0, midY, canvas.width, botH, 0, 0, canvas.width, botH);
-
-  const imgTop = topC.toDataURL('image/jpeg', 0.65);
-  const imgBot = botC.toDataURL('image/jpeg', 0.65);
+  // Нарезаем секции из большого canvas
+  const secImgs = [];
+  sectionRects.forEach((sr, i) => {
+    if (sr.h < 10) return;
+    const sc = document.createElement('canvas');
+    sc.width = canvas.width;
+    sc.height = sr.h;
+    sc.getContext('2d').drawImage(canvas, 0, sr.y, canvas.width, sr.h, 0, 0, canvas.width, sr.h);
+    secImgs.push({id: sr.id, data: sc.toDataURL('image/jpeg', 0.7)});
+  });
 
   canvas.width = savedW; canvas.height = savedH;
   offX = savedOffX; offY = savedOffY;
   redrawCanvas();
 
-  pl.innerHTML = `
-    <h1>📐 Спецификация: ${state.brand} ${(state.W/1000).toFixed(2)}×${(state.L/1000).toFixed(1)} м</h1>
-    ${meta ? meta.innerHTML : ''}
-    ${h('🔧 МЕТАЛЛ', metalSpec)}
-    ${h('📏 РАСКРОЙ ПРОФИЛЕЙ', cutPlan)}
-    ${h('🪵 РАСКРОЙ ПОЛА', plywood)}
-    ${h('tent', '⛺ ТЕНТ', tent)}
-    ${h('consum', '📦 РАСХОДНИКИ', consum)}
-    ${h('bolts', '🔩 БОЛТОВАЯ КАРТА', bolts)}
-    ${h('brackets', '🔧 КРОНШТЕЙНЫ', brackets)}
-    ${h('summary', '⚖️ СВОДКА', summary)}
-    <h2>📐 ЧЕРТЁЖ</h2>
-    <div class="print-canvas" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; page-break-before:always;">
-      <div><b style="font-size:9pt">Секции 1-3: Рама, Борта, Каркас</b><br><img src="${imgTop}" style="width:100%; filter:invert(1) hue-rotate(180deg);" alt="Верх"/></div>
-      <div><b style="font-size:9pt">Секции 4-5: Вид сзади, Тент</b><br><img src="${imgBot}" style="width:100%; filter:invert(1) hue-rotate(180deg);" alt="Низ"/></div>
-    </div>
-  `;
+  const secImg = (id) => {
+    const s = secImgs.find(x => x.id === id);
+    return s ? '<img src="' + s.data + '" style="width:100%; filter:invert(1) hue-rotate(180deg);" alt="Секция ' + id + '"/>' : '';
+  };
+
+  // ═══ Сбор спецификаций ═══
+  const metalSpec = document.getElementById('metalSpec');
+  const cutPlan = document.getElementById('cutPlan');
+  const plywood = document.getElementById('plywoodPlan');
+  const tent = document.getElementById('tentPlan');
+  const consum = document.getElementById('consumables');
+  const bolts = document.getElementById('boltMap');
+  const brackets = document.getElementById('bracketSpec');
+  const summary = document.getElementById('summary');
+  const meta = document.querySelector('.meta-info');
+
+  const h = (title, el) => {
+    if (!el || !el.innerHTML.trim()) return '';
+    return '<h2>' + title + '</h2>' + el.innerHTML;
+  };
+
+  pl.innerHTML = ''
+    + '<h1>📐 Спецификация: ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м</h1>'
+    + (meta ? meta.innerHTML : '')
+    + h('🔧 МЕТАЛЛ', metalSpec)
+    + h('📏 РАСКРОЙ ПРОФИЛЕЙ', cutPlan)
+    + h('🪵 РАСКРОЙ ПОЛА', plywood)
+    + h('⛺ ТЕНТ', tent)
+    + h('📦 РАСХОДНИКИ', consum)
+    + h('🔩 БОЛТОВАЯ КАРТА', bolts)
+    + h('🔧 КРОНШТЕЙНЫ', brackets)
+    + h('⚖️ СВОДКА', summary)
+    + '<h2>📐 ЧЕРТЁЖ</h2>'
+    + '<div class="print-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; page-break-before:always;">'
+    + '<div class="print-col">'
+    + '<div class="print-block">' + secImg(1) + '</div>'
+    + '<div class="print-block">' + secImg(2) + '</div>'
+    + '</div>'
+    + '<div class="print-col">'
+    + '<div class="print-block">' + secImg(3) + '</div>'
+    + '<div class="print-block">' + secImg(4) + '</div>'
+    + '<div class="print-block">' + secImg(5) + '</div>'
+    + '</div>'
+    + '</div>';
 }
+
 
 // ══════════════════════════════════════════════════════════
 init();

@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Спецификации прицепов - Самбарс v28.07</title>
+<title>Спецификации прицепов - Самбарс v04.08</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DejaVu Sans',Arial,sans-serif;background:#1a1a2e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
@@ -52,26 +52,33 @@ canvas{display:block;cursor:grab}
 /* ── Печать ── */
 .print-only { display: none; }
 @media print {
-  @page { size: A4; margin: 12mm; }
+  @page { size: A4; margin: 8mm; }
   body { display: block !important; background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
   .sidebar, .main, .toolbar, .legend { display: none !important; }
   #printLayout { 
     display: block !important; 
     font-family: 'DejaVu Sans', Arial, sans-serif;
-    font-size: 10pt;
+    font-size: 7.5pt;
     color: #000;
   }
-  #printLayout h1 { font-size: 16pt; margin: 0 0 6pt; }
-  #printLayout h2 { font-size: 13pt; margin: 10pt 0 4pt; border-bottom: 1px solid #000; }
-  #printLayout h3 { font-size: 11pt; margin: 8pt 0 2pt; }
-  #printLayout table { width: 100%; border-collapse: collapse; margin: 4pt 0; font-size: 9pt; }
-  #printLayout th, #printLayout td { padding: 2pt 4pt; text-align: left; border: 0.5pt solid #ccc; }
-  #printLayout .section, #printLayout .summary, #printLayout h2 { break-inside: avoid; }
+  #printLayout h1 { font-size: 13pt; margin: 0 0 4pt; }
+  #printLayout h2 { font-size: 10pt; margin: 6pt 0 3pt; border-bottom: 1px solid #000; }
+  #printLayout .section-block { break-inside: avoid; margin-bottom: 6pt; }
+  #printLayout table { width: 100%; border-collapse: collapse; margin: 2pt 0; font-size: 7pt; }
+  #printLayout th, #printLayout td { padding: 1pt 2pt; text-align: left; border: 0.4pt solid #ccc; }
   #printLayout th { background: #eee; font-weight: bold; }
+  #printLayout .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #printLayout .print-section-img { 
+    width: 100%; 
+    height: auto; 
+    display: block;
+    filter: invert(0.92) hue-rotate(180deg);
+    background: #fff;
+    margin: 2pt 0;
+  }
+  #printLayout .print-block { break-inside: avoid; margin-bottom: 6pt; }
+  #printLayout .meta-block { margin-bottom: 6pt; font-size: 8pt; }
   #printLayout .num { text-align: right; }
-  #printLayout .print-canvas { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  #printLayout .print-canvas h2 { grid-column: span 2; }
-  #printLayout canvas { width: 100% !important; height: auto !important; }
 }
 </style>
 </head>
@@ -2090,32 +2097,39 @@ function resetView() {
 function updatePrintLayout() {
   const pl = document.getElementById('printLayout');
 
-  // ═══ Захват полного чертежа ═══
+  // ═══ Рендер секций для печати (увеличенный масштаб) ═══
+  const savedScale = baseScale;
   const savedW = canvas.width, savedH = canvas.height;
   const savedOffX = offX, savedOffY = offY;
-  canvas.width = 2200;
-  canvas.height = 6000;
+
+  // Печатный масштаб: 0.55 против экранных 0.30 — почти вдвое крупнее
+  baseScale = 0.55;
+  // Широкий холст, высота с запасом под все секции
+  canvas.width = 1400;
+  canvas.height = 5000;
   offX = 0; offY = 0;
   redrawCanvas();
 
-  // Нарезаем секции из большого canvas
+  // Нарезаем секции
   const secImgs = [];
-  sectionRects.forEach((sr, i) => {
-    if (sr.h < 10) return;
+  sectionRects.forEach((sr) => {
+    if (sr.h < 15) return;
     const sc = document.createElement('canvas');
     sc.width = canvas.width;
-    sc.height = sr.h;
+    sc.height = Math.ceil(sr.h);
     sc.getContext('2d').drawImage(canvas, 0, sr.y, canvas.width, sr.h, 0, 0, canvas.width, sr.h);
-    secImgs.push({id: sr.id, data: sc.toDataURL('image/jpeg', 0.7)});
+    secImgs.push({id: sr.id, data: sc.toDataURL('image/jpeg', 0.92)});
   });
 
+  // Восстанавливаем экранный режим
+  baseScale = savedScale;
   canvas.width = savedW; canvas.height = savedH;
   offX = savedOffX; offY = savedOffY;
   redrawCanvas();
 
   const secImg = (id) => {
     const s = secImgs.find(x => x.id === id);
-    return s ? '<img src="' + s.data + '" style="width:100%; filter:invert(1) hue-rotate(180deg);" alt="Секция ' + id + '"/>' : '';
+    return s ? '<img src="' + s.data + '" class="print-section-img" alt="Чертёж ' + id + '"/>' : '';
   };
 
   // ═══ Сбор спецификаций ═══
@@ -2131,31 +2145,27 @@ function updatePrintLayout() {
 
   const h = (title, el) => {
     if (!el || !el.innerHTML.trim()) return '';
-    return '<h2>' + title + '</h2>' + el.innerHTML;
+    return '<div class="section-block"><h2>' + title + '</h2>' + el.innerHTML + '</div>';
   };
 
   pl.innerHTML = ''
     + '<h1>📐 Спецификация: ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м</h1>'
-    + (meta ? meta.innerHTML : '')
-    + h('🔧 МЕТАЛЛ', metalSpec)
-    + h('📏 РАСКРОЙ ПРОФИЛЕЙ', cutPlan)
-    + h('🪵 РАСКРОЙ ПОЛА', plywood)
-    + h('⛺ ТЕНТ', tent)
-    + h('📦 РАСХОДНИКИ', consum)
-    + h('🔩 БОЛТОВАЯ КАРТА', bolts)
-    + h('🔧 КРОНШТЕЙНЫ', brackets)
-    + h('⚖️ СВОДКА', summary)
-    + '<h2>📐 ЧЕРТЁЖ</h2>'
-    + '<div class="print-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px; page-break-before:always;">'
-    + '<div class="print-col">'
-    + '<div class="print-block">' + secImg(1) + '</div>'
-    + '<div class="print-block">' + secImg(2) + '</div>'
-    + '</div>'
-    + '<div class="print-col">'
-    + '<div class="print-block">' + secImg(3) + '</div>'
-    + '<div class="print-block">' + secImg(4) + '</div>'
-    + '<div class="print-block">' + secImg(5) + '</div>'
-    + '</div>'
+    + (meta ? '<div class="meta-block">' + meta.innerHTML + '</div>' : '')
+    + '<div class="main-content">'
+      + '<div class="col-left">'
+        + h('🔧 МЕТАЛЛ', metalSpec)
+        + h('📏 РАСКРОЙ ПРОФИЛЕЙ', cutPlan)
+        + h('🪵 РАСКРОЙ ПОЛА', plywood)
+        + h('⛺ ТЕНТ', tent)
+      + '</div>'
+      + '<div class="col-right">'
+        + h('📦 РАСХОДНИКИ', consum)
+        + h('🔩 БОЛТОВАЯ КАРТА', bolts)
+        + h('🔧 КРОНШТЕЙНЫ', brackets)
+        + h('⚖️ СВОДКА', summary)
+        + '<h2>📐 ЧЕРТЁЖ</h2>'
+        + (secImgs.map(s => '<div class="print-block"><img src="' + s.data + '" class="print-section-img" alt="Чертёж ' + s.id + '"/></div>')).join('')
+      + '</div>'
     + '</div>';
 }
 

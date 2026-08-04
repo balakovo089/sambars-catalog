@@ -122,6 +122,12 @@ canvas{display:block;cursor:grab}
   <h3>🔧 КРОНШТЕЙНЫ</h3>
   <div class="section" id="bracketSpec"></div>
 
+  <h3>⚡ ЭЛЕКТРИКА</h3>
+  <div class="section" id="electrics"></div>
+
+  <h3>🔗 НАВЕСНОЕ</h3>
+  <div class="section" id="attachments"></div>
+
   <h3>⚖️ СВОДКА</h3>
   <div class="summary" id="summary"></div>
 </div>
@@ -506,6 +512,8 @@ function recalc() {
   }
   renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides);
   renderBrackets(bp, state);
+  renderElectrics(bp, state, frameL);
+  renderAttachments(state);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
   renderConsumables(consumables);
   updateMeta();
@@ -808,6 +816,44 @@ function renderBrackets(bp, st) {
   </table>`;
   const el = document.getElementById('bracketSpec');
   if (el) el.innerHTML = html;
+}
+
+function renderElectrics(bp, st, frameL) {
+  const dbSideLen = (st.L <= 2500) ? 1.80 : 2.00;
+  // Провод вдоль рамы (frameL см) + в дышло (dbSideLen*100 см) + запас 100 см
+  const wireLen = Math.ceil(frameL/10 + dbSideLen*100 + 100);
+  const grovers = Math.ceil(wireLen / 25);
+  const el = document.getElementById('electrics');
+  if (!el) return;
+  el.innerHTML = `<table>
+    <tr><th>Компонент</th><th>Кол-во</th><th>Примечание</th></tr>
+    <tr><td>Провод 5×0,75 чёрный</td><td class="num">${wireLen} см</td><td>вдоль рамы сбоку, в дышло + запас 100 см</td></tr>
+    <tr><td>Гофра 16 чёрная</td><td class="num">~100 см</td><td>на запас у вилки</td></tr>
+    <tr><td>Вилка фаркопа</td><td class="num">1 шт</td><td>7-pin, под розетку фаркопа</td></tr>
+    <tr><td>Гровер 12</td><td class="num">${grovers} шт</td><td>держатели провода, шаг ~25 см по раме</td></tr>
+    <tr><td>Фонарь ФП-132А</td><td class="num">2 шт</td><td>светодиодные, сзади</td></tr>
+    <tr><td>Рамка номера с подсветкой</td><td class="num">1 шт</td><td>светодиодная, под рамой сзади</td></tr>
+    <tr><td>Термоусадка трубка 20</td><td class="num">20 см</td><td>на соединения проводов</td></tr>
+    <tr><td>Термоусадка трубка 10</td><td class="num">5 см</td><td>на соединения проводов</td></tr>
+  </table>`;
+}
+
+function renderAttachments(st) {
+  const el = document.getElementById('attachments');
+  if (!el) return;
+  el.innerHTML = `<table>
+    <tr><th>Компонент</th><th class="num">Кол-во</th></tr>
+    <tr><td colspan="2" style="color:#e94560;padding-top:4px"><b>Дышло</b></td></tr>
+    <tr><td>Замок фаркопа 750 кг</td><td class="num">1 шт</td></tr>
+    <tr><td>Кронштейн вилки</td><td class="num">1 шт</td></tr>
+    <tr><td>Цепь длиннозвенная 6 мм × 50 см</td><td class="num">1 шт</td></tr>
+    <tr><td>Карабин</td><td class="num">1 шт</td></tr>
+    <tr><td>Болт М12×120 + 2 гайки М12</td><td class="num">2 компл</td></tr>
+    <tr><td colspan="2" style="color:#e94560;padding-top:4px"><b>Светоотражатели</b></td></tr>
+    <tr><td>Катафот белый (спереди)</td><td class="num">2 шт</td></tr>
+    <tr><td>Катафот жёлтый (по бокам)</td><td class="num">4 шт</td></tr>
+    <tr><td>Катафот красный треугольник (сзади)</td><td class="num">2 шт</td></tr>
+  </table>`;
 }
 
 function renderConsumables(c) {
@@ -2061,6 +2107,8 @@ function buildSpecsHTML() {
   const consum = document.getElementById('consumables');
   const bolts = document.getElementById('boltMap');
   const brackets = document.getElementById('bracketSpec');
+  const electrics = document.getElementById('electrics');
+  const attachments = document.getElementById('attachments');
   const summary = document.getElementById('summary');
   const meta = document.querySelector('.meta-info');
 
@@ -2082,6 +2130,8 @@ function buildSpecsHTML() {
         + h('📦 РАСХОДНИКИ', consum)
         + h('🔩 БОЛТОВАЯ КАРТА', bolts)
         + h('🔧 КРОНШТЕЙНЫ', brackets)
+        + h('⚡ ЭЛЕКТРИКА', electrics)
+        + h('🔗 НАВЕСНОЕ', attachments)
         + h('⚖️ СВОДКА', summary)
       + '</div>'
     + '</div>';

@@ -925,66 +925,55 @@ function redrawCanvas() {
   };
 
   // ─────────────────────────────────────────────
-  // 1. TOP VIEW: РАМА + ДЫШЛО (вид сверху)
+  // 1. TOP VIEW: РАМА + ДЫШЛО (горизонтально: зад←→перед)
   // ─────────────────────────────────────────────
-  drawLabel(margin, curY, '1. РАМА (вид сверху)', '#e94560');
-  curY += labelH + 5;
+  drawLabel(margin, curY, '1. РАМА (вид сверху)  ЗАД ← | → ПЕРЕД', '#e94560');
+  curY += labelH + 10;
   sectionRects = []; let secY = curY;
 
-  const rX = margin + 60 + offX;
-  const rY = curY;
-  const rW = frameW * sc;
-  const rL = frameL * sc;
+  // Горизонтальная ориентация: frameL по X (←зад →перед), frameW по Y
+  const rX = margin + 40 + offX;
+  const rY = curY + 40;
+  const rW = frameL * sc;  // длина рамы → горизонталь
+  const rH = frameW * sc;  // ширина рамы → вертикаль
 
   // Frame rectangle
   ctx.strokeStyle = '#5dade2';
   ctx.lineWidth = Math.max(5, 6*scale);
-  ctx.strokeRect(rX, rY, rW, rL);
+  ctx.strokeRect(rX, rY, rW, rH);
 
-  // Center beam (Sambars/Bizon)
+  // Center beam (Sambars/Bizon) — горизонтальная пунктирная линия посередине
   if (brand !== 'Барсук') {
     ctx.strokeStyle = '#5dade2';
     ctx.lineWidth = Math.max(2, 3*scale);
     ctx.setLineDash([8,4]);
-    ctx.beginPath(); ctx.moveTo(rX+rW/2, rY); ctx.lineTo(rX+rW/2, rY+rL); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rX, rY+rH/2); ctx.lineTo(rX+rW, rY+rH/2); ctx.stroke();
     ctx.setLineDash([]);
   }
 
-  // Cross members + shock beams in same plane
-  // Shock beams REPLACE regular cross members - no 40×20 next to them
-  // Divide frame into segments between special beams, place cross members evenly
-
-  // Special beam positions (mm from front edge of frame)
+  // Cross members + shock beams
   const specialBeams = [];
-  if (axles === 1) {
-    specialBeams.push(frameL/2 + 550);
-  } else {
-    specialBeams.push(frameL/2 + 100);
-    specialBeams.push(frameL/2 + 1000);
-  }
+  if (axles === 1) { specialBeams.push(frameL/2 + 550); }
+  else { specialBeams.push(frameL/2 + 100); specialBeams.push(frameL/2 + 1000); }
   specialBeams.sort((a,b) => a-b);
 
-  // Draw shock beams (frame profile, не 40×20)
+  // Shock beams (vertical lines, позиция от переднего края = правого)
   ctx.strokeStyle = '#e67e22';
   ctx.lineWidth = Math.max(4, 5);
   specialBeams.forEach(pos => {
-    const y = rY + rL - (pos / frameL) * rL;
+    const x = rX + rW - (pos / frameL) * rW;
     if (brand !== 'Барсук') {
-      // Самбарс/Бизон: две половинки (делится центр. балкой)
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW/2 - 2, y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(rX + rW/2 + 2, y); ctx.lineTo(rX + rW, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, rY); ctx.lineTo(x, rY + rH/2 - 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, rY + rH/2 + 2); ctx.lineTo(x, rY + rH); ctx.stroke();
     } else {
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, rY); ctx.lineTo(x, rY + rH); ctx.stroke();
     }
   });
 
   // Regular cross members in segments between special beams
   const segments = [];
   let prev = 0;
-  for (const sp of specialBeams) {
-    segments.push({start: prev, end: sp});
-    prev = sp;
-  }
+  for (const sp of specialBeams) { segments.push({start: prev, end: sp}); prev = sp; }
   segments.push({start: prev, end: frameL});
 
   let totalCross = 0;
@@ -995,278 +984,209 @@ function redrawCanvas() {
     const n = Math.max(0, Math.round(segLen / 600) - 1);
     if (n <= 0) return;
     const step = segLen / (n + 1);
-    for (let i = 1; i <= n; i++) {
-      crossPositions.push(seg.start + step * i);
-    }
+    for (let i = 1; i <= n; i++) crossPositions.push(seg.start + step * i);
     totalCross += n;
   });
 
-  // Draw regular cross members (40×20) - on Sambars, two halves per position
   ctx.strokeStyle = '#7f8c8d';
   ctx.lineWidth = Math.max(2, 3);
   crossPositions.forEach(pos => {
-    const y = rY + rL - (pos / frameL) * rL;
+    const x = rX + rW - (pos / frameL) * rW;
     if (brand !== 'Барсук') {
-      // Самбарс: две половинки слева и справа от центр. балки
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX + rW/2 - 2, y); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(rX + rW/2 + 2, y); ctx.lineTo(rX + rW, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, rY); ctx.lineTo(x, rY + rH/2 - 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, rY + rH/2 + 2); ctx.lineTo(x, rY + rH); ctx.stroke();
     } else {
-      // Барсук: цельная поперечина
-      ctx.beginPath(); ctx.moveTo(rX, y); ctx.lineTo(rX+rW, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x, rY); ctx.lineTo(x, rY + rH); ctx.stroke();
     }
   });
 
   // Corner gussets
   if (brand !== 'Барсук') {
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 1;
     const gs = 25;
-    [[rX,rY,1,1],[rX+rW,rY,-1,1],[rX,rY+rL,1,-1],[rX+rW,rY+rL,-1,-1]].forEach(([cx,cy,sx,sy]) => {
+    [[rX,rY,1,1],[rX+rW,rY,-1,1],[rX,rY+rH,1,-1],[rX+rW,rY+rH,-1,-1]].forEach(([cx,cy,sx,sy]) => {
       ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*gs,cy+sy*gs); ctx.stroke();
     });
   }
 
-  // ── ОСЬ И ПОДВЕСКА (разметка на раме) ──
-  // ВАЖНО: дышло снизу = ПЕРЕД прицепа. Верх схемы = ЗАД.
-  // Координата Y растёт вниз → "в зад" = вверх = минус по Y
-  const trueCenter = rY + rL/2;                    // истинный центр рамы
-
-  // True center (dashed grey)
+  // ── ОСЬ И ПОДВЕСКА ──
+  const trueCenter = rX + rW/2;
   ctx.setLineDash([3,5]);
-  ctx.strokeStyle = '#666';
-  ctx.lineWidth = 0.8;
-  ctx.beginPath(); ctx.moveTo(rX-20, trueCenter); ctx.lineTo(rX+rW+20, trueCenter); ctx.stroke();
-  ctx.fillStyle = '#666';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText('центр рамы', rX+rW+22, trueCenter+3);
+  ctx.strokeStyle = '#666'; ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.moveTo(trueCenter, rY-12); ctx.lineTo(trueCenter, rY+rH+12); ctx.stroke();
+  ctx.fillStyle = '#666'; ctx.font = '8px DejaVu Sans';
+  ctx.fillText('центр рамы', trueCenter-18, rY+rH+20);
 
-  // Нарисовать комплект подвески (аморт.балка + кронштейны) для каждой оси
-  // shockY - позиция АМОРТ. БАЛКИ. Ось находится на 445 мм ПЕРЕД ней (к дышлу).
-  function drawAxleSet(shockY, label, color) {
-    const axleY = shockY + 445*sc;      // ось на 445 мм перед аморт. балкой
-    const springFront = axleY + 335*sc;  // передний кронштейн рессоры = к дышлу
-    const springRear = axleY - 335*sc;   // задний кронштейн рессоры = от дышла
-
-    // Axle center (dashed)
+  function drawAxleSet(shockX, label, color) {
+    const axleX = shockX + 445*sc;
+    const springFront = axleX + 335*sc;
+    const springRear = axleX - 335*sc;
     ctx.setLineDash([4,3]);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(rX-25, axleY); ctx.lineTo(rX+rW+25, axleY); ctx.stroke();
-    ctx.fillStyle = color;
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('ось', rX+rW+28, axleY+3);
-
-    // Spring brackets - rectangles 60mm wide, 2 per spring (front + rear)
-    const brW = 60*sc;
-    const brH = 20*sc;  // visual height
+    ctx.strokeStyle = color; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(axleX, rY-12); ctx.lineTo(axleX, rY+rH+12); ctx.stroke();
+    ctx.fillStyle = color; ctx.font = 'bold 8px DejaVu Sans';
+    ctx.fillText('ось', axleX-8, rY+rH+20);
     ctx.setLineDash([]);
+    const brW = 60*sc, brH = 20*sc;
     ctx.fillStyle = '#f39c12';
-    [springFront, springRear].forEach(sy => {
-      // Draw two brackets (left and right side of frame)
-      ctx.fillRect(rX + 10, sy, brW, brH);
-      ctx.fillRect(rX + rW - 10 - brW, sy, brW, brH);
+    [springFront, springRear].forEach(sx => {
+      ctx.fillRect(sx, rY + 10, brW, brH);
+      ctx.fillRect(sx, rY + rH - 10 - brH, brW, brH);
     });
-
-    // Shock absorber brackets - on the shock beam, 150mm from frame edges
-    const shockBrW = 30*sc;
-    const shockBrH = 15*sc;
+    const shockBrW = 30*sc, shockBrH = 15*sc;
     ctx.fillStyle = '#e74c3c';
-    ctx.fillRect(rX + 150*sc, shockY - shockBrH/2, shockBrW, shockBrH);
-    ctx.fillRect(rX + rW - 150*sc - shockBrW, shockY - shockBrH/2, shockBrW, shockBrH);
+    ctx.fillRect(shockX - shockBrW/2, rY + 60*sc, shockBrW, shockBrH);
+    ctx.fillRect(shockX - shockBrW/2, rY + rH - 60*sc - shockBrH, shockBrW, shockBrH);
   }
 
   if (axles === 1) {
-    // Одноосная: аморт. балка на 55 см в зад от центра рамы
-    drawAxleSet(trueCenter - 550*sc, 'аморт +55см', '#e67e22');
+    drawAxleSet(rX + rW - ((frameL/2 + 550) / frameL) * rW, 'аморт +55см', '#e67e22');
   } else {
-    // Двухосная: передняя балка на +10см, задняя на +100см от центра
-    drawAxleSet(trueCenter - 100*sc, 'аморт 1 +10см', '#e67e22');
-    drawAxleSet(trueCenter - 1000*sc, 'аморт 2 +100см', '#c0392b');
+    drawAxleSet(rX + rW - ((frameL/2 + 100) / frameL) * rW, 'аморт 1 +10см', '#e67e22');
+    drawAxleSet(rX + rW - ((frameL/2 + 1000) / frameL) * rW, 'аморт 2 +100см', '#c0392b');
   }
-
   ctx.setLineDash([]);
 
-  // ── ПЕРЕМЫЧКИ ПОД ШВЫ ФАНЕРЫ ПОЛА (опционально, другой цвет) ──
+  // ── ПЕРЕМЫЧКИ ПОД ШВЫ ФАНЕРЫ ПОЛА ──
   if (state.hasFloorSeam && state.floorSeams > 0) {
     const seamStep = W <= 1500 ? (W <= 1250 ? 2500 : 3000) : 1250;
-    ctx.strokeStyle = '#00bcd4';
-    ctx.lineWidth = Math.max(3, 4);
+    ctx.strokeStyle = '#00bcd4'; ctx.lineWidth = Math.max(3, 4);
     ctx.setLineDash([6, 4]);
     for (let s = 1; s <= state.floorSeams; s++) {
       const seamFromRear = s * seamStep;
-      const sy = rY + (seamFromRear / frameL) * rL;
-      ctx.beginPath(); ctx.moveTo(rX, sy); ctx.lineTo(rX + rW, sy); ctx.stroke();
+      const sx = rX + (seamFromRear / frameL) * rW;
+      ctx.beginPath(); ctx.moveTo(sx, rY); ctx.lineTo(sx, rY + rH); ctx.stroke();
     }
     ctx.setLineDash([]);
-    ctx.fillStyle = '#00bcd4';
-    ctx.font = '8px DejaVu Sans';
-    ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rL + 48);
+    ctx.fillStyle = '#00bcd4'; ctx.font = '8px DejaVu Sans';
+    ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rH + 48);
   }
 
-  // ── БОЛТЫ ПОЛА М6 (поперечины + аморт. балки, шаг ~350 мм по ширине) ──
+  // ── БОЛТЫ ПОЛА М6 ──
   const floorBoltStepMM = 350;
   const boltsPerCross = Math.max(2, Math.round(frameW / floorBoltStepMM));
-  // Обычные поперечины
-  let totalFloorBolts = boltsPerCross * crossPositions.length;
   crossPositions.forEach(pos => {
-    const cy = rY + rL - (pos / frameL) * rL;
+    const cx = rX + rW - (pos / frameL) * rW;
     for (let b = 1; b <= boltsPerCross; b++) {
-      const bx = rX + (b / (boltsPerCross + 1)) * rW;
+      const by = rY + (b / (boltsPerCross + 1)) * rH;
       ctx.fillStyle = '#f39c12';
-      ctx.beginPath(); ctx.arc(bx, cy, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, by, 2, 0, Math.PI*2); ctx.fill();
     }
   });
-  // Амортизаторные балки - тоже перемычки, в них тоже крепится пол
+  let totalFloorBolts = boltsPerCross * crossPositions.length;
   specialBeams.forEach(pos => {
-    const sy = rY + rL - (pos / frameL) * rL;
+    const cx = rX + rW - (pos / frameL) * rW;
     totalFloorBolts += boltsPerCross;
     for (let b = 1; b <= boltsPerCross; b++) {
-      const bx = rX + (b / (boltsPerCross + 1)) * rW;
+      const by = rY + (b / (boltsPerCross + 1)) * rH;
       ctx.fillStyle = '#f39c12';
-      ctx.beginPath(); ctx.arc(bx, sy, 2, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(cx, by, 2, 0, Math.PI*2); ctx.fill();
     }
   });
-  ctx.fillStyle = '#f39c12';
-  ctx.font = '8px DejaVu Sans';
-  ctx.fillText(`• М6 пол→перемычки (поперечины + аморт. балки): ${totalFloorBolts} шт (шаг ~350 мм)`, rX, rY + rL + (state.hasFloorSeam ? 62 : 36));
-  // Заклёпки 4.8×25 по лонжеронам
+  ctx.fillStyle = '#f39c12'; ctx.font = '8px DejaVu Sans';
+  ctx.fillText(`• М6 пол→перемычки: ${totalFloorBolts} шт (шаг ~350 мм)`, rX, rY + rH + (state.hasFloorSeam ? 62 : 36));
   const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
-  ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rL + (state.hasFloorSeam ? 76 : 50));
+  ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rH + (state.hasFloorSeam ? 76 : 50));
 
-  // ── Front/Rear labels ──
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 14px DejaVu Sans';
-  ctx.fillText('▼ ПЕРЕД (дышло)', rX + rW/2 - 70, rY + rL + 20);
+  // ── Labels: ЗАД слева, ПЕРЕД справа ──
   ctx.fillStyle = '#888';
-  ctx.fillText('▲ ЗАД', rX + rW/2 - 25, rY - 6);
+  ctx.font = 'bold 12px DejaVu Sans';
+  ctx.fillText('◄ ЗАД', rX - 50, rY + rH/2 + 4);
+  ctx.fillStyle = '#fff';
+  ctx.fillText('ПЕРЕД (дышло) ►', rX + rW + 8, rY + rH/2 + 4);
 
-  // ── ДЫШЛО ──
+  // ── ДЫШЛО (горизонтально, справа от рамы) ──
   const dbSideLen = (L <= 2500) ? 1.80 : 2.00;
-  const dbLen = dbSideLen * 1000;  // 1800 или 2000 мм
-  const dby = rY + rL;              // передний край рамы
-  const apexY = dby + dbLen * sc;   // hitch позиция
+  const dbLen = dbSideLen * 1000;
+  const ATTACH_INSET = bp.frameProfile.includes('60×60') ? 30 : 25;
+  const ATTACH_T = rY + ATTACH_INSET*sc;
+  const ATTACH_B = rY + rH - ATTACH_INSET*sc;
+  const MID_Y = rY + rH/2;
+  const FRONT_X = rX + rW;
+  const HITCH_X = FRONT_X + dbLen * sc;
+  const JOINT_X = HITCH_X - 150*sc;
+  const ATTACH_X = FRONT_X - 220*sc;
 
-  const DRAW_Y_OFF = 10;
-  // Side beam attachment points - к ВНУТРЕННЕЙ стенке лонжерона
-  const ATTACH_INSET = bp.frameProfile.includes('60×60') ? 30 : 25;  // отступ от края рамы
-  const ATTACH_L = rX + ATTACH_INSET*sc;
-  const ATTACH_R = rX + rW - ATTACH_INSET*sc;
-
-  const HITCH_Y = apexY + DRAW_Y_OFF;          // точка фаркопа
-  const JOINT_Y = HITCH_Y - 150*sc;             // 15 см ОТ hitch К РАМЕ (вверх по canvas)
-  const FRONT_Y = dby;                           // передний край рамы - ровно!
-  const ATTACH_Y = dby - 220*sc;                // крепление к лонжеронам: 22 см внутри
-  const MID_X = rX + rW/2;
-
-  const crossL = ATTACH_L;                      // перемычка: от левого до правого луча
-  const crossR = ATTACH_R;
-
-  // 1. Центральный луч (пунктир): hitch → joint → front edge
+  // Центральный луч (пунктир)
   ctx.setLineDash([4,3]);
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(2, 3*scale);
   ctx.beginPath();
-  ctx.moveTo(MID_X, HITCH_Y);
-  ctx.lineTo(MID_X, JOINT_Y);
-  ctx.lineTo(MID_X, FRONT_Y);
+  ctx.moveTo(HITCH_X, MID_Y);
+  ctx.lineTo(JOINT_X, MID_Y);
+  ctx.lineTo(FRONT_X, MID_Y);
   ctx.stroke();
 
-  // 2. Боковые лучи (пунктир, толще): joint → attachments
+  // Боковые лучи
   ctx.lineWidth = Math.max(4, 5*scale);
   ctx.beginPath();
-  ctx.moveTo(MID_X, JOINT_Y);
-  ctx.lineTo(ATTACH_L, ATTACH_Y);
+  ctx.moveTo(JOINT_X, MID_Y);
+  ctx.lineTo(ATTACH_X, ATTACH_T);
   ctx.stroke();
   ctx.beginPath();
-  ctx.moveTo(MID_X, JOINT_Y);
-  ctx.lineTo(ATTACH_R, ATTACH_Y);
+  ctx.moveTo(JOINT_X, MID_Y);
+  ctx.lineTo(ATTACH_X, ATTACH_B);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // 3. Перемычка - между точками пересечения боковых лучей с передним краем
-  const leftX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_L - MID_X) / (ATTACH_Y - JOINT_Y);
-  const rightX = MID_X + (FRONT_Y - JOINT_Y) * (ATTACH_R - MID_X) / (ATTACH_Y - JOINT_Y);
-
+  // Перемычка (вертикальная на переднем крае)
+  const topY = MID_Y + (FRONT_X - JOINT_X) * (ATTACH_T - MID_Y) / (ATTACH_X - JOINT_X);
+  const botY = MID_Y + (FRONT_X - JOINT_X) * (ATTACH_B - MID_Y) / (ATTACH_X - JOINT_X);
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5*scale);
   ctx.beginPath();
-  ctx.moveTo(leftX, FRONT_Y);
-  ctx.lineTo(rightX, FRONT_Y);
+  ctx.moveTo(FRONT_X, topY);
+  ctx.lineTo(FRONT_X, botY);
   ctx.stroke();
 
-  // 4. Маркеры
-  // Hitch - красный круг
+  // Маркеры: hitch, joint
   ctx.fillStyle = '#e74c3c';
-  ctx.beginPath();
-  ctx.arc(MID_X, HITCH_Y, 7, 0, Math.PI*2);
-  ctx.fill();
-
-  // Joint - бело-красный круг с "15см"
+  ctx.beginPath(); ctx.arc(HITCH_X, MID_Y, 7, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(MID_X, JOINT_Y, 7, 0, Math.PI*2);
-  ctx.fill();
+  ctx.beginPath(); ctx.arc(JOINT_X, MID_Y, 7, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#e74c3c';
-  ctx.beginPath();
-  ctx.arc(MID_X, JOINT_Y, 5, 0, Math.PI*2);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 8px DejaVu Sans';
-  ctx.fillText('15см', MID_X + 10, JOINT_Y + 3);
+  ctx.beginPath(); ctx.arc(JOINT_X, MID_Y, 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 8px DejaVu Sans';
+  ctx.fillText('15см', JOINT_X-8, MID_Y-10);
 
-  // Кронштейны самосвала - пластины 120×60×5 мм (на дышле + ответные на раме)
-  const brL = 120 * sc;  // длина пластины 120 мм
-  const brW = 60 * sc;   // ширина пластины 60 мм
-  [ATTACH_L, ATTACH_R].forEach(sx => {
-    // Пластина (наложенные: одна на дышле, одна на раме)
+  // Кронштейны самосвала
+  const brL = 120*sc, brW = 60*sc;
+  [ATTACH_T, ATTACH_B].forEach(sy => {
     ctx.fillStyle = 'rgba(231, 76, 60, 0.25)';
-    ctx.fillRect(sx - brL/2, ATTACH_Y - brW/2, brL, brW);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.8;
-    ctx.setLineDash([]);
-    ctx.strokeRect(sx - brL/2, ATTACH_Y - brW/2, brL, brW);
-
-    // Болт М12×80 (жёлтый кружок с белым центром)
+    ctx.fillRect(ATTACH_X - brL/2, sy - brW/2, brL, brW);
+    ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 1.8;
+    ctx.strokeRect(ATTACH_X - brL/2, sy - brW/2, brL, brW);
     ctx.fillStyle = '#f1c40f';
-    ctx.beginPath();
-    ctx.arc(sx, ATTACH_Y, 5, 0, Math.PI*2);
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(ATTACH_X, sy, 5, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(sx, ATTACH_Y, 2.5, 0, Math.PI*2);
-    ctx.fill();
-
-    // Подпись кронштейна
-    ctx.fillStyle = '#e74c3c';
-    ctx.font = 'bold 8px DejaVu Sans';
-    ctx.fillText('пл. 120×60×5', sx + brL/2 + 2, ATTACH_Y - 2);
-    ctx.fillText('M12×80', sx + brL/2 + 2, ATTACH_Y + 10);
+    ctx.beginPath(); ctx.arc(ATTACH_X, sy, 2.5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 8px DejaVu Sans';
+    ctx.fillText('пл. 120×60×5', ATTACH_X + 4, sy - brW/2 - 2);
+    ctx.fillText('M12×80', ATTACH_X + 4, sy + brW/2 + 10);
   });
 
-  // 5. Подписи
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
-  ctx.fillText('▼ Hitch', MID_X - 20, HITCH_Y + 18);
-  ctx.fillText('120 см', MID_X - 55, (HITCH_Y + FRONT_Y)/2);      // вся длина центр. луча
-  ctx.fillText('15 см', MID_X + 8, (HITCH_Y + JOINT_Y)/2 + 4);   // отрезок до joint
-  ctx.fillText(`${dbSideLen*100} см`, ATTACH_R + 5, (JOINT_Y + ATTACH_Y)/2 + 3);
-  ctx.fillText('~22 см', ATTACH_R + 5, ATTACH_Y + brW/2 + 12);
+  // Подписи дышла
+  ctx.fillStyle = '#888'; ctx.font = '9px DejaVu Sans';
+  ctx.fillText('Hitch ►', HITCH_X-20, MID_Y-12);
+  ctx.fillText('120 см', (HITCH_X+FRONT_X)/2-20, MID_Y-12);
+  ctx.fillText('15 см', (HITCH_X+JOINT_X)/2-20, MID_Y+14);
+  ctx.fillText(`${dbSideLen*100} см`, (JOINT_X+ATTACH_X)/2-20, ATTACH_T-4);
+  ctx.fillText('~22 см', ATTACH_X-14, rY+rH/2-10);
 
   // Размеры рамы
-  drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameW} мм`, 'top');
-  drawDimArrow(rX-15, rY, rX-15, rY+rL, `${frameL} мм`, 'left');
+  drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameL} мм`, 'top');
+  drawDimArrow(rX-15, rY, rX-15, rY+rH, `${frameW} мм`, 'left');
 
   // Annotations
-  ctx.fillStyle = '#888';
-  ctx.font = '9px DejaVu Sans';
+  ctx.fillStyle = '#888'; ctx.font = '9px DejaVu Sans';
   let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ` + ${state.floorSeams} под швы пола` : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
-  ctx.fillText(annoText, rX, rY+rL+12);
-  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rL+24);
-  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rL+36);
+  ctx.fillText(annoText, rX, rY+rH+12);
+  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rH+24);
+  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rH+36);
 
-  curY = apexY + 30;
+  curY = rY + rH + 60;
   sectionRects.push({id:1, y:secY, h:curY - secY}); secY = curY;
 
   // ─────────────────────────────────────────────

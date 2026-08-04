@@ -2027,8 +2027,8 @@ function captureSections(printScale) {
   const savedOffX = offX, savedOffY = offY;
 
   baseScale = printScale;
-  canvas.width = 1600;
-  canvas.height = 6000;
+  canvas.width = 3000;
+  canvas.height = 5000;
   offX = 0; offY = 0;
   redrawCanvas();
 
@@ -2095,7 +2095,7 @@ function printSpecs() {
 
 // Только чертежи (на всю ширину A4)
 function printDrawings() {
-  const imgs = captureSections(0.65);
+  const imgs = captureSections(0.50);
   const pl = document.getElementById('printLayout');
   pl.innerHTML = '<h1>📐 ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м — Чертёж</h1>'
     + imgs.map(s => '<div class="drawing-full"><img src="' + s.data + '" class="print-drawing-img" alt="Чертёж ' + s.id + '"/></div>').join('');

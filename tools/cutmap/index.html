@@ -883,6 +883,8 @@ function redrawCanvas() {
   const boardH = bp.boardH; // mm - высота борта всегда 30 см
 
   canvas.width = canvas.width;
+  // Ensure canvas is tall enough for all sections
+  if (canvas.height < 4000) canvas.height = 4000;
   const sc = baseScale;  // fixed scale, no zoom
 
   // Grid
@@ -1980,7 +1982,6 @@ function redrawCanvas() {
   }
 
   // Total
-  canvas.height = Math.max(curY + 20, window.innerHeight);
   const totalY = boardTopY - 15;
   ctx.fillStyle = '#e0e0e0';
   ctx.font = `bold ${Math.max(12, 14)}px DejaVu Sans`;

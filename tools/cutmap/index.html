@@ -128,6 +128,9 @@ canvas{display:block;cursor:grab}
   <h3>🔗 НАВЕСНОЕ</h3>
   <div class="section" id="attachments"></div>
 
+  <h3>🎨 ЦИНК И КРАСКА</h3>
+  <div class="section" id="zincPaint"></div>
+
   <h3>⚖️ СВОДКА</h3>
   <div class="summary" id="summary"></div>
 </div>
@@ -514,6 +517,7 @@ function recalc() {
   renderBrackets(bp, state);
   renderElectrics(bp, state, frameL);
   renderAttachments(state);
+  renderZincPaint(allProfilePieces, bp, frameW, axles);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
   renderConsumables(consumables);
   updateMeta();
@@ -870,6 +874,40 @@ function renderConsumables(c) {
     <tr><td colspan="2" class="sub">нормы: ~7 г проволоки/пил, диск на 18 резов, лепесток на 55 швов</td></tr>
   </table>`;
   document.getElementById('consumables').innerHTML = html;
+}
+
+function renderZincPaint(pieces, bp, frameW, axles) {
+  let zincWeight = 0, paintWeight = 0, paintArea = 0;
+  pieces.forEach(grp => {
+    const label = grp.label;
+    const tm = grp.pieces.reduce((a,b)=>a+b,0);
+    const prof = label.split(' ').pop();
+    const massPerM = TUBES[prof] ? TUBES[prof].mass : 0;
+    const mass = tm * massPerM;
+    // Цинк: рама, центр.балка, дышло, борта
+    if (label.startsWith('Рама ') || label.startsWith('Центр.балка') || label.startsWith('Дышло') || label.startsWith('Борта')) {
+      zincWeight += mass;
+    }
+    // Краска: ось, каркас тента, проставки дуг
+    if (label.startsWith('Ось') || label.startsWith('Каркас тента') || label.startsWith('Проставки дуг')) {
+      paintWeight += mass;
+      let perimeter = 0;
+      if (prof === '50×50×3' || prof === '50×50×4') perimeter = 0.200;
+      else if (prof === '20×20×1.5') perimeter = 0.080;
+      else if (prof === '25×25×2') perimeter = 0.100;
+      paintArea += tm * perimeter;
+    }
+  });
+  const paintEstimate = (paintArea * 0.200 * 2).toFixed(2);
+  const el = document.getElementById('zincPaint');
+  if (!el) return;
+  el.innerHTML = `<table>
+    <tr><th>Операция</th><th>Детали</th><th class="num">Вес/расход</th></tr>
+    <tr><td><b>Цинк (аутсорс)</b></td><td>Рама + дышло + борта</td><td class="num"><b>${zincWeight.toFixed(1)} кг</b></td></tr>
+    <tr><td class="sub" colspan="3">отвозим, считают по весу металла</td></tr>
+    <tr><td><b>Краска 3-в-1</b></td><td>Ось + каркас тента</td><td class="num"><b>${paintWeight.toFixed(1)} кг</b> металла</td></tr>
+    <tr><td class="sub" colspan="3">площадь ~${paintArea.toFixed(2)} м², краски ~${paintEstimate} кг (2 слоя, ~200 г/м², пульверизатор)</td></tr>
+  </table>`;
 }
 
 function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetType) {
@@ -2109,6 +2147,7 @@ function buildSpecsHTML() {
   const brackets = document.getElementById('bracketSpec');
   const electrics = document.getElementById('electrics');
   const attachments = document.getElementById('attachments');
+  const zincPaint = document.getElementById('zincPaint');
   const summary = document.getElementById('summary');
   const meta = document.querySelector('.meta-info');
 
@@ -2132,6 +2171,7 @@ function buildSpecsHTML() {
         + h('🔧 КРОНШТЕЙНЫ', brackets)
         + h('⚡ ЭЛЕКТРИКА', electrics)
         + h('🔗 НАВЕСНОЕ', attachments)
+        + h('🎨 ЦИНК И КРАСКА', zincPaint)
         + h('⚖️ СВОДКА', summary)
       + '</div>'
     + '</div>';

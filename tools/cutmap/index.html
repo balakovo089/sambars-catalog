@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Спецификации прицепов - Самбарс v04.08.2</title>
+<title>Спецификации прицепов - Самбарс v04.08.3</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DejaVu Sans',Arial,sans-serif;background:#1a1a2e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
@@ -52,7 +52,7 @@ canvas{display:block;cursor:grab}
 /* ── Печать ── */
 .print-only { display: none; }
 @media print {
-  @page { size: A4; margin: 8mm; }
+  @page { size: A4 landscape; margin: 8mm; }
   body { display: block !important; background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
   .sidebar, .main, .toolbar, .legend { display: none !important; }
   #printLayout { 
@@ -2105,8 +2105,8 @@ function captureSections(printScale) {
   const savedOffX = offX, savedOffY = offY;
 
   baseScale = printScale;
-  canvas.width = 1400;
-  canvas.height = 5000;
+  canvas.width = 1600;
+  canvas.height = 6000;
   offX = 0; offY = 0;
   redrawCanvas();
 
@@ -2173,7 +2173,7 @@ function printSpecs() {
 
 // Только чертежи (на всю ширину A4)
 function printDrawings() {
-  const imgs = captureSections(0.55);
+  const imgs = captureSections(0.65);
   const pl = document.getElementById('printLayout');
   pl.innerHTML = '<h1>📐 ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м — Чертёж</h1>'
     + imgs.map(s => '<div class="drawing-full"><img src="' + s.data + '" class="print-drawing-img" alt="Чертёж ' + s.id + '"/></div>').join('');

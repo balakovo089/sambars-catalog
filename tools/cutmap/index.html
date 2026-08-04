@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Спецификации прицепов - Самбарс v04.08</title>
+<title>Спецификации прицепов - Самбарс v04.08.2</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'DejaVu Sans',Arial,sans-serif;background:#1a1a2e;color:#e0e0e0;display:flex;height:100vh;overflow:hidden}
@@ -68,11 +68,17 @@ canvas{display:block;cursor:grab}
   #printLayout th, #printLayout td { padding: 1pt 2pt; text-align: left; border: 0.4pt solid #ccc; }
   #printLayout th { background: #eee; font-weight: bold; }
   #printLayout .specs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  #printLayout .drawing-full { break-inside: avoid; margin-bottom: 8pt; }
+  #printLayout .drawing-full { 
+    page-break-after: always; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 90vh;
+  }
   #printLayout .print-drawing-img { 
-    width: 100%; 
-    height: auto; 
-    display: block;
+    max-width: 100%; 
+    max-height: 100%; 
+    object-fit: contain;
     filter: invert(0.92) hue-rotate(180deg);
     background: #fff;
   }

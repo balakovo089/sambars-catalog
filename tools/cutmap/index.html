@@ -2028,17 +2028,19 @@ function captureSections(printScale) {
 
   baseScale = printScale;
   canvas.width = 3000;
-  canvas.height = 5000;
+  canvas.height = 10000;
   offX = 0; offY = 0;
   redrawCanvas();
 
   const imgs = [];
-  sectionRects.forEach((sr) => {
+  sectionRects.forEach((sr, idx) => {
     if (sr.h < 15) return;
     const sc = document.createElement('canvas');
     sc.width = canvas.width;
-    sc.height = Math.ceil(sr.h);
-    sc.getContext('2d').drawImage(canvas, 0, sr.y, canvas.width, sr.h, 0, 0, canvas.width, sr.h);
+    // Добавляем запас снизу для последней секции (тент)
+    const extraPad = (idx === sectionRects.length - 1) ? 400 : 50;
+    sc.height = Math.ceil(sr.h) + extraPad;
+    sc.getContext('2d').drawImage(canvas, 0, sr.y, canvas.width, sr.h + extraPad, 0, 0, canvas.width, sr.h + extraPad);
     imgs.push({id: sr.id, data: sc.toDataURL('image/jpeg', 0.92)});
   });
 

@@ -67,17 +67,15 @@ canvas{display:block;cursor:grab}
   #printLayout table { width: 100%; border-collapse: collapse; margin: 2pt 0; font-size: 7pt; }
   #printLayout th, #printLayout td { padding: 1pt 2pt; text-align: left; border: 0.4pt solid #ccc; }
   #printLayout th { background: #eee; font-weight: bold; }
-  #printLayout .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  #printLayout .print-section-img { 
+  #printLayout .specs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  #printLayout .drawing-full { break-inside: avoid; margin-bottom: 8pt; }
+  #printLayout .print-drawing-img { 
     width: 100%; 
     height: auto; 
     display: block;
     filter: invert(0.92) hue-rotate(180deg);
     background: #fff;
-    margin: 2pt 0;
   }
-  #printLayout .print-block { break-inside: avoid; margin-bottom: 6pt; }
-  #printLayout .meta-block { margin-bottom: 6pt; font-size: 8pt; }
   #printLayout .num { text-align: right; }
 }
 </style>
@@ -128,7 +126,8 @@ canvas{display:block;cursor:grab}
     <span style="color:#888">🖱 Перетаскивайте | ⚙ Колёсико - вверх/вниз</span>
     <button onclick="resetView()">Сброс</button>
     <div class="sep"></div>
-    <button onclick="window.print()" title="Печать A4 альбомная">🖨️ Печать</button>
+    <button onclick="printSpecs()" title="Только спецификации (текст)">🖨️ Спецификации</button>
+    <button onclick="printDrawings()" title="Только чертежи на весь лист">📐 Чертежи</button>
   </div>
   <div class="legend">
     <span style="color:#5dade2">▬▬</span> Рама<br>
@@ -266,13 +265,11 @@ function onModelChange() {
   state.axles = m.ax[0];
 
   recalc();
-  setTimeout(updatePrintLayout, 100);
 }
 
 function onAxleChange() {
   state.axles = parseInt(document.getElementById('axles').value);
   recalc();
-  setTimeout(updatePrintLayout, 100);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2094,45 +2091,39 @@ function resetView() {
 // ══════════════════════════════════════════════════════════
 // ПЕЧАТНЫЙ МАКЕТ
 // ══════════════════════════════════════════════════════════
-function updatePrintLayout() {
-  const pl = document.getElementById('printLayout');
 
-  // ═══ Рендер секций для печати (увеличенный масштаб) ═══
+// Захват секций чертежа в увеличенном масштабе → dataURL
+function captureSections(printScale) {
   const savedScale = baseScale;
   const savedW = canvas.width, savedH = canvas.height;
   const savedOffX = offX, savedOffY = offY;
 
-  // Печатный масштаб: 0.55 против экранных 0.30 — почти вдвое крупнее
-  baseScale = 0.55;
-  // Широкий холст, высота с запасом под все секции
+  baseScale = printScale;
   canvas.width = 1400;
   canvas.height = 5000;
   offX = 0; offY = 0;
   redrawCanvas();
 
-  // Нарезаем секции
-  const secImgs = [];
+  const imgs = [];
   sectionRects.forEach((sr) => {
     if (sr.h < 15) return;
     const sc = document.createElement('canvas');
     sc.width = canvas.width;
     sc.height = Math.ceil(sr.h);
     sc.getContext('2d').drawImage(canvas, 0, sr.y, canvas.width, sr.h, 0, 0, canvas.width, sr.h);
-    secImgs.push({id: sr.id, data: sc.toDataURL('image/jpeg', 0.92)});
+    imgs.push({id: sr.id, data: sc.toDataURL('image/jpeg', 0.92)});
   });
 
-  // Восстанавливаем экранный режим
   baseScale = savedScale;
   canvas.width = savedW; canvas.height = savedH;
   offX = savedOffX; offY = savedOffY;
   redrawCanvas();
 
-  const secImg = (id) => {
-    const s = secImgs.find(x => x.id === id);
-    return s ? '<img src="' + s.data + '" class="print-section-img" alt="Чертёж ' + id + '"/>' : '';
-  };
+  return imgs;
+}
 
-  // ═══ Сбор спецификаций ═══
+// Сбор HTML спецификаций
+function buildSpecsHTML() {
   const metalSpec = document.getElementById('metalSpec');
   const cutPlan = document.getElementById('cutPlan');
   const plywood = document.getElementById('plywoodPlan');
@@ -2148,10 +2139,9 @@ function updatePrintLayout() {
     return '<div class="section-block"><h2>' + title + '</h2>' + el.innerHTML + '</div>';
   };
 
-  pl.innerHTML = ''
-    + '<h1>📐 Спецификация: ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м</h1>'
+  return '<h1>📐 Спецификация: ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м</h1>'
     + (meta ? '<div class="meta-block">' + meta.innerHTML + '</div>' : '')
-    + '<div class="main-content">'
+    + '<div class="specs-two-col">'
       + '<div class="col-left">'
         + h('🔧 МЕТАЛЛ', metalSpec)
         + h('📏 РАСКРОЙ ПРОФИЛЕЙ', cutPlan)
@@ -2163,17 +2153,37 @@ function updatePrintLayout() {
         + h('🔩 БОЛТОВАЯ КАРТА', bolts)
         + h('🔧 КРОНШТЕЙНЫ', brackets)
         + h('⚖️ СВОДКА', summary)
-        + '<h2>📐 ЧЕРТЁЖ</h2>'
-        + (secImgs.map(s => '<div class="print-block"><img src="' + s.data + '" class="print-section-img" alt="Чертёж ' + s.id + '"/></div>')).join('')
       + '</div>'
     + '</div>';
+}
+
+// Только спецификации
+function printSpecs() {
+  const pl = document.getElementById('printLayout');
+  pl.innerHTML = buildSpecsHTML();
+  pl.className = 'print-only print-specs';
+  setTimeout(() => window.print(), 200);
+}
+
+// Только чертежи (на всю ширину A4)
+function printDrawings() {
+  const imgs = captureSections(0.55);
+  const pl = document.getElementById('printLayout');
+  pl.innerHTML = '<h1>📐 ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м — Чертёж</h1>'
+    + imgs.map(s => '<div class="drawing-full"><img src="' + s.data + '" class="print-drawing-img" alt="Чертёж ' + s.id + '"/></div>').join('');
+  pl.className = 'print-only print-drawings';
+  setTimeout(() => window.print(), 200);
+}
+
+// Предзагрузка (для обратной совместимости)
+function updatePrintLayout() {
+  // Ничего не делаем — печать теперь по кнопкам
 }
 
 
 // ══════════════════════════════════════════════════════════
 init();
 recalc();
-setTimeout(updatePrintLayout, 300);
 </script>
 </body>
 </html>

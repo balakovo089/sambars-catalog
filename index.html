@@ -189,12 +189,20 @@ let isDealer = localStorage.getItem('dealer_mode') === 'true';
 
 function findDealerPrice(model, axles) {
   const bkey = model.brand === 'Барсук' ? 'Барсук' : model.brand === 'Самбарс' ? 'Самбарс' : 'Бизон';
-  const w = model.width.toFixed(2).replace(/\.00$/, '');
-  const l = model.length.toFixed(1).replace(/\.0$/, '');
+  const w = model.width % 1 === 0 ? model.width.toFixed(1) : model.width.toFixed(2);
+  const l = model.length.toFixed(1);
   let search = bkey + ' ' + w + '×' + l;
   let dp = DEALER_PRICES.find(p => p.model_name.startsWith(search) && p.axles === axles);
   if (!dp) dp = DEALER_PRICES.find(p => p.model_name.startsWith(search));
-  return dp;
+  return dp;  // {model_name, brand, axles, retail, dealer}
+}
+
+function getDealerPrice(model, axles, retailPrice) {
+  const dp = findDealerPrice(model, axles);
+  if (!dp) return null;
+  // Apply dealer ratio to this variant's retail price
+  const ratio = dp.dealer / dp.retail;
+  return Math.round(retailPrice * ratio);
 }
 
 function toggleDealerModal() {
@@ -284,7 +292,7 @@ function renderCard(model, idx) {
     const has1 = model.axle_options.includes(1);
     const has2 = model.axle_options.includes(2);
     let d1 = null, d2 = null;
-    if (isDealer) { const dp1 = findDealerPrice(model, 1); const dp2 = findDealerPrice(model, 2); d1 = dp1 ? dp1.dealer : null; d2 = dp2 ? dp2.dealer : null; }
+    if (isDealer) { d1 = p1 ? getDealerPrice(model, 1, p1) : null; d2 = p2 ? getDealerPrice(model, 2, p2) : null; }
     const cell1 = p1 !== null ? '<span class="price-cell">'+fmtPrice(p1)+' ₽</span>'+(isDealer&&d1?'<br><span class="dealer-price">'+fmtPrice(d1)+' ₽</span>':'') : '<span class="price-na">—</span>';
     const cell2 = p2 !== null ? '<span class="price-cell">'+fmtPrice(p2)+' ₽</span>'+(isDealer&&d2?'<br><span class="dealer-price">'+fmtPrice(d2)+' ₽</span>':'') : '<span class="price-na">—</span>';
     matrixRows += '<tr><td class="body-label">'+(BODY_ICONS[bt]||'')+' '+(BODY_LABELS[bt]||bt)+'</td><td>'+(has1?cell1:'<span class="price-na">—</span>')+'</td><td>'+(has2?cell2:'<span class="price-na">—</span>')+'</td></tr>';

@@ -136,11 +136,14 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
   </div>
   <span class="filter-sep"></span>
   <div class="filter-group">
-    <label>Ось:</label>
-    <button class="filter-btn active" data-filter="axle" data-val="all">Все</button>
-    <button class="filter-btn" data-filter="axle" data-val="1">1 ось</button>
-    <button class="filter-btn" data-filter="axle" data-val="2">2 оси</button>
-    <button class="filter-btn" data-filter="axle" data-val="both">1+2 оси</button>
+    <label>Длина:</label>
+    <button class="filter-btn active" data-filter="len" data-val="all">Все</button>
+    <button class="filter-btn" data-filter="len" data-val="2.0">2.0 м</button>
+    <button class="filter-btn" data-filter="len" data-val="2.5">2.5 м</button>
+    <button class="filter-btn" data-filter="len" data-val="3.0">3.0 м</button>
+    <button class="filter-btn" data-filter="len" data-val="3.5">3.5 м</button>
+    <button class="filter-btn" data-filter="len" data-val="4.0">4.0 м</button>
+    <button class="filter-btn" data-filter="len" data-val="4.5">4.5 м</button>
   </div>
   <span class="filter-sep"></span>
   <div class="filter-group">
@@ -230,7 +233,7 @@ const BODY_LABELS = {"\u0440\u0430\u043c\u0430": "\u0420\u0430\u043c\u0430", "\u
 const BODY_ICONS = {"\u0440\u0430\u043c\u0430": "\ud83d\udd29", "\u0440\u0430\u043c\u0430 \u0441 \u043f\u043e\u043b\u043e\u043c": "\ud83e\udeb5", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439": "\ud83d\udce6", "\u0431\u043e\u0440\u0442\u043e\u0432\u043e\u0439 \u0441 \u0442\u0435\u043d\u0442\u043e\u043c": "\ud83c\udfd5\ufe0f"};
 const BRAND_COLORS = {"\u0411\u0430\u0440\u0441\u0443\u043a": "#f39c12", "\u0421\u0430\u043c\u0431\u0430\u0440\u0441": "#e74c3c", "\u0411\u0438\u0437\u043e\u043d": "#2ecc71"};
 
-let filters = { brand:'all', axle:'all', width:'all', avatar:'all' };
+let filters = { brand:'all', len:'all', width:'all', avatar:'all' };
 let viewMode = 'cards';
 
 function fmtPrice(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g,' '); }
@@ -242,10 +245,7 @@ function getPrice(model, bodyType, axles) {
 
 function matchesFilters(model) {
   if (filters.brand !== 'all' && model.brand !== filters.brand) return false;
-  if (filters.axle !== 'all') {
-    if (filters.axle === 'both') { if (model.axle_options.length < 2) return false; }
-    else { if (!model.axle_options.includes(parseInt(filters.axle))) return false; }
-  }
+  if (filters.len !== 'all' && model.length !== parseFloat(filters.len)) return false;
   if (filters.width !== 'all' && model.width !== parseFloat(filters.width)) return false;
   if (filters.avatar !== 'all' && !model.avatars.includes(filters.avatar)) return false;
   return true;

@@ -133,6 +133,9 @@ canvas{display:block;cursor:grab}
 
   <h3>⚖️ СВОДКА</h3>
   <div class="summary" id="summary"></div>
+
+  <h3>💰 СЕБЕСТОИМОСТЬ</h3>
+  <div class="summary" id="costPanel"></div>
 </div>
 
 <div class="main">
@@ -196,33 +199,39 @@ const BRAND = {
     boardH:300,
     drawbarProfile:'60×40×2', axleProfile:'50×50×3', springs:3,
     tentPVC:'ПВХ 500 г/м2', tentClr:'серый', espander:6, wheels:'R13',
-    frontFlap:'наглухо', rearFlap:'ремни'
+    frontFlap:'наглухо', rearFlap:'ремни',
+    rate:400, wheelsPrice:3650, springsPrice:1190, hubPrice:1250,
+    axleM_price:1605.8/6, tentPVC_price:120
   },
   'Самбарс': {
     frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
     boardH:300,
     drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:5,
     tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
-    frontFlap:'поворотки', rearFlap:'поворотки'
+    frontFlap:'поворотки', rearFlap:'поворотки',
+    rate:500, wheelsPrice:3555, springsPrice:1302.56, hubPrice:1250,
+    axleM_price:2075.41/6, tentPVC_price:176.78
   },
   'Бизон': {
     frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
     boardH:300,
     drawbarProfile:'80×40×3', axleProfile:'50×50×4', springs:7,
     tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
-    frontFlap:'поворотки', rearFlap:'поворотки'
+    frontFlap:'поворотки', rearFlap:'поворотки',
+    rate:500, wheelsPrice:3555, springsPrice:2395, hubPrice:1250,
+    axleM_price:2075.41/6, tentPVC_price:0
   }
 };
 
 const TUBES = {
-  '60×40×2':  {mass:2.93, color:'#5dade2'},
-  '60×60×2':  {mass:3.56, color:'#5dade2'},
-  '40×20×2':  {mass:1.35, color:'#7f8c8d'},
-  '80×40×3':  {mass:5.19, color:'#e74c3c'},
-  '50×50×3':  {mass:4.30, color:'#c0392b'},
-  '50×50×4':  {mass:5.60, color:'#c0392b'},
-  '25×25×2':  {mass:1.40, color:'#3498db'},
-  '20×20×1.5':{mass:0.84, color:'#27ae60'},
+  '60×40×2':  {mass:2.93, color:'#5dade2', price:1229.17/6},
+  '60×60×2':  {mass:3.56, color:'#5dade2', price:1356.3/6},
+  '40×20×2':  {mass:1.35, color:'#7f8c8d', price:577.5/6},
+  '80×40×3':  {mass:5.19, color:'#e74c3c', price:1959.3/6},
+  '50×50×3':  {mass:4.30, color:'#c0392b', price:1605.8/6},
+  '50×50×4':  {mass:5.60, color:'#c0392b', price:2075.41/6},
+  '25×25×2':  {mass:1.40, color:'#3498db', price:452.96/6},
+  '20×20×1.5':{mass:0.84, color:'#27ae60', price:355.73/6},
 };
 
 // ══════════════════════════════════════════════════════════
@@ -517,8 +526,24 @@ function recalc() {
   renderBrackets(bp, state);
   renderElectrics(bp, state, frameL);
   renderAttachments(state);
+  
+  // Calculate zinc/paint weight for cost panel (mirrored in renderZincPaint)
+  let zincWeight = 0, paintWeight = 0;
+  allProfilePieces.forEach(grp => {
+    const label = grp.label;
+    const tm = grp.pieces.reduce((a,b)=>a+b,0);
+    const prof = label.split(' ').pop();
+    const massPerM = TUBES[prof] ? TUBES[prof].mass : 0;
+    const mass = tm * massPerM;
+    if (label.startsWith('Рама ') || label.startsWith('Центр.балка') || label.startsWith('Дышло') || label.startsWith('Борта')) zincWeight += mass;
+    if (label.startsWith('Ось') || label.startsWith('Каркас тента') || label.startsWith('Проставки дуг')) paintWeight += mass;
+  });
+  
   renderZincPaint(allProfilePieces, bp, frameW, axles);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
+  renderCostPanel(allProfilePieces, bp, brand, floorSheets, sideSheets, tentArea, zincWeight, paintWeight,
+                   sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides,
+                   hasTent, W, L, tentH, axles);
   renderConsumables(consumables);
   updateMeta();
   redrawCanvas();
@@ -929,6 +954,142 @@ function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetTyp
     <tr><td>Тент</td><td class="val">${tentArea > 0 ? tentArea.toFixed(1)+' м2' : '-'}</td></tr>
     <tr><td>Колёса</td><td class="val">${bp.wheels} ×${st.axles*2}</td></tr>
     <tr><td>Рессоры</td><td class="val">${bp.springs}-лист ×${st.axles*2}</td></tr>
+  </table>`;
+}
+
+// ═══ ZP CALC (ported from bom_from_cutmap.js) ═══
+function calcZP(brand, W, L, tentH, axles) {
+  const bp = BRAND[brand];
+  const hasTent = tentH > 0;
+  const tentMM = tentH * 10;
+  const frameW = W + bp.extraMM;
+  const frameL = L + bp.extraMM;
+
+  const REF_OPS_S = [75, 290, 45, 120, 60, 55, 190, 15, 60, 60, 25, 60, 120, 90, 55, 35, 50, 55];
+  const REF_OPS_B = [65, 270, 40, 110, 50, 45, 170, 15, 50, 50, 25, 50, 110, 80, 50, 30, 45, 50];
+  const refOps = brand === 'Барсук' ? REF_OPS_B : REF_OPS_S;
+  const lenSteps = (L - 2500) / 500;
+  const lenStep = brand === 'Барсук' ? 15 : 19;
+  const LEN_FACTORS = [0.25, 0.45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.30, 0, 0, 0, 0];
+  const lenMinutes = LEN_FACTORS.map(f => Math.round(f * lenStep * lenSteps));
+  let widthSurcharge = 0;
+  if (brand === 'Самбарс') {
+    if (W <= 1500) widthSurcharge = 0;
+    else if (W <= 1700) widthSurcharge = Math.round((W-1500)/200*40);
+    else if (W <= 1930) widthSurcharge = 40 + Math.round((W-1700)/230*50);
+    else widthSurcharge = 90 + Math.round((W-1930)/70*15);
+  } else if (brand === 'Барсук') {
+    if (W <= 1250) widthSurcharge = 0;
+    else if (W <= 1500) widthSurcharge = 25;
+  }
+  const WIDTH_FACTORS = [0.15, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.35, 0.05, 0.05, 0.10, 0.05];
+  const widthMinutes = WIDTH_FACTORS.map(f => Math.round(f * widthSurcharge));
+  let axle2Surcharge = 0;
+  if (axles === 2) axle2Surcharge = brand === 'Барсук' ? 40 : 60;
+  const AXLE_FACTORS = [0.25, 0.25, 0, 0, 0.50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const axleMinutes = AXLE_FACTORS.map(f => Math.round(f * axle2Surcharge));
+  const opMinutes = refOps.map((base,i)=>base+lenMinutes[i]+widthMinutes[i]+axleMinutes[i]);
+  const opSum = opMinutes.reduce((a,b)=>a+b,0);
+  const welderM = Math.round(opSum*0.585), painterM = Math.round(opSum*0.05), assemblerM = opSum-welderM-painterM;
+  const rate = bp.rate;
+  const welderR = Math.round(welderM/60*rate), painterR = Math.round(painterM/60*rate), assemblerR = Math.round(assemblerM/60*rate);
+  const zpNoTent = welderR + painterR + assemblerR;
+  let tentMakerR = 0;
+  if (hasTent) {
+    const totalFrameH = bp.boardH + tentMM;
+    const perimeter = 2 * (frameW + 2*tentMM + frameL) / 1000;
+    const tentArea = ((frameW+2*tentMM)/1000) * (frameL/1000) * 1.15;
+    const refTentArea = ((1500+70+2*1200)/1000) * ((3500+70)/1000) * 1.15;
+    const refTentMins = 485;
+    const tentMakerM = Math.round(refTentMins * tentArea / refTentArea);
+    tentMakerR = Math.round(tentMakerM/60 * rate);
+  }
+  const zpTotal = zpNoTent + tentMakerR;
+  return { welderR, painterR, assemblerR, tentMakerR, zpNoTent, zpTotal };
+}
+
+function renderCostPanel(allProfilePieces, bp, brand, floorSheets, sideSheets, tentArea, zincWeight, paintWeight,
+                          sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides,
+                          hasTent, W, L, tentH, axles) {
+  // Metal cost
+  let metalCost = 0;
+  for (const grp of allProfilePieces) {
+    const tm = grp.pieces.reduce((a,b)=>a+b,0);
+    const parts = grp.label.split(' ');
+    const prof = parts[parts.length-1];
+    const pricePerM = TUBES[prof] ? TUBES[prof].price : 0;
+    metalCost += tm * pricePerM;
+  }
+
+  // Plywood
+  const plyPrice125 = 2150, plyPrice150 = 3700;
+  let plyCost = 0;
+  const floorSheetType = W <= 1250 ? '1250×2500' : W <= 1500 ? '1500×3000' : '1250×2500';
+  if (floorSheetType.includes('1500')) plyCost += floorSheets * plyPrice150;
+  else plyCost += floorSheets * plyPrice125;
+  plyCost += sideSheets * plyPrice125;
+
+  // Tent
+  const tentCost = tentArea * bp.tentPVC_price;
+
+  // Zinc + paint
+  const zincCost = zincWeight * 87;
+  const paintCost = paintWeight * 0.4 * 750;
+
+  // Components
+  const wheelsN = axles * 2;
+  const wheelsCost = wheelsN * bp.wheelsPrice;
+  const springsCost = axles * 2 * bp.springsPrice;
+  const hubsCost = wheelsN * bp.hubPrice;
+
+  // Bolts
+  const boltM8 = 6.31, boltM6 = 2.11+0.34+0.36, boltAxle = 33.02, rivet = 0.96;
+  const boltsCost = sBoltsCount*boltM8 + floorBolts*boltM6 + axleBolts*boltAxle + tentBolts*boltM6 + (rivetsFloor+rivetsSides)*rivet;
+
+  // Other
+  const electricCost = 2*381.94+70+103+176.7+4*35+2*50+100+25.62;
+  const hitchCost = 634.5+85.4+15.23+60;
+  const ptsCost = axles===1 ? 3000 : 4000;
+  const otherCost = hitchCost + ptsCost + electricCost;
+
+  const materialCost = Math.round(metalCost+plyCost+tentCost+zincCost+paintCost+wheelsCost+springsCost+hubsCost+boltsCost+otherCost);
+
+  // ZP
+  const zp = calcZP(brand, W, L, tentH, axles);
+  const zpTotal = zp.zpTotal;
+
+  // Prices
+  let koeff = 1.5;
+  if (brand === 'Самбарс') {
+    if (W <= 1250) koeff = 1.55; else if (W <= 1500) koeff = 1.65; else if (W <= 1700) koeff = 1.80; else koeff = 2.00;
+  } else if (brand === 'Барсук') {
+    koeff = W <= 1250 ? 1.50 : 1.60;
+  } else if (brand === 'Бизон') {
+    koeff = 2.00;
+  }
+  const cost = materialCost + zpTotal;
+  const retail = Math.round(cost * koeff);
+  const dealer = Math.round(cost * (koeff - 0.2));
+
+  // Render
+  const fmt = n => n.toLocaleString('ru-RU');
+  document.getElementById('costPanel').innerHTML = `<table>
+    <tr><td>Металл</td><td class="val">${fmt(Math.round(metalCost))} ₽</td></tr>
+    <tr><td>Фанера</td><td class="val">${fmt(Math.round(plyCost))} ₽</td></tr>
+    ${tentCost > 0 ? `<tr><td>Тент</td><td class="val">${fmt(Math.round(tentCost))} ₽</td></tr>` : ''}
+    <tr><td>Цинк + краска</td><td class="val">${fmt(Math.round(zincCost+paintCost))} ₽</td></tr>
+    <tr><td>Колёса</td><td class="val">${fmt(Math.round(wheelsCost))} ₽</td></tr>
+    <tr><td>Рессоры + ступицы</td><td class="val">${fmt(Math.round(springsCost+hubsCost))} ₽</td></tr>
+    <tr><td>Крепёж</td><td class="val">${fmt(Math.round(boltsCost))} ₽</td></tr>
+    <tr><td>Прочее</td><td class="val">${fmt(Math.round(otherCost))} ₽</td></tr>
+    <tr style="border-top:2px solid #e94560"><td><b>МАТЕРИАЛЫ</b></td><td class="val"><b>${fmt(materialCost)} ₽</b></td></tr>
+    <tr><td>ЗП сварщик</td><td class="val">${fmt(zp.welderR)} ₽</td></tr>
+    <tr><td>ЗП маляр</td><td class="val">${fmt(zp.painterR)} ₽</td></tr>
+    <tr><td>ЗП сборщик</td><td class="val">${fmt(zp.assemblerR)} ₽</td></tr>
+    ${zp.tentMakerR > 0 ? `<tr><td>ЗП тентовик</td><td class="val">${fmt(zp.tentMakerR)} ₽</td></tr>` : ''}
+    <tr style="border-top:2px solid #e94560"><td><b>СЕБЕСТОИМОСТЬ</b></td><td class="val"><b>${fmt(cost)} ₽</b></td></tr>
+    <tr><td>Розница (×${koeff.toFixed(2)})</td><td class="val" style="color:#2ecc71">${fmt(retail)} ₽</td></tr>
+    <tr><td>Опт (×${(koeff-0.2).toFixed(2)})</td><td class="val" style="color:#3498db">${fmt(dealer)} ₽</td></tr>
   </table>`;
 }
 

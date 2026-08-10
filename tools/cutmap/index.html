@@ -134,8 +134,6 @@ canvas{display:block;cursor:grab}
   <h3>⚖️ СВОДКА</h3>
   <div class="summary" id="summary"></div>
 
-  <h3>💰 СЕБЕСТОИМОСТЬ</h3>
-  <div class="summary" id="costPanel"></div>
 </div>
 
 <div class="main">
@@ -527,23 +525,8 @@ function recalc() {
   renderElectrics(bp, state, frameL);
   renderAttachments(state);
   
-  // Calculate zinc/paint weight for cost panel (mirrored in renderZincPaint)
-  let zincWeight = 0, paintWeight = 0;
-  allProfilePieces.forEach(grp => {
-    const label = grp.label;
-    const tm = grp.pieces.reduce((a,b)=>a+b,0);
-    const prof = label.split(' ').pop();
-    const massPerM = TUBES[prof] ? TUBES[prof].mass : 0;
-    const mass = tm * massPerM;
-    if (label.startsWith('Рама ') || label.startsWith('Центр.балка') || label.startsWith('Дышло') || label.startsWith('Борта')) zincWeight += mass;
-    if (label.startsWith('Ось') || label.startsWith('Каркас тента') || label.startsWith('Проставки дуг')) paintWeight += mass;
-  });
-  
   renderZincPaint(allProfilePieces, bp, frameW, axles);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
-  renderCostPanel(allProfilePieces, bp, brand, floorSheets, sideSheets, tentArea, zincWeight, paintWeight,
-                   sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides,
-                   hasTent, W, L, tentH, axles);
   renderConsumables(consumables);
   updateMeta();
   redrawCanvas();
@@ -1006,91 +989,6 @@ function calcZP(brand, W, L, tentH, axles) {
   }
   const zpTotal = zpNoTent + tentMakerR;
   return { welderR, painterR, assemblerR, tentMakerR, zpNoTent, zpTotal };
-}
-
-function renderCostPanel(allProfilePieces, bp, brand, floorSheets, sideSheets, tentArea, zincWeight, paintWeight,
-                          sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides,
-                          hasTent, W, L, tentH, axles) {
-  // Metal cost
-  let metalCost = 0;
-  for (const grp of allProfilePieces) {
-    const tm = grp.pieces.reduce((a,b)=>a+b,0);
-    const parts = grp.label.split(' ');
-    const prof = parts[parts.length-1];
-    const pricePerM = TUBES[prof] ? TUBES[prof].price : 0;
-    metalCost += tm * pricePerM;
-  }
-
-  // Plywood
-  const plyPrice125 = 2150, plyPrice150 = 3700;
-  let plyCost = 0;
-  const floorSheetType = W <= 1250 ? '1250×2500' : W <= 1500 ? '1500×3000' : '1250×2500';
-  if (floorSheetType.includes('1500')) plyCost += floorSheets * plyPrice150;
-  else plyCost += floorSheets * plyPrice125;
-  plyCost += sideSheets * plyPrice125;
-
-  // Tent
-  const tentCost = tentArea * bp.tentPVC_price;
-
-  // Zinc + paint
-  const zincCost = zincWeight * 87;
-  const paintCost = paintWeight * 0.4 * 750;
-
-  // Components
-  const wheelsN = axles * 2;
-  const wheelsCost = wheelsN * bp.wheelsPrice;
-  const springsCost = axles * 2 * bp.springsPrice;
-  const hubsCost = wheelsN * bp.hubPrice;
-
-  // Bolts
-  const boltM8 = 6.31, boltM6 = 2.11+0.34+0.36, boltAxle = 33.02, rivet = 0.96;
-  const boltsCost = sBoltsCount*boltM8 + floorBolts*boltM6 + axleBolts*boltAxle + tentBolts*boltM6 + (rivetsFloor+rivetsSides)*rivet;
-
-  // Other
-  const electricCost = 2*381.94+70+103+176.7+4*35+2*50+100+25.62;
-  const hitchCost = 634.5+85.4+15.23+60;
-  const ptsCost = axles===1 ? 3000 : 4000;
-  const otherCost = hitchCost + ptsCost + electricCost;
-
-  const materialCost = Math.round(metalCost+plyCost+tentCost+zincCost+paintCost+wheelsCost+springsCost+hubsCost+boltsCost+otherCost);
-
-  // ZP
-  const zp = calcZP(brand, W, L, tentH, axles);
-  const zpTotal = zp.zpTotal;
-
-  // Prices
-  let koeff = 1.5;
-  if (brand === 'Самбарс') {
-    if (W <= 1250) koeff = 1.55; else if (W <= 1500) koeff = 1.65; else if (W <= 1700) koeff = 1.80; else koeff = 2.00;
-  } else if (brand === 'Барсук') {
-    koeff = W <= 1250 ? 1.50 : 1.60;
-  } else if (brand === 'Бизон') {
-    koeff = 2.00;
-  }
-  const cost = materialCost + zpTotal;
-  const retail = Math.round(cost * koeff);
-  const dealer = Math.round(cost * (koeff - 0.2));
-
-  // Render
-  const fmt = n => n.toLocaleString('ru-RU');
-  document.getElementById('costPanel').innerHTML = `<table>
-    <tr><td>Металл</td><td class="val">${fmt(Math.round(metalCost))} ₽</td></tr>
-    <tr><td>Фанера</td><td class="val">${fmt(Math.round(plyCost))} ₽</td></tr>
-    ${tentCost > 0 ? `<tr><td>Тент</td><td class="val">${fmt(Math.round(tentCost))} ₽</td></tr>` : ''}
-    <tr><td>Цинк + краска</td><td class="val">${fmt(Math.round(zincCost+paintCost))} ₽</td></tr>
-    <tr><td>Колёса</td><td class="val">${fmt(Math.round(wheelsCost))} ₽</td></tr>
-    <tr><td>Рессоры + ступицы</td><td class="val">${fmt(Math.round(springsCost+hubsCost))} ₽</td></tr>
-    <tr><td>Крепёж</td><td class="val">${fmt(Math.round(boltsCost))} ₽</td></tr>
-    <tr><td>Прочее</td><td class="val">${fmt(Math.round(otherCost))} ₽</td></tr>
-    <tr style="border-top:2px solid #e94560"><td><b>МАТЕРИАЛЫ</b></td><td class="val"><b>${fmt(materialCost)} ₽</b></td></tr>
-    <tr><td>ЗП сварщик</td><td class="val">${fmt(zp.welderR)} ₽</td></tr>
-    <tr><td>ЗП маляр</td><td class="val">${fmt(zp.painterR)} ₽</td></tr>
-    <tr><td>ЗП сборщик</td><td class="val">${fmt(zp.assemblerR)} ₽</td></tr>
-    ${zp.tentMakerR > 0 ? `<tr><td>ЗП тентовик</td><td class="val">${fmt(zp.tentMakerR)} ₽</td></tr>` : ''}
-    <tr style="border-top:2px solid #e94560"><td><b>СЕБЕСТОИМОСТЬ</b></td><td class="val"><b>${fmt(cost)} ₽</b></td></tr>
-    <tr><td>Розница (×${koeff.toFixed(2)})</td><td class="val" style="color:#2ecc71">${fmt(retail)} ₽</td></tr>
-    <tr><td>Опт (×${(koeff-0.2).toFixed(2)})</td><td class="val" style="color:#3498db">${fmt(dealer)} ₽</td></tr>
-  </table>`;
 }
 
 function updateMeta() {

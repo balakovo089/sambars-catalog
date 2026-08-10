@@ -778,14 +778,16 @@ function recalc() {
     pieces: pieces
   }));
   renderCutPlan(cutPlanPieces);
-  renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
+  // K1-K2: no side plywood
+  const sideSheetsVis = state.kit >= 3 ? sideSheets : 0;
+  renderPlywood(floorArea, sideArea, floorSheets, sideSheetsVis, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
   if (hasTent && state.kit >= 4) {
     document.getElementById('tentPlanBlock').style.display = 'block';
     renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
   } else {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
-  renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts,
+  renderBoltMap(bp, state, (state.kit >= 3 ? sBoltsCount : 0), floorBolts, axleBolts,
     (state.kit >= 4 ? tentBolts : 0), rivetsFloor, rivetsSides);
   renderBrackets(bp, state);
   renderElectrics(bp, state, frameL);
@@ -815,14 +817,18 @@ function recalc() {
     tentTotalCost = Math.round(tentTotalCost);
   }
   
-  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, floorArea, sideArea,
+  renderSummary(allProfilePieces, bp, floorSheets, (state.kit >= 3 ? sideSheets : 0), floorArea, (state.kit >= 3 ? sideArea : 0),
     (state.kit >= 4 ? tentArea : 0), (state.kit >= 4 ? tentTotalCost : 0), state, floorSheetType);
   renderConsumables(consumables);
   
   // ZP + operations
   const zpData = calcZP(brand, W, L, (state.kit >= 4 ? tentH : 0), axles);
-  if (state.kit < 4) {
-    zpData.ops = zpData.ops.filter((_, i) => ![5, 6, 8, 16, 17].includes(i));
+  // Filter operations by kit level
+  const skipOps = [];
+  if (state.kit < 4) skipOps.push(5, 6, 8, 16, 17); // tent ops
+  if (state.kit < 3) skipOps.push(2, 3, 12, 13);     // side ops
+  if (skipOps.length > 0) {
+    zpData.ops = zpData.ops.filter((_, i) => !skipOps.includes(i));
     zpData.opSum = zpData.ops.reduce((s, o) => s + o.minutes, 0);
   }
   renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);

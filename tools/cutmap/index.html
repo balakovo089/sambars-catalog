@@ -780,7 +780,7 @@ function recalc() {
   renderCutPlan(cutPlanPieces);
   // K1-K2: no side plywood
   const sideSheetsVis = state.kit >= 3 ? sideSheets : 0;
-  renderPlywood(floorArea, sideArea, floorSheets, sideSheetsVis, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
+  renderPlywood(floorArea, (state.kit >= 3 ? sideArea : 0), floorSheets, sideSheetsVis, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
   if (hasTent && state.kit >= 4) {
     document.getElementById('tentPlanBlock').style.display = 'block';
     renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
@@ -796,6 +796,7 @@ function recalc() {
   // Filter paint pieces for K1-K3 (no tent frame paint)
   let zpPieces = allProfilePieces;
   if (state.kit < 4) zpPieces = zpPieces.filter(g => !g.label.startsWith('Каркас тента') && !g.label.startsWith('Проставки дуг'));
+  if (state.kit < 3) zpPieces = zpPieces.filter(g => !g.label.startsWith('Борта'));
   renderZincPaint(zpPieces, bp, frameW, axles);
   
   // Calculate tent total cost (fabric + hardware) - only for K4
@@ -1133,8 +1134,8 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
 
 function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
   const isBarsuk = st.brand === 'Барсук';
-  const hingeBolts = (isBarsuk ? 2 : 4) * 4;
-  const lockBolts = (isBarsuk ? 2 : 4) * 4;
+  const hingeBolts = (st.kit >= 3) ? (isBarsuk ? 2 : 4) * 4 : 0;
+  const lockBolts = (st.kit >= 3) ? (isBarsuk ? 2 : 4) * 4 : 0;
   const dumpLockBolts = 2 * 4;
   // Prices from ALL_MAT_PRICES
   var pM8 = 3.20, pM6 = 3.50, pNut = 0.40, pWasher = 0.40, pRivet = 1, pGrov = 0.72, pErix = 5.60;

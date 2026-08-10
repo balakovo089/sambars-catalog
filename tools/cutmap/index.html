@@ -1199,24 +1199,38 @@ function renderZincPaint(pieces, bp, frameW, axles) {
 }
 
 function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetType) {
-  let totalMetal = 0, totalMass = 0;
+  // Metal cost
+  let totalMetal = 0, metalCost = 0;
   pieces.forEach(grp => {
     const tm = grp.pieces.reduce((a,b)=>a+b,0);
-    const parts = grp.label.split(' ');
-    const prof = parts[parts.length-1];
-    const massPerM = TUBES[prof] ? TUBES[prof].mass : 0;
+    const match = grp.label.match(/(\d+[×x*]\d+[×x*]\d+\.?\d*)/);
+    const prof = match ? match[1] : '';
     totalMetal += tm;
-    totalMass += tm * massPerM;
+    metalCost += tm * (TUBES[prof] ? TUBES[prof].price : 0);
   });
-  const xlysts = pieces.reduce((sum, g) => sum + roundXlysts(g.pieces.reduce((a,b)=>a+b,0)), 0);
-  document.getElementById('summary').innerHTML = `<table>
-    <tr><td>Металла всего</td><td class="val">${totalMetal.toFixed(1)} м</td></tr>
-    <tr><td>Вес металла</td><td class="val">${totalMass.toFixed(1)} кг</td></tr>
-    <tr><td>Хлыстов 6м</td><td class="val">~${xlysts} шт</td></tr>
-    <tr><td>Фанера</td><td class="val">${fSheets + sSheets} листов<br><span class="sub">пол: ${floorSheetType}</span></td></tr>
-    <tr><td>Тент</td><td class="val">${tentArea > 0 ? tentArea.toFixed(1)+' м2' : '-'}</td></tr>
-    <tr><td>Колёса</td><td class="val">${bp.wheels} ×${st.axles*2}</td></tr>
-    <tr><td>Рессоры</td><td class="val">${bp.springs}-лист ×${st.axles*2}</td></tr>
+  
+  // Plywood
+  const pp125 = ALL_MAT_PRICES['Фанера']['1250×2500 (9 мм)'].price;
+  const pp150 = ALL_MAT_PRICES['Фанера']['1500×3000 (9 мм)'].price;
+  const plyCost = fSheets * (floorSheetType.includes('1500') ? pp150 : pp125) + sSheets * pp125;
+  
+  // Components
+  const wheelsCost = st.axles * 2 * bp.wheelsPrice;
+  const springsCost = st.axles * 2 * bp.springsPrice;
+  const hubsCost = st.axles * 2 * bp.hubPrice;
+  const tentCost = tentArea * bp.tentPVC_price;
+  
+  const totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
+  
+  document.getElementById('summary').innerHTML = `<table style=\"width:100%\">
+    <tr><th></th><th class=\"num\">Кол-во</th><th class=\"num\">Стоимость</th></tr>
+    <tr><td>Металл</td><td class=\"num\">${totalMetal.toFixed(1)} м</td><td class=\"num\">${Math.round(metalCost).toLocaleString()} ₽</td></tr>
+    <tr><td>Фанера</td><td class=\"num\">${fSheets + sSheets} листов</td><td class=\"num\">${Math.round(plyCost).toLocaleString()} ₽</td></tr>
+    ${tentArea > 0 ? `<tr><td>Тент</td><td class=\"num\">${tentArea.toFixed(1)} м²</td><td class=\"num\">${Math.round(tentCost).toLocaleString()} ₽</td></tr>` : ''}
+    <tr><td>Колёса</td><td class=\"num\">${st.axles*2} шт</td><td class=\"num\">${Math.round(wheelsCost).toLocaleString()} ₽</td></tr>
+    <tr><td>Рессоры</td><td class=\"num\">${st.axles*2} шт</td><td class=\"num\">${Math.round(springsCost).toLocaleString()} ₽</td></tr>
+    <tr><td>Ступицы</td><td class=\"num\">${st.axles*2} шт</td><td class=\"num\">${Math.round(hubsCost).toLocaleString()} ₽</td></tr>
+    <tr style=\"border-top:2px solid #e94560\"><td><b>ВСЕГО материалы</b></td><td></td><td class=\"num\"><b>${totalMatCost.toLocaleString()} ₽</b></td></tr>
   </table>`;
 }
 

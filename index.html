@@ -298,7 +298,7 @@ function renderCard(model, idx) {
     const has1 = model.axle_options.includes(1);
     const has2 = model.axle_options.includes(2);
     let d1 = null, d2 = null;
-    if (isDealer) { d1 = p1 ? getDealerPrice(model, 1, p1) : null; d2 = p2 ? getDealerPrice(model, 2, p2) : null; }
+    if (isDealer) { d1 = p1 ? getDealerPrice(model, 1, p1, bt) : null; d2 = p2 ? getDealerPrice(model, 2, p2, bt) : null; }
     const cell1 = p1 !== null ? '<span class="price-cell">'+fmtPrice(p1)+' ₽</span>'+(isDealer&&d1?'<br><span class="dealer-price">'+fmtPrice(d1)+' ₽</span>':'') : '<span class="price-na">—</span>';
     const cell2 = p2 !== null ? '<span class="price-cell">'+fmtPrice(p2)+' ₽</span>'+(isDealer&&d2?'<br><span class="dealer-price">'+fmtPrice(d2)+' ₽</span>':'') : '<span class="price-na">—</span>';
     matrixRows += '<tr><td class="body-label">'+(BODY_ICONS[bt]||'')+' '+(BODY_LABELS[bt]||bt)+'</td><td>'+(has1?cell1:'<span class="price-na">—</span>')+'</td><td>'+(has2?cell2:'<span class="price-na">—</span>')+'</td></tr>';

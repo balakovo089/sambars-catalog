@@ -815,7 +815,8 @@ function recalc() {
     tentTotalCost = Math.round(tentTotalCost);
   }
   
-  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, floorArea, sideArea, tentArea, tentTotalCost, state, floorSheetType);
+  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, floorArea, sideArea,
+    (state.kit >= 4 ? tentArea : 0), (state.kit >= 4 ? tentTotalCost : 0), state, floorSheetType);
   renderConsumables(consumables);
   
   // ZP + operations

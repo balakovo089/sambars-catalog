@@ -791,7 +791,7 @@ function recalc() {
   renderAttachments(state);
   
   renderZincPaint(allProfilePieces, bp, frameW, axles);
-  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
+  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, floorArea, sideArea, tentArea, state, floorSheetType);
   renderConsumables(consumables);
   
   // ZP + operations
@@ -1198,7 +1198,7 @@ function renderZincPaint(pieces, bp, frameW, axles) {
   </table>`;
 }
 
-function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetType) {
+function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, st, floorSheetType) {
   // Metal cost from TUBES (safe, no ALL_MAT_PRICES dependency)
   let totalMetal = 0, metalCost = 0;
   pieces.forEach(grp => {
@@ -1209,11 +1209,18 @@ function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetTyp
     if (prof && TUBES[prof]) metalCost += tm * TUBES[prof].price;
   });
   
-  // Plywood cost (hardcoded fallback if no ALL_MAT_PRICES)
+  // Plywood: real square meters (whole sheets including waste)
+  const sheetArea125 = 3.125;
+  const sheetArea150 = 4.5;
+  var isWide = (floorSheetType||'').includes('1500');
+  var floorTotalM2 = fSheets * (isWide ? sheetArea150 : sheetArea125);
+  var sideTotalM2 = sSheets * sheetArea125;
+  var plyWaste = (floorTotalM2 - (fArea||0)) + (sideTotalM2 - (sArea||0));
+  
   var pp125 = 688, pp150 = 822;
   try { pp125 = ALL_MAT_PRICES['Фанера']['1250×2500 (9 мм)'].price; } catch(e) {}
   try { pp150 = ALL_MAT_PRICES['Фанера']['1500×3000 (9 мм)'].price; } catch(e) {}
-  var plyCost = fSheets * ((floorSheetType||'').includes('1500') ? pp150 : pp125) + sSheets * pp125;
+  var plyCost = floorTotalM2 * (isWide ? pp150 : pp125) + sideTotalM2 * pp125;
   
   // Components
   var wheelsCost = (st.axles||1) * 2 * (bp.wheelsPrice||0);
@@ -1226,7 +1233,8 @@ function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetTyp
   document.getElementById('summary').innerHTML = '<table style="width:100%">' +
     '<tr><th></th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>' +
     '<tr><td>Металл</td><td class="num">' + totalMetal.toFixed(1) + ' м</td><td class="num">' + Math.round(metalCost).toLocaleString() + ' ₽</td></tr>' +
-    '<tr><td>Фанера</td><td class="num">' + (fSheets + sSheets) + ' листов</td><td class="num">' + Math.round(plyCost).toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Фанера</td><td class="num">' + (fSheets + sSheets) + ' листов / ' + (floorTotalM2 + sideTotalM2).toFixed(1) + ' м²</td><td class="num">' + Math.round(plyCost).toLocaleString() + ' ₽</td></tr>' +
+    (plyWaste > 0.05 ? '<tr><td class="sub"> в т.ч. остаток</td><td class="num sub">' + plyWaste.toFixed(1) + ' м²</td><td></td></tr>' : '') +
     (tentArea > 0 ? '<tr><td>Тент</td><td class="num">' + tentArea.toFixed(1) + ' м²</td><td class="num">' + Math.round(tentCost).toLocaleString() + ' ₽</td></tr>' : '') +
     '<tr><td>Колёса</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(wheelsCost).toLocaleString() + ' ₽</td></tr>' +
     '<tr><td>Рессоры</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(springsCost).toLocaleString() + ' ₽</td></tr>' +

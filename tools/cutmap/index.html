@@ -2620,24 +2620,156 @@ if (EXPORT_MODE) {
 }
 
 // ═══ PRICE PANEL ═══
+const ALL_MAT_PRICES = {
+  'Металл': {
+    '60×40×2': {price:205, unit:'₽/м'},
+    '60×60×2': {price:226, unit:'₽/м'},
+    '40×20×2': {price:96, unit:'₽/м'},
+    '80×40×3': {price:326, unit:'₽/м'},
+    '50×50×3': {price:268, unit:'₽/м'},
+    '50×50×4': {price:346, unit:'₽/м'},
+    '25×25×2': {price:76, unit:'₽/м'},
+    '20×20×1.5': {price:60, unit:'₽/м'},
+  },
+  'Фанера': {
+    '1250×2500 (9 мм)': {price:688, unit:'₽/м²'},
+    '1500×3000 (9 мм)': {price:822, unit:'₽/м²'},
+  },
+  'Тент': {
+    'ПВХ 500 г/м² серый': {price:120, unit:'₽/м²'},
+    'ПВХ 650 г/м² графит': {price:177, unit:'₽/м²'},
+    'Эспандер d-6мм': {price:27, unit:'₽/м'},
+    'Эспандер d-8мм': {price:33, unit:'₽/м'},
+  },
+  'Колёса / подвеска': {
+    'Колесо R13 в сборе': {price:3650, unit:'₽/шт'},
+    'Колесо R14 в сборе': {price:3555, unit:'₽/шт'},
+    'Рессора 3L': {price:1190, unit:'₽/шт'},
+    'Рессора 5L': {price:1303, unit:'₽/шт'},
+    'Рессора 7L': {price:2395, unit:'₽/шт'},
+    'Ступица СТ-133': {price:1250, unit:'₽/шт'},
+    'Амортизатор ВАЗ 2121': {price:420, unit:'₽/шт'},
+    'Крыло R13/R14': {price:292, unit:'₽/шт'},
+    'Кронштейн рессор': {price:85, unit:'₽/шт'},
+    'Кронштейн аморт.': {price:79, unit:'₽/шт'},
+    'Кронштейн крыла': {price:30, unit:'₽/шт'},
+    'Стремянка': {price:50, unit:'₽/шт'},
+    'Пластина стремянки': {price:175, unit:'₽/шт'},
+    'Косынка усиления': {price:27, unit:'₽/шт'},
+  },
+  'Борта / петли / замки': {
+    'Петля борта': {price:187, unit:'₽/шт'},
+    'Замок борта (компл)': {price:170, unit:'₽/шт'},
+    'Замок самосвальный': {price:280, unit:'₽/шт'},
+  },
+  'Электрика': {
+    'Провод чёрный 3×0.5': {price:70, unit:'₽/м'},
+    'Фонарь задний LED': {price:382, unit:'₽/шт'},
+    'Рамка номера LED': {price:177, unit:'₽/шт'},
+    'Вилка 7pin': {price:103, unit:'₽/шт'},
+    'Держатель вилки': {price:30, unit:'₽/шт'},
+    'Гофра ПНД 16мм': {price:26, unit:'₽/м'},
+    'Термоусадка': {price:100, unit:'₽/компл'},
+    'Катафот белый': {price:35, unit:'₽/шт'},
+    'Катафот жёлтый': {price:35, unit:'₽/шт'},
+    'Катафот красный': {price:50, unit:'₽/шт'},
+  },
+  'Навесное': {
+    'Сцепное устр-во В-40': {price:635, unit:'₽/шт'},
+    'Цепь 6мм цинк': {price:86, unit:'₽/м'},
+    'Карабин М10': {price:15, unit:'₽/шт'},
+    'Табличка WIN': {price:60, unit:'₽/шт'},
+    'ПТС 1 ось': {price:3000, unit:'₽/шт'},
+    'ПТС 2 оси': {price:4000, unit:'₽/шт'},
+    'Подкатное': {price:1350, unit:'₽/шт'},
+  },
+  'Крепёж': {
+    'Болт М8×20': {price:3.20, unit:'₽/шт'},
+    'Болт М6×100 меб.': {price:3.50, unit:'₽/шт'},
+    'Гайка М6 оцинк.': {price:0.40, unit:'₽/шт'},
+    'Шайба М6': {price:0.40, unit:'₽/шт'},
+    'Шайба гроверная': {price:0.72, unit:'₽/шт'},
+    'Заклёпка 4.8×24': {price:1, unit:'₽/шт'},
+    'Заклёпка 4.8×12': {price:1, unit:'₽/шт'},
+    'Гайка эриксона М8': {price:5.60, unit:'₽/шт'},
+  },
+  'Тент (фурнитура)': {
+    'Люверсы хром d10': {price:3.40, unit:'₽/шт'},
+    'Люверс Л-27 оцинк.': {price:4.50, unit:'₽/шт'},
+    'Скобы 17×17': {price:11, unit:'₽/шт'},
+    'Подкладки СП-15': {price:4.30, unit:'₽/шт'},
+    'Ремень ПВХ 14×3': {price:24, unit:'₽/шт'},
+  },
+  'Покраска / цинк': {
+    'Цинкование': {price:87, unit:'₽/кг'},
+    'Краска 3-в-1': {price:750, unit:'₽/кг'},
+  },
+  'Расходники': {
+    'Диск отрезной d125': {price:13, unit:'₽/шт'},
+    'Шлифкруг 125мм': {price:44, unit:'₽/шт'},
+    'Проволока св. 0.8мм': {price:250, unit:'₽/кг'},
+    'Газ (пропан)': {price:43, unit:'₽/кг'},
+    'Краги сварочные': {price:420, unit:'₽/пар'},
+    'Перчатки нитриловые': {price:25, unit:'₽/пар'},
+  },
+  'Тентовик (сдельно)': {
+    'Раскрой+сварка ПВХ': {price:100, unit:'₽/м²'},
+    'Усилители на сгибах': {price:50, unit:'₽/м'},
+    'Формирование углов': {price:150, unit:'₽/шт'},
+    'Люверс d10 (пробивка)': {price:10, unit:'₽/шт'},
+    'Поворотка/скоба': {price:30, unit:'₽/шт'},
+  },
+};
+
 function openPricePanel() {
-  let html = '<tr><th>Профиль</th><th>Цена/м</th><th>Новая</th></tr>';
-  for (const [prof, data] of Object.entries(TUBES)) {
-    const pid = 'p_' + prof.replace(/[×x*]/g, '_');
-    html += `<tr><td>${prof}</td><td>${data.price}</td><td><input id="${pid}" type="number" value="${data.price}" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:3px 6px;width:80px;border-radius:3px;text-align:right"></td></tr>`;
+  let html = '';
+  for (const [cat, items] of Object.entries(ALL_MAT_PRICES)) {
+    html += `<h4 style="color:#f39c12;margin:12px 0 4px">${cat}</h4>`;
+    html += '<table style="width:100%;border-collapse:collapse"><tr><th>Материал</th><th>Цена</th><th>Новая</th></tr>';
+    for (const [name, data] of Object.entries(items)) {
+      const pid = 'mp_' + cat.replace(/\s/g,'_') + '_' + name.replace(/[^a-zA-Zа-яА-ЯёЁ0-9]/g,'_');
+      html += `<tr><td style="font-size:11px">${name}</td><td style="font-size:11px">${data.price} ${data.unit}</td><td><input id="${pid}" type="number" value="${data.price}" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:2px 4px;width:70px;border-radius:3px;text-align:right"></td></tr>`;
+    }
+    html += '</table>';
   }
   document.getElementById('priceTable').innerHTML = html;
   document.getElementById('zpRate').value = BRAND[state.brand].rate;
   document.getElementById('pricePanel').style.display = 'flex';
 }
+
 function applyPrices() {
+  // Update TUBES (metal)
   for (const [prof, data] of Object.entries(TUBES)) {
     const pid = 'p_' + prof.replace(/[×x*]/g, '_');
     const inp = document.getElementById(pid);
+    if (!inp) continue;
     if (inp && inp.value) data.price = parseFloat(inp.value);
   }
+  // Update ALL_MAT_PRICES
+  for (const [cat, items] of Object.entries(ALL_MAT_PRICES)) {
+    for (const [name, data] of Object.entries(items)) {
+      const pid = 'mp_' + cat.replace(/\s/g,'_') + '_' + name.replace(/[^a-zA-Zа-яА-ЯёЁ0-9]/g,'_');
+      const inp = document.getElementById(pid);
+      if (inp && inp.value) data.price = parseFloat(inp.value);
+    }
+  }
+  // Sync TUBES prices from ALL_MAT_PRICES metal
+  const metalMap = {'60×40×2':'60×40×2','60×60×2':'60×60×2','40×20×2':'40×20×2','80×40×3':'80×40×3','50×50×3':'50×50×3','50×50×4':'50×50×4','25×25×2':'25×25×2','20×20×1.5':'20×20×1.5'};
+  for (const [prof, name] of Object.entries(metalMap)) {
+    if (ALL_MAT_PRICES['Металл'][name]) TUBES[prof].price = ALL_MAT_PRICES['Металл'][name].price;
+  }
+  // Sync BRAND prices
+  const mp = ALL_MAT_PRICES;
   const newRate = parseInt(document.getElementById('zpRate').value) || 500;
   for (const b of Object.values(BRAND)) b.rate = newRate;
+  if (mp['Колёса / подвеска']['Колесо R13 в сборе']) { BRAND['Барсук'].wheelsPrice = mp['Колёса / подвеска']['Колесо R13 в сборе'].price; }
+  if (mp['Колёса / подвеска']['Колесо R14 в сборе']) { BRAND['Самбарс'].wheelsPrice = mp['Колёса / подвеска']['Колесо R14 в сборе'].price; BRAND['Бизон'].wheelsPrice = mp['Колёса / подвеска']['Колесо R14 в сборе'].price; }
+  if (mp['Колёса / подвеска']['Рессора 3L']) { BRAND['Барсук'].springsPrice = mp['Колёса / подвеска']['Рессора 3L'].price; }
+  if (mp['Колёса / подвеска']['Рессора 5L']) { BRAND['Самбарс'].springsPrice = mp['Колёса / подвеска']['Рессора 5L'].price; }
+  if (mp['Колёса / подвеска']['Рессора 7L']) { BRAND['Бизон'].springsPrice = mp['Колёса / подвеска']['Рессора 7L'].price; }
+  if (mp['Колёса / подвеска']['Ступица СТ-133']) { for (const b of Object.values(BRAND)) b.hubPrice = mp['Колёса / подвеска']['Ступица СТ-133'].price; }
+  if (mp['Тент']['ПВХ 500 г/м² серый']) { BRAND['Барсук'].tentPVC_price = mp['Тент']['ПВХ 500 г/м² серый'].price; }
+  if (mp['Тент']['ПВХ 650 г/м² графит']) { BRAND['Самбарс'].tentPVC_price = mp['Тент']['ПВХ 650 г/м² графит'].price; }
   document.getElementById('pricePanel').style.display = 'none';
   recalc();
 }

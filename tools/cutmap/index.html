@@ -747,9 +747,10 @@ function recalc() {
   // Group pieces by profile for efficient cutting (all pieces of same profile together)
   const groupedByProfile = {};
   for (const grp of allProfilePieces) {
-    const prof = grp.label.split(' ').pop();  // e.g. "60×60×2" from "Рама 60×60×2"
-    if (!groupedByProfile[prof]) groupedByProfile[prof] = [];
-    groupedByProfile[prof].push(...grp.pieces);
+    const prof = grp.label.match(/(\d+[×x*]\d+[×x*]\d+\.?\d*)/);
+    const profName = prof ? prof[1] : grp.label;  // e.g. "60×60×2" from "Рама 60×60×2"
+    if (!groupedByProfile[profName]) groupedByProfile[profName] = [];
+    groupedByProfile[profName].push(...grp.pieces);
   }
   const cutPlanPieces = Object.entries(groupedByProfile).map(([prof, pieces]) => ({
     label: `Профиль ${prof}`,
@@ -787,7 +788,8 @@ function renderMetalSpec(pieces) {
   // Group by profile (same logic as cut plan)
   const grouped = {};
   for (const grp of pieces) {
-    const prof = grp.label.split(' ').pop();
+    const match = grp.label.match(/(\d+[×x*]\d+[×x*]\d+\.?\d*)/);
+    const prof = match ? match[1] : grp.label;
     if (!grouped[prof]) grouped[prof] = 0;
     grouped[prof] += grp.pieces.reduce((a,b) => a+b, 0);
   }

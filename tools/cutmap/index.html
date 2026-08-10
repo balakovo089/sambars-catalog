@@ -779,13 +779,14 @@ function recalc() {
   }));
   renderCutPlan(cutPlanPieces);
   renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
-  if (hasTent) {
+  if (hasTent && state.kit >= 4) {
     document.getElementById('tentPlanBlock').style.display = 'block';
     renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
   } else {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
-  renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides);
+  renderBoltMap(bp, state, sBoltsCount, floorBolts, axleBolts,
+    (state.kit >= 4 ? tentBolts : 0), rivetsFloor, rivetsSides);
   renderBrackets(bp, state);
   renderElectrics(bp, state, frameL);
   renderAttachments(state);
@@ -815,7 +816,7 @@ function recalc() {
   renderConsumables(consumables);
   
   // ZP + operations
-  const zpData = calcZP(brand, W, L, tentH, axles);
+  const zpData = calcZP(brand, W, L, (state.kit >= 4 ? tentH : 0), axles);
   renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);
   
   updateMeta();

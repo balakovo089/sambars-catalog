@@ -1389,32 +1389,7 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   var hubsCost = (st.axles||1) * 2 * (bp.hubPrice||0);
   var tentCost = tentTotalCost || (tentArea * (bp.tentPVC_price||0));
   
-  // ➕ Extra costs (electrics, hitch, zinc, paint, bolts, consumables)
-  const a = st.axles||1;
-  // Electrics
-  const wireLenM2 = (frameW/10 + frameL/10 + 100) / 100; // wire length in meters from recalc
-  var electricsCost = Math.round(wireLenM2 * 70 + 2*382 + 177 + 103 + 30 + 3*26 + 100 + 2*35 + 4*35 + 2*50);
-  // Hitch + attachments
-  var hitchCost = 635 + 43 + 15 + 60 + (a===1?3000:4000) + 1350;
-  if (a===1) hitchCost += 2*280; // dump locks
-  // Zinc + paint
-  var zincW2 = 0, paintW2 = 0, paintA = 0;
-  pieces.forEach(grp => {
-    const label = grp.label; const tm = grp.pieces.reduce((a,b)=>a+b,0);
-    const prof = label.split(' ').pop();
-    const m = tm * (TUBES[prof]?TUBES[prof].mass:0);
-    if (['Рама','Центр.','Дышло','Борта'].some(p => label.startsWith(p))) zincW2 += m;
-    if (['Ось','Каркас тента','Проставки'].some(p => label.startsWith(p))) { paintW2 += m; let per = prof==='50×50×3'||prof==='50×50×4'?0.2:prof==='20×20×1.5'?0.08:0.1; paintA += tm*per; }
-  });
-  var zincCost2 = zincW2 * 87;
-  var paintCost2 = parseFloat((paintA*0.2*2).toFixed(2)) * 750;
-  // Bolts (rough estimate: ~2500-3000)
-  var boltCost2 = Math.round(2500 + a*500);
-  // Consumables
-  var consCost2 = Math.round(consumables.cutDiscs*13 + consumables.grindDiscs*44 + parseFloat(consumables.wire)*250 + parseFloat(consumables.gas)*43 + consumables.gloves*25 + consumables.kragi*420);
-  var extraCost = Math.round(electricsCost + hitchCost + zincCost2 + paintCost2 + boltCost2 + consCost2);
-  
-  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost + extraCost);
+  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
   
   document.getElementById('summary').innerHTML = '<table style="width:100%">' +
     '<tr><th></th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>' +

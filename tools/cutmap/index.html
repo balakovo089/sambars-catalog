@@ -542,7 +542,7 @@ function recalc() {
     if (n > 0) totalCross += n;
   });
   const crossM = totalCross * frameW / 1000;
-  const centerM = (brand !== 'Барсук') ? frameL/1000 : 0;
+  const centerM = (brand !== 'Барсук' && brand !== 'Бизон') ? frameL/1000 : 0;
 
   // Drawbar
   const dbCenter = 1.20;  // центральный луч всегда 120 см
@@ -644,7 +644,8 @@ function recalc() {
     {label:`Рама ${frameProfile}`, pieces:[fpLong, fpLong, fpShort, fpShort]},
   ];
   // Поперечины: для Самбарса - двойное количество половинок (слева и справа от центр. балки)
-  if (brand !== 'Барсук') {
+  // Для Бизона - цельные (нет центр. балки, 2 продольные балки)
+  if (brand === 'Самбарс') {
     allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross * 2).fill(fpCrossHalf)});
   } else {
     allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)});
@@ -1291,7 +1292,7 @@ function redrawCanvas() {
   ctx.strokeRect(rX, rY, rW, rH);
 
   // Center beam (Sambars/Bizon) — горизонтальная пунктирная линия посередине
-  if (brand !== 'Барсук') {
+  if (brand !== 'Барсук' && brand !== 'Бизон') {
     ctx.strokeStyle = '#5dade2';
     ctx.lineWidth = Math.max(2, 3*scale);
     ctx.setLineDash([8,4]);

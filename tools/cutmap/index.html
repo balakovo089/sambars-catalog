@@ -1314,13 +1314,13 @@ function renderZincPaint(pieces, bp, frameW, axles) {
   try { pZinc = ALL_MAT_PRICES['Покраска / цинк']['Цинкование'].price; } catch(e) {}
   try { pPaint = ALL_MAT_PRICES['Покраска / цинк']['Краска 3-в-1'].price; } catch(e) {}
   var zincCost = zincWeight * pZinc;
-  var paintCost = paintWeight * 0.4 * pPaint;
+  var paintCost = parseFloat(paintEstimate) * pPaint;
   var totalZP = Math.round(zincCost + paintCost);
   el.innerHTML = `<table style="width:100%">
     <tr><th>Операция</th><th>Детали</th><th class="num">Вес/расход</th><th class="num">Стоимость</th></tr>
     <tr><td><b>Цинк (аутсорс)</b></td><td>Рама + дышло + борта</td><td class="num"><b>${zincWeight.toFixed(1)} кг</b> × ${pZinc} ₽/кг</td><td class="num"><b>${Math.round(zincCost).toLocaleString()} ₽</b></td></tr>
     <tr><td class="sub" colspan="4">отвозим, считают по весу металла</td></tr>
-    <tr><td><b>Краска 3-в-1</b></td><td>Ось + каркас тента</td><td class="num"><b>${(paintWeight*0.4).toFixed(2)} кг</b> × ${pPaint} ₽/кг</td><td class="num"><b>${Math.round(paintCost).toLocaleString()} ₽</b></td></tr>
+    <tr><td><b>Краска 3-в-1</b></td><td>Ось + каркас тента</td><td class="num"><b>${paintEstimate} кг</b> × ${pPaint} ₽/кг</td><td class="num"><b>${Math.round(paintCost).toLocaleString()} ₽</b></td></tr>
     <tr><td class="sub" colspan="4">площадь ~${paintArea.toFixed(2)} м², 2 слоя, пульверизатор</td></tr>
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО цинк+краска</b></td><td></td><td></td><td class="num"><b>${totalZP.toLocaleString()} ₽</b></td></tr>
   </table>`;

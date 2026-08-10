@@ -1152,7 +1152,7 @@ function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
     <tr><td>Заклёпки пол→лонжероны</td><td>4.8×25</td><td class="num">~${rivF}</td><td class="num">${Math.round(rivF * pRivet)} ₽</td></tr>
     <tr><td>Заклёпки фанеры бортов</td><td>4.8×25</td><td class="num">~${rivS}</td><td class="num">${Math.round(rivS * pRivet)} ₽</td></tr>
     <tr><td>Ось / подвеска</td><td>М12×90 + М12×70</td><td class="num">${aBolts}</td><td class="num">${Math.round(aCost)} ₽</td></tr>
-    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td><td></td></tr>`;
+    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td><td class="num">${Math.round(wbCost)} ₽</td></tr>`;
   if (tBolts > 0) {
     html += `<tr><td>Каркас тента → борта</td><td>М6×35 + гайка</td><td class="num">${tBolts}</td><td class="num">${Math.round(tCost)} ₽</td></tr>`;
   }
@@ -1161,9 +1161,17 @@ function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
     <tr><td>Замки бортовые</td><td>М6×35 + цинговая гайка</td><td class="num">${lockBolts} шт (${isBarsuk ? '2 задних' : '4 перед+зад'} замка × 4)</td><td class="num">${Math.round(lCost)} ₽</td></tr>
     <tr><td>Замки самосвала</td><td>М8×80 + гайка</td><td class="num">${dumpLockBolts} шт (2 замка × 4)</td><td class="num">${Math.round(dCost)} ₽</td></tr>`;
   if (isBarsuk) {
-    html += `<tr><td>Передний борт (крепление)</td><td>М8×80</td><td class="num">4 шт (вместо петель и замков)</td><td></td></tr>`;
+    html += `<tr><td>Передний борт (крепление)</td><td>М8×80</td><td class="num">4 шт (вместо петель и замков)</td><td class="num">${Math.round(fbCost)} ₽</td></tr>`;
   }
-  html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td><td></td></tr>
+  var pWheelBolts = 0, pM12bolt = 0, pFrontM8 = 0;
+  try { pWheelBolts = ALL_MAT_PRICES['Комплектующие (без цен)']['Болты колёсные (компл)'].price; } catch(e) {}
+  try { pM12bolt = ALL_MAT_PRICES['Комплектующие (без цен)']['Болт М12×80 + гайки'].price; } catch(e) {}
+  try { pFrontM8 = ALL_MAT_PRICES['Комплектующие (без цен)']['Передний борт М8×80'].price; } catch(e) {}
+  var wbCost = (st.axles||1) * 2 * pWheelBolts; // 2 bolts per wheel
+  var m12Cost = 2 * pM12bolt;
+  var fbCost = isBarsuk ? 4 * pFrontM8 : 0;
+  totalBolt += Math.round(wbCost + m12Cost + fbCost);
+  html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td><td class="num">${Math.round(m12Cost)} ₽</td></tr>
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО крепёж</b></td><td></td><td></td><td class="num"><b>${totalBolt.toLocaleString()} ₽</b></td></tr>
   </table>`;
   document.getElementById('boltMap').innerHTML = html;
@@ -1177,12 +1185,16 @@ function renderBrackets(bp, st) {
   try { pKrKr = ALL_MAT_PRICES['Колёса / подвеска']['Кронштейн крыла'].price; } catch(e) {}
   try { pKos = ALL_MAT_PRICES['Колёса / подвеска']['Косынка усиления'].price; } catch(e) {}
   var kosCnt = st.brand === 'Барсук' ? 0 : 4;
-  var totalBr = Math.round(a*4*pKrRes + a*4*pKrAm + a*4*pKrKr + kosCnt*pKos);
+  var pPlateD = 0, pPlateR = 0;
+  try { pPlateD = ALL_MAT_PRICES['Комплектующие (без цен)']['Пластины дышла'].price; } catch(e) {}
+  try { pPlateR = ALL_MAT_PRICES['Комплектующие (без цен)']['Пластины рамы'].price; } catch(e) {}
+  var plateCost = 2 * pPlateD + 2 * pPlateR;
+  var totalBr = Math.round(a*4*pKrRes + a*4*pKrAm + a*4*pKrKr + kosCnt*pKos + plateCost);
   const html = `<table style="width:100%">
     <tr><th>Деталь</th><th class="num">Кол-во</th><th class="num">Стоимость</th><th>Расположение</th></tr>
     <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Самосвал</b></td></tr>
-    <tr><td>Пластины дышла</td><td class="num">2 шт</td><td></td><td>на концах боковых лучей</td></tr>
-    <tr><td>Пластины рамы</td><td class="num">2 шт</td><td></td><td>на лонжеронах рамы</td></tr>
+    <tr><td>Пластины дышла</td><td class="num">2 шт</td><td class="num">${Math.round(2*pPlateD)} ₽</td><td>на концах боковых лучей</td></tr>
+    <tr><td>Пластины рамы</td><td class="num">2 шт</td><td class="num">${Math.round(2*pPlateR)} ₽</td><td>на лонжеронах рамы</td></tr>
     <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Подвеска</b></td></tr>
     <tr><td>Кронштейны рессор</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pKrRes)} ₽</td><td>2 на рессору, 670 мм</td></tr>
     <tr><td>Кронштейны амортизаторов</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pKrAm)} ₽</td><td>на оси и балке</td></tr>
@@ -1210,7 +1222,10 @@ function renderElectrics(bp, st, frameL) {
   try { pCatW = ALL_MAT_PRICES['Электрика']['Катафот белый'].price; } catch(e) {}
   try { pCatY = ALL_MAT_PRICES['Электрика']['Катафот жёлтый'].price; } catch(e) {}
   try { pCatR = ALL_MAT_PRICES['Электрика']['Катафот красный'].price; } catch(e) {}
-  var totalEl = Math.round(wireM * pWire + 2 * pLight + pFrame + pPlug + pHolder + 3 * pHose + pTube + 2*pCatW + 4*pCatY + 2*pCatR);
+  var pGrov = 0;
+  try { pGrov = ALL_MAT_PRICES['Комплектующие (без цен)']['Гровер 12'].price; } catch(e) {}
+  var grovCost = grovers * pGrov;
+  var totalEl = Math.round(wireM * pWire + 2 * pLight + pFrame + pPlug + pHolder + 3 * pHose + pTube + 2*pCatW + 4*pCatY + 2*pCatR + grovCost);
   const el = document.getElementById('electrics');
   if (!el) return;
   el.innerHTML = `<table style="width:100%">
@@ -1218,7 +1233,7 @@ function renderElectrics(bp, st, frameL) {
     <tr><td>Провод 5×0,75 чёрный</td><td class="num">${wireM.toFixed(1)} м</td><td class="num">${Math.round(wireM*pWire)} ₽</td></tr>
     <tr><td>Гофра 16 чёрная</td><td class="num">3 м</td><td class="num">${Math.round(3*pHose)} ₽</td></tr>
     <tr><td>Вилка фаркопа</td><td class="num">1 шт</td><td class="num">${pPlug} ₽</td></tr>
-    <tr><td>Гровер 12</td><td class="num">${grovers} шт</td><td></td></tr>
+    <tr><td>Гровер 12</td><td class="num">${grovers} шт</td><td class="num">${Math.round(grovCost)} ₽</td></tr>
     <tr><td>Фонарь ФП-132А LED</td><td class="num">2 шт</td><td class="num">${2*pLight} ₽</td></tr>
     <tr><td>Рамка номера LED</td><td class="num">1 шт</td><td class="num">${pFrame} ₽</td></tr>
     <tr><td>Термоусадка</td><td class="num">1 компл</td><td class="num">${pTube} ₽</td></tr>
@@ -1239,14 +1254,16 @@ function renderAttachments(st) {
   try { pDump = ALL_MAT_PRICES['Борта / петли / замки']['Замок самосвальный'].price; } catch(e) {}
   var ptsP = st.axles === 1 ? pPTS1 : pPTS2;
   var dumpCnt = st.axles === 1 ? 2 : 0;
-  var totalAt = Math.round(pHitch + 0.5*pChain + pCarab + pWin + ptsP + pJack + dumpCnt*pDump);
+  var pBrHolder = 0;
+  try { pBrHolder = ALL_MAT_PRICES['Комплектующие (без цен)']['Кронштейн вилки'].price; } catch(e) {}
+  var totalAt = Math.round(pHitch + 0.5*pChain + pCarab + pWin + ptsP + pJack + dumpCnt*pDump + pBrHolder);
   const el = document.getElementById('attachments');
   if (!el) return;
   el.innerHTML = `<table style="width:100%">
     <tr><th>Компонент</th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>
     <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Дышло</b></td></tr>
     <tr><td>Замок фаркопа 750 кг</td><td class="num">1 шт</td><td class="num">${pHitch} ₽</td></tr>
-    <tr><td>Кронштейн вилки</td><td class="num">1 шт</td><td></td></tr>
+    <tr><td>Кронштейн вилки</td><td class="num">1 шт</td><td class="num">${pBrHolder} ₽</td></tr>
     <tr><td>Цепь длиннозвенная 6 мм</td><td class="num">0.5 м</td><td class="num">${Math.round(0.5*pChain)} ₽</td></tr>
     <tr><td>Карабин М10</td><td class="num">1 шт</td><td class="num">${pCarab} ₽</td></tr>
     <tr><td>Табличка WIN</td><td class="num">1 шт</td><td class="num">${pWin} ₽</td></tr>

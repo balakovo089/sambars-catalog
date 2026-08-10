@@ -233,6 +233,12 @@ const TUBES = {
 };
 
 // ══════════════════════════════════════════════════════════
+// EXPORT MODE
+// ══════════════════════════════════════════════════════════
+const urlParams = new URLSearchParams(window.location.search);
+const EXPORT_MODE = urlParams.get('export') === '1';
+
+// ══════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════
 let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1, model:'Самбарс 1.5×3.0'};
@@ -318,6 +324,193 @@ function cut6m(pieces) {
     if (!placed) stocks.push({used: p, items: [p]});
   }
   return stocks;
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT DATA BUILDER
+// ══════════════════════════════════════════════════════════
+function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType,
+  tentArea, hasTent, sBolts, fBolts, aBolts, tBolts, rivF, rivS,
+  frameW, frameL, tentMM, brand, W, L) {
+  
+  const mats = [];
+  const add = (name, qty, unit, cat) => {
+    const rqty = Math.round(qty * 1000) / 1000;
+    if (rqty > 0.0001) mats.push({name, qty: rqty, unit, category: cat});
+  };
+
+  // === METAL PROFILES ===
+  // Group allProfilePieces by material name
+  const profileMap = {};
+  pieces.forEach(grp => {
+    const tm = grp.pieces.reduce((a,b)=>a+b,0);
+    const label = grp.label;
+    const prof = label.split(' ').pop();
+    let name, cat = 'Кузов';
+    
+    if (label.startsWith('Рама ') || label.startsWith('Центр.')) { name = `Профильная труба ${prof}`; }
+    else if (label.startsWith('Дышло')) { name = `Профильная труба ${prof}`; }
+    else if (label.startsWith('Поперечины') || label.includes('Перемычка')) { name = 'Профильная труба 40*20 1,5мм'; }
+    else if (label.startsWith('Аморт.')) { name = `Профильная труба ${prof}`; }
+    else if (label.startsWith('Борта')) { name = `Профиль ${prof}`; cat = 'Борта'; }
+    else if (label.startsWith('Каркас тента') && prof === '20×20×1.5') { 
+      name = 'Профиль 20×20×1.5 (дуги + боковые рамки)'; cat = 'Каркас тента'; 
+    }
+    else if (label.startsWith('Проставки')) { name = 'Проставки 25×25×2 (10 см)'; cat = 'Каркас тента'; }
+    else if (label.startsWith('Ось')) { name = `Профильная труба ${prof}`; cat = 'Ось'; }
+    else { name = label; }
+    
+    const key = `${name}|${cat}`;
+    if (!profileMap[key]) profileMap[key] = {name, total: 0, unit: 'м', cat};
+    profileMap[key].total += tm;
+  });
+  
+  for (const v of Object.values(profileMap)) {
+    add(v.name, v.total, 'м', v.cat);
+  }
+
+  // === ZINC + PAINT ===
+  let zincWeight = 0, paintWeight = 0;
+  pieces.forEach(grp => {
+    const label = grp.label;
+    const tm = grp.pieces.reduce((a,b)=>a+b,0);
+    const prof = label.split(' ').pop();
+    const massPerM = TUBES[prof] ? TUBES[prof].mass : 0;
+    const mass = tm * massPerM;
+    if (label.startsWith('Рама ') || label.startsWith('Центр.') || label.startsWith('Дышло') || label.startsWith('Борта')) zincWeight += mass;
+    if (label.startsWith('Ось') || label.startsWith('Каркас тента') || label.startsWith('Проставки')) paintWeight += mass;
+  });
+  add('Горячее цинкование', zincWeight, 'кг', 'Кузов');
+  add('Краска 3-в-1', paintWeight * 0.4, 'кг', 'Покраска');
+
+  // === PLYWOOD ===
+  const plyName125 = '09,0х2500х1250 F/W E1 У Фанера лам';
+  const plyName150 = '09,0х3000х1500 F/W E1 Ж Фанера лам';
+  if (floorSheetType.includes('1500')) {
+    add(plyName150, floorSheets, 'м²', 'Пол');
+  } else {
+    add(plyName125, floorSheets, 'м²', 'Пол');
+  }
+  add(plyName125, sideSheets, 'м²', 'Борта');
+
+  // === TENT ===
+  if (hasTent) {
+    const tentName = bp.tentPVC.includes('650') ? 'Ткань тентовая графит Sealtex 650NG 2.5*65' : 'Ткань тентовая PVC серая 500MX 3,2х65';
+    add(tentName, tentArea, 'м²', 'Тент');
+    
+    const espName = bp.espander === 8 ? 'Эспандер d-8мм черный 100м' : 'Эспандер d-6мм черный 100м';
+    const lowerPerimeter = 2*(frameW/1000 + frameL/1000) + 0.2;
+    add(espName, lowerPerimeter + 0.5, 'м', 'Тент');
+    
+    // Люверсы, поворотки/скобы, заклёпки
+    const tentPieceCount = Math.ceil(tentArea / 3);
+    add('10 люверсы хром', tentPieceCount, 'шт', 'Тент');
+    add('4,8х12 Заклепка комб. алюминий - сталь', tentPieceCount * 3, 'шт', 'Тент');
+  }
+
+  // === AXLE COMPONENTS ===
+  const a = st.axles;
+  add(`Рессора TRAILERCOM ${bp.springs}L`, a * 2, 'шт', 'Ось');
+  add('Кронштейн рессор', a * 4, 'шт', 'Ось');
+  add('Амортизаторы ВАЗ 2121', a * 2, 'шт', 'Ось');
+  add('Кронштейн амортизатора', a * 4, 'шт', 'Ось');
+  add('Стремянка рессор', a * 4, 'шт', 'Ось');
+  add('Пластина стремянки', a * 2, 'шт', 'Ось');
+  add('Ступичный узел СТ-133 Новая с колпачком в сборе с болта', a * 2, 'шт', 'Ось');
+  const wheelR = bp.wheels === 'R13' ? 'R13' : 'R14';
+  add(`Крыло ${wheelR} (лег.прицеп)`, a * 2, 'шт', 'Ось');
+  add('Кронштейн крыла', a * 4, 'шт', 'Ось');
+  // Косынки (Самбарс/Бизон only)
+  if (brand !== 'Барсук') add('Косынка усиления (Самбарс)', 4, 'шт', 'Кузов');
+  // Колёса (without price, just quantity)
+  const wheelName = wheelR === 'R13' ? 'Колесо в сборе Lanvigator Comfort 1 R13 165/70 79T+Mf' : 'Колесо в сборе Т3СК 2112 серый + BLACKARROW P16 185/6';
+  add(wheelName, a * 2, 'шт', 'Ось');
+
+  // === ELECTRICS ===
+  const wireLen = (frameL/10 + frameW/10 + 100) / 100; // in meters
+  add('Провод ПВСиг (А)-LS 3*0,5 (100м) черный ТРТС', wireLen, 'м', 'Электрика');
+  add('ФП 132А-01 LED 12В (КЭП) Фонарь задний светодиодный со ', 2, 'шт', 'Электрика');
+  add('Рамка номерного знака с боковой подсветкой, пластиковая', 1, 'шт', 'Электрика');
+  add('Вилка 7pin 12V TRAILERCOM 3050', 1, 'шт', 'Электрика');
+  add('Держатель вилки', 1, 'шт', 'Электрика');
+  add('Труба гофрированная ПНД 16мм с протяжкой легкая черная ', 3, 'м', 'Электрика');
+  add('Термоусадка провода', 1, 'компл', 'Электрика');
+  add('шайба гроверная', Math.ceil(wireLen / 0.25), 'шт', 'Электрика');
+  add('Катафот прямоугольный белый', 2, 'шт', 'Электрика');
+  add('Катафот прямоугольный желтый', 4, 'шт', 'Электрика');
+  add('Катафот треугольный красный', 2, 'шт', 'Электрика');
+
+  // === HITCH ===
+  add('Сцепное устройство В-40', 1, 'шт', 'Навесное');
+  add('Цепь длиннозвенная, цинк 6мм DIN 763', 0.5, 'м', 'Навесное');
+  add('Карабин М10', 1, 'шт', 'Навесное');
+  add('Табличка WIN', 1, 'шт', 'Навесное');
+  add(`ПТС ${a} осный`, 1, 'шт', 'Навесное');
+  add('Подкатное обычное', 1, 'шт', 'Навесное');
+  if (a === 1) add('Замок самосвальный М10', 2, 'шт', 'Навесное');
+
+  // === BOLTS ===
+  add('Болт М8*20', sBolts + fBolts + tBolts + (a*8) + (brand==='Барсук'?2:4)*4 + a*8 + 2*4, 'шт', 'Каркас тента');
+  const hingeBolts = (brand === 'Барсук' ? 2 : 4) * 4;
+  const lockBolts = (brand === 'Барсук' ? 2 : 4) * 4;
+  // Actually the bolt breakdown should be separate... let's simplify
+  // M8 bolts for sides, hinges, dump locks
+  add('Болт М8*20', sBolts + hingeBolts + 2*4, 'шт', 'Каркас тента');
+  // M6 bolts
+  add('Болт мебельный с полукруг. головкой М6х100 DIN 603', fBolts, 'шт', 'Пол');
+  add('Гайка ш/гр. оцинк. М 6 DIN 934', fBolts, 'шт', 'Пол');
+  add('Шайба М6 обычная', fBolts, 'шт', 'Пол');
+  // Rivets
+  add('4,8х24 (25) Заклепка комб. алюминий - сталь', rivF + rivS, 'шт', 'Борта');
+  // Tent bolts M6
+  if (tBolts > 0) add('Болт мебельный с полукруг. головкой М6х100 DIN 603', tBolts, 'шт', 'Каркас тента');
+  if (tBolts > 0) add('Гайка ш/гр. оцинк. М 6 DIN 934', tBolts, 'шт', 'Каркас тента');
+  // Эриксоны
+  if (hasTent) add('М8 (200) Гайка эриксона с плоской гол, цинк GE', aBolts, 'шт', 'Каркас тента');
+
+  // === HINGES & LOCKS (борта) ===
+  const hingeCount = brand === 'Барсук' ? 2 : 4;
+  const lockCount = brand === 'Барсук' ? 2 : 4;
+  add('Петля борта', hingeCount, 'шт', 'Борта');
+  add('Замок борта (комплект)', lockCount, 'шт', 'Борта');
+
+  // === TENT HARDWARE ===
+  if (hasTent) {
+    const tentFrameParts = pieces.find(g => g.label.startsWith('Каркас тента'));
+    const archCount = tentFrameParts ? (tentFrameParts.pieces.filter(p => p > 1).length || tentFrameParts.pieces.length/3) : 0;
+    
+    // Поворотки/скобы на клапанах
+    if (brand !== 'Барсук') {
+      // Поворотки (Самбарс/Бизон): передний+задний клапаны
+      const flapWidth = (frameW + 2*tentMM)/1000;
+      const flapBotCount = Math.max(2, Math.round(flapWidth / 0.3) + 1);
+      add('Люверс Л-27 оцинк.', flapBotCount * 2, 'шт', 'Тент');
+      add('Подкладки СП-15', flapBotCount * 2, 'шт', 'Тент');
+    } else {
+      // Скобы (Барсук): только задний клапан
+      const flapWidth = (frameW + 2*tentMM)/1000;
+      const flapBotCount = Math.max(2, Math.round(flapWidth / 0.3) + 1);
+      add('Скобы 17×17 цинк (скоба под ремень)', flapBotCount, 'шт', 'Тент');
+      add('Ремень ПВХ 14*3мм (50м)', tentMM/1000 * 2, 'шт', 'Тент');
+    }
+  }
+
+  // === CONSUMABLES ===
+  const totalCuts = pieces.reduce((sum, g) => sum + g.pieces.length, 0);
+  add('диск отрезной ', Math.ceil(totalCuts / 18), 'шт', 'Расходники');
+  add('шлиф.круг 125мм', Math.ceil(totalCuts / 55), 'шт', 'Расходники');
+  add('Сварочная проволока', parseFloat((totalCuts * 0.007).toFixed(3)), 'кг', 'Расходники');
+  add('Сварочные Перчатки (Краги)', Math.max(1, Math.ceil(totalCuts / 200)), 'пар', 'Расходники');
+  add('Перчатки нитриловые ROXTOR', Math.max(1, Math.ceil(totalCuts / 100)), 'пар', 'Расходники');
+
+  return {
+    model: st.model,
+    brand: st.brand,
+    W, L,
+    tentH: st.tentH,
+    axles: st.axles,
+    materials: mats
+  };
 }
 
 // ══════════════════════════════════════════════════════════
@@ -509,6 +702,18 @@ function recalc() {
     gloves: Math.max(1, Math.ceil(totalCuts / 100)),
     kragi: Math.max(1, Math.ceil(totalCuts / 200)),
   };
+
+  // ═══ EXPORT MODE ═══
+  if (EXPORT_MODE) {
+    const exp = buildExportData(state, allProfilePieces, bp, floorSheets, sideSheets, floorSheetType,
+      tentArea, hasTent, sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides,
+      frameW, frameL, tentMM, brand, W, L);
+    document.body.innerHTML = '<pre>' + JSON.stringify(exp, null, 2) + '</pre>';
+    document.body.style.margin = '20px';
+    document.body.style.fontFamily = 'monospace';
+    document.body.style.fontSize = '12px';
+    return;
+  }
 
   // ═══ RENDER ═══
   renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);
@@ -2261,8 +2466,17 @@ function updatePrintLayout() {
 
 
 // ══════════════════════════════════════════════════════════
-init();
-recalc();
+if (EXPORT_MODE) {
+  state.brand = urlParams.get('brand') || 'Самбарс';
+  state.W = parseInt(urlParams.get('w')) || 1500;
+  state.L = parseInt(urlParams.get('l')) || 2500;
+  state.tentH = parseInt(urlParams.get('tentH')) || 120;
+  state.axles = parseInt(urlParams.get('axles')) || 1;
+  state.model = `${state.brand} ${(state.W/1000).toFixed(2)}×${(state.L/1000).toFixed(1)}`;
+  recalc();
+} else {
+  init();
+}
 </script>
 </body>
 </html>

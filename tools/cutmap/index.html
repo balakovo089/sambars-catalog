@@ -155,6 +155,8 @@ canvas{display:block;cursor:grab}
     <div class="sep"></div>
     <button onclick="printSpecs()" title="Только спецификации (текст)">🖨️ Спецификации</button>
     <button onclick="printDrawings()" title="Только чертежи на весь лист">📐 Чертежи</button>
+    <div class="sep"></div>
+    <button onclick="openPricePanel()" title="Управление ценами">💰 Цены</button>
   </div>
   <div class="legend">
     <span style="color:#5dade2">▬▬</span> Рама<br>
@@ -2616,6 +2618,53 @@ if (EXPORT_MODE) {
 } else {
   init();
 }
+
+// ═══ PRICE PANEL ═══
+function openPricePanel() {
+  let html = '<tr><th>Профиль</th><th>Цена/м</th><th>Новая</th></tr>';
+  for (const [prof, data] of Object.entries(TUBES)) {
+    const pid = 'p_' + prof.replace(/[×x*]/g, '_');
+    html += `<tr><td>${prof}</td><td>${data.price}</td><td><input id="${pid}" type="number" value="${data.price}" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:3px 6px;width:80px;border-radius:3px;text-align:right"></td></tr>`;
+  }
+  document.getElementById('priceTable').innerHTML = html;
+  document.getElementById('zpRate').value = BRAND[state.brand].rate;
+  document.getElementById('pricePanel').style.display = 'flex';
+}
+function applyPrices() {
+  for (const [prof, data] of Object.entries(TUBES)) {
+    const pid = 'p_' + prof.replace(/[×x*]/g, '_');
+    const inp = document.getElementById(pid);
+    if (inp && inp.value) data.price = parseFloat(inp.value);
+  }
+  const newRate = parseInt(document.getElementById('zpRate').value) || 500;
+  for (const b of Object.values(BRAND)) b.rate = newRate;
+  document.getElementById('pricePanel').style.display = 'none';
+  recalc();
+}
 </script>
 </body>
+
+<!-- Price Panel Modal -->
+<div id="pricePanel" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.75);z-index:9999;align-items:center;justify-content:center">
+<div style="background:#1a1a2e;padding:20px;border-radius:8px;max-width:520px;width:90%;max-height:85vh;overflow-y:auto">
+<span onclick="document.getElementById('pricePanel').style.display='none'" style="float:right;font-size:22px;cursor:pointer;color:#888">&times;</span>
+<h3 style="color:#e94560;margin:0 0 12px">💰 Управление ценами</h3>
+<h4 style="color:#f39c12;margin:10px 0 4px">Металл (₽/м)</h4>
+<table style="width:100%;border-collapse:collapse" id="priceTable"></table>
+<h4 style="color:#f39c12;margin:10px 0 4px">Ставки ЗП (₽/ч)</h4>
+<table style="width:100%;border-collapse:collapse">
+<tr><td>Ставка (все)</td><td><input id="zpRate" type="number" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:4px 8px;width:100px;border-radius:3px;text-align:right"></td></tr>
+</table>
+<h4 style="color:#f39c12;margin:10px 0 4px">Тентовик (сдельные расценки)</h4>
+<table style="width:100%;border-collapse:collapse">
+<tr><td>Раскрой+сварка ПВХ (₽/м²)</td><td><input id="tpvc" type="number" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:4px 8px;width:100px;border-radius:3px;text-align:right"></td></tr>
+<tr><td>Усилители на сгибах (₽/м)</td><td><input id="tusil" type="number" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:4px 8px;width:100px;border-radius:3px;text-align:right"></td></tr>
+<tr><td>Углы (₽/шт)</td><td><input id="tugly" type="number" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:4px 8px;width:100px;border-radius:3px;text-align:right"></td></tr>
+<tr><td>Люверс d10 (₽/шт)</td><td><input id="tluvers" type="number" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:4px 8px;width:100px;border-radius:3px;text-align:right"></td></tr>
+<tr><td>Поворотка/скоба (₽/шт)</td><td><input id="tflap" type="number" style="background:#0f3460;border:1px solid #5dade2;color:#fff;padding:4px 8px;width:100px;border-radius:3px;text-align:right"></td></tr>
+</table>
+<button onclick="applyPrices()" style="margin-top:14px;padding:10px 20px;background:#e94560;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:15px;width:100%">✅ Применить</button>
+</div>
+</div>
+
 </html>

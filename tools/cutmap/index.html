@@ -791,11 +791,14 @@ function recalc() {
   renderElectrics(bp, state, frameL);
   renderAttachments(state);
   
-  renderZincPaint(allProfilePieces, bp, frameW, axles);
+  // Filter paint pieces for K1-K3 (no tent frame paint)
+  let zpPieces = allProfilePieces;
+  if (state.kit < 4) zpPieces = zpPieces.filter(g => !g.label.startsWith('Каркас тента') && !g.label.startsWith('Проставки дуг'));
+  renderZincPaint(zpPieces, bp, frameW, axles);
   
-  // Calculate tent total cost (fabric + hardware)
+  // Calculate tent total cost (fabric + hardware) - only for K4
   let tentTotalCost = 0;
-  if (hasTent) {
+  if (hasTent && state.kit >= 4) {
     tentTotalCost = tentArea * bp.tentPVC_price;
     const lowerP = 2*(frameW/1000 + frameL/1000) + 0.2;
     const espP = bp.espander === 8 ? 33 : 27;
@@ -817,6 +820,10 @@ function recalc() {
   
   // ZP + operations
   const zpData = calcZP(brand, W, L, (state.kit >= 4 ? tentH : 0), axles);
+  if (state.kit < 4) {
+    zpData.ops = zpData.ops.filter((_, i) => ![5, 6, 8, 16, 17].includes(i));
+    zpData.opSum = zpData.ops.reduce((s, o) => s + o.minutes, 0);
+  }
   renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);
   
   updateMeta();

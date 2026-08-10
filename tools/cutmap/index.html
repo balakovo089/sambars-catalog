@@ -662,6 +662,22 @@ function recalc() {
     }
   }
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, dbSideLen, dbSideLen, (frameW)/1000]});  // центр + 2 бока + перемычка
+  // Аморт. балки и ось: для Бизона на НИЖНЕЙ раме, для остальных на верхней
+  if (brand === 'Бизон') {
+    const lowerW = frameW - 600; // нижняя рама на 600 мм уже
+    const lowerL = frameL;
+    // Нижняя рама: периметр
+    allProfilePieces.push({label:`Нижняя рама ${frameProfile}`, pieces: [lowerL/1000, lowerL/1000, lowerW/1000, lowerW/1000]});
+    // Проставки между рамами: 2 ряда по центральным балкам, шаг ~575 мм
+    const spacerCount = Math.round(frameL / 575);
+    allProfilePieces.push({label:`Проставки ${frameProfile} 110мм`, pieces: Array(spacerCount * 2).fill(0.11)});
+    // Аморт. балки на нижней раме: 2 балки × 2 оси = 4 половинки
+    const lowerHalf = (lowerW/2)/1000;
+    allProfilePieces.push({label:`Аморт. балка нижняя ${frameProfile} (2 половинки)`, pieces: [lowerHalf, lowerHalf]});
+    allProfilePieces.push({label:`Аморт. балка 2 нижняя ${frameProfile} (2 половинки)`, pieces: [lowerHalf, lowerHalf]});
+    // Ось на нижней раме
+    allProfilePieces.push({label:`Ось ${axleProfile}`, pieces: Array(axles).fill((lowerW + 200)/1000)});
+  } else {
   // Аморт. балки - как перемычки: на Самбарсе/Бизоне делятся центр. балкой на половинки
   if (brand !== 'Барсук') {
     allProfilePieces.push({label:`Аморт. балка ${frameProfile} (2 половинки)`, pieces:[fpCrossHalf, fpCrossHalf]});
@@ -670,26 +686,8 @@ function recalc() {
     allProfilePieces.push({label:`Аморт. балка ${frameProfile}`, pieces:[(frameW)/1000]});
     if (axles === 2) allProfilePieces.push({label:`Аморт. балка 2 ${frameProfile}`, pieces:[(frameW)/1000]});
   }
-  if (sTotal > 0) {
-    // Борта: 2 длинных + 2 коротких (по размеру РАМЫ, не заявленному)
-    const sidePieces = [frameL/1000, frameL/1000, frameW/1000, frameW/1000];
-    for (let i = 0; i < totalJumpers; i++) sidePieces.push(bp.boardH/1000);
-    allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
-  }
-  if (tentFrameM > 0) {
-    // Боковые рамки: 2 рамки × (верх + низ) = 4 куска по frameL
-    const frameRails = [frameL/1000, frameL/1000, frameL/1000, frameL/1000];
-    // Стойки рамок: tentArchCount шт × totalFrameH (борт + тент)
-    const totalFrameM = (bp.boardH + tentMM) / 1000;
-    const framePosts = Array(tentArchCount).fill(totalFrameM);
-    // Дуги Π-образные: tentArchCount шт × (ширина + 2×100 мм ножки)
-    const archPieceM = (frameW + 240) / 1000;  // frameW + 40 зазор + 2×100 ножки
-    const arches = Array(tentArchCount).fill(archPieceM);
-    allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:[...frameRails, ...framePosts, ...arches]});
-    // Проставки 25×25×2 - отдельный профиль
-    allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(tentArchCount * 2).fill(0.10)});
-  }
   allProfilePieces.push({label:`Ось ${axleProfile}`, pieces:Array(axles).fill((frameW + 200)/1000)});
+  }
 
   // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
   const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);
@@ -1357,6 +1355,32 @@ function redrawCanvas() {
     [[rX,rY,1,1],[rX+rW,rY,-1,1],[rX,rY+rH,1,-1],[rX+rW,rY+rH,-1,-1]].forEach(([cx,cy,sx,sy]) => {
       ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+sx*gs,cy+sy*gs); ctx.stroke();
     });
+  }
+
+  // ── НИЖНЯЯ РАМА (Бизон) ──
+  if (brand === 'Бизон') {
+    const lowerH = (frameW - 600) * sc;  // ширина нижней рамы (по Y на canvas)
+    const lowerW = frameL * sc;           // длина нижней рамы (по X на canvas, такая же как верхняя)
+    const lowerX = rX;                    // та же позиция по X
+    const lowerY = rY + (rH - lowerH) / 2; // центрирована по Y (300мм с каждой стороны)
+    
+    ctx.strokeStyle = '#c0392b';
+    ctx.lineWidth = Math.max(3, 4*scale);
+    ctx.setLineDash([10, 5]);
+    ctx.strokeRect(lowerX, lowerY, lowerW, lowerH);
+    ctx.setLineDash([]);
+    
+    ctx.fillStyle = '#c0392b';
+    ctx.font = `bold ${Math.max(8, 9)}px DejaVu Sans`;
+    ctx.fillText('нижняя рама 2070-600=1470', lowerX + 10, lowerY - 5);
+    
+    // Проставки между рамами: кружки по центральным балкам
+    ctx.fillStyle = '#e74c3c';
+    const spacerStep = lowerW / Math.round(frameL / 575);
+    for (let sx = lowerX; sx <= lowerX + lowerW; sx += spacerStep) {
+      ctx.beginPath(); ctx.arc(sx, rY + rH/2, 3*scale, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(sx, lowerY + lowerH/2, 3*scale, 0, Math.PI*2); ctx.fill();
+    }
   }
 
   // ── ОСЬ И ПОДВЕСКА ──

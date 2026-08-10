@@ -1083,48 +1083,73 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
 
 function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
   const isBarsuk = st.brand === 'Барсук';
-  const hingeBolts = (isBarsuk ? 2 : 4) * 4;  // 2/4 петли × 4 болта М8×80
-  const lockBolts = (isBarsuk ? 2 : 4) * 4;   // 2/4 замка × 4 болта М6×35
-  const dumpLockBolts = 2 * 4;                  // 2 замка самосвала × 4 болта М8×80
-  let html = `<table>
-    <tr><th>Узел</th><th>Тип</th><th class="num">Кол-во</th></tr>
-    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Крепёж</b></td></tr>
-    <tr><td>Борта → рама</td><td>М8×100 + гайка + шайба</td><td class="num">${sBolts}</td></tr>
-    <tr><td>Пол → перемычки</td><td>М6 мебельный потай + гайка</td><td class="num">${fBolts}</td></tr>
-    <tr><td>Заклёпки пол→лонжероны</td><td>4.8×25</td><td class="num">~${rivF}</td></tr>
-    <tr><td>Заклёпки фанеры бортов</td><td>4.8×25</td><td class="num">~${rivS}</td></tr>
-    <tr><td>Ось / подвеска</td><td>М12×90 + М12×70</td><td class="num">${aBolts}</td></tr>
-    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td></tr>`;
+  const hingeBolts = (isBarsuk ? 2 : 4) * 4;
+  const lockBolts = (isBarsuk ? 2 : 4) * 4;
+  const dumpLockBolts = 2 * 4;
+  // Prices from ALL_MAT_PRICES
+  var pM8 = 3.20, pM6 = 3.50, pNut = 0.40, pWasher = 0.40, pRivet = 1, pGrov = 0.72, pErix = 5.60;
+  try { pM8 = ALL_MAT_PRICES['Крепёж']['Болт М8×20'].price; } catch(e) {}
+  try { pM6 = ALL_MAT_PRICES['Крепёж']['Болт М6×100 меб.'].price; } catch(e) {}
+  try { pNut = ALL_MAT_PRICES['Крепёж']['Гайка М6 оцинк.'].price; } catch(e) {}
+  try { pWasher = ALL_MAT_PRICES['Крепёж']['Шайба М6'].price; } catch(e) {}
+  try { pRivet = ALL_MAT_PRICES['Крепёж']['Заклёпка 4.8×24'].price; } catch(e) {}
+  try { pGrov = ALL_MAT_PRICES['Крепёж']['Шайба гроверная'].price; } catch(e) {}
+  try { pErix = ALL_MAT_PRICES['Крепёж']['Гайка эриксона М8'].price; } catch(e) {}
+  // Costs
+  var sCost = sBolts * (pM8 + pNut + pWasher);
+  var fCost = fBolts * (pM6 + pNut);
+  var rivCost = (rivF + rivS) * pRivet;
+  var aCost = aBolts * pErix;
+  var tCost = tBolts * (pM6 + pNut);
+  var hCost = hingeBolts * (pM8 + pNut);
+  var lCost = lockBolts * (pM6 + pNut);
+  var dCost = dumpLockBolts * (pM8 + pNut);
+  var totalBolt = Math.round(sCost + fCost + rivCost + aCost + tCost + hCost + lCost + dCost);
+  let html = `<table style="width:100%">
+    <tr><th>Узел</th><th>Тип</th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>
+    <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Крепёж</b></td></tr>
+    <tr><td>Борта → рама</td><td>М8×100 + гайка + шайба</td><td class="num">${sBolts}</td><td class="num">${Math.round(sCost)} ₽</td></tr>
+    <tr><td>Пол → перемычки</td><td>М6 мебельный потай + гайка</td><td class="num">${fBolts}</td><td class="num">${Math.round(fCost)} ₽</td></tr>
+    <tr><td>Заклёпки пол→лонжероны</td><td>4.8×25</td><td class="num">~${rivF}</td><td class="num">${Math.round(rivF * pRivet)} ₽</td></tr>
+    <tr><td>Заклёпки фанеры бортов</td><td>4.8×25</td><td class="num">~${rivS}</td><td class="num">${Math.round(rivS * pRivet)} ₽</td></tr>
+    <tr><td>Ось / подвеска</td><td>М12×90 + М12×70</td><td class="num">${aBolts}</td><td class="num">${Math.round(aCost)} ₽</td></tr>
+    <tr><td>Колёса → ступицы</td><td>Болты колёсные</td><td class="num">${st.axles * 8}</td><td></td></tr>`;
   if (tBolts > 0) {
-    html += `<tr><td>Каркас тента → борта</td><td>М6×35 + гайка</td><td class="num">${tBolts}</td></tr>`;
+    html += `<tr><td>Каркас тента → борта</td><td>М6×35 + гайка</td><td class="num">${tBolts}</td><td class="num">${Math.round(tCost)} ₽</td></tr>`;
   }
-  html += `<tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Петли и замки</b></td></tr>
-    <tr><td>Петли борта</td><td>М8×80 + гайка</td><td class="num">${hingeBolts} шт (${isBarsuk ? '2 задние' : '4 перед+зад'} петли × 4)</td></tr>
-    <tr><td>Замки бортовые</td><td>М6×35 + цинговая гайка</td><td class="num">${lockBolts} шт (${isBarsuk ? '2 задних' : '4 перед+зад'} замка × 4)</td></tr>
-    <tr><td>Замки самосвала</td><td>М8×80 + гайка</td><td class="num">${dumpLockBolts} шт (2 замка × 4)</td></tr>`;
+  html += `<tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Петли и замки</b></td></tr>
+    <tr><td>Петли борта</td><td>М8×80 + гайка</td><td class="num">${hingeBolts} шт (${isBarsuk ? '2 задние' : '4 перед+зад'} петли × 4)</td><td class="num">${Math.round(hCost)} ₽</td></tr>
+    <tr><td>Замки бортовые</td><td>М6×35 + цинговая гайка</td><td class="num">${lockBolts} шт (${isBarsuk ? '2 задних' : '4 перед+зад'} замка × 4)</td><td class="num">${Math.round(lCost)} ₽</td></tr>
+    <tr><td>Замки самосвала</td><td>М8×80 + гайка</td><td class="num">${dumpLockBolts} шт (2 замка × 4)</td><td class="num">${Math.round(dCost)} ₽</td></tr>`;
   if (isBarsuk) {
-    html += `<tr><td>Передний борт (крепление)</td><td>М8×80</td><td class="num">4 шт (вместо петель и замков)</td></tr>`;
+    html += `<tr><td>Передний борт (крепление)</td><td>М8×80</td><td class="num">4 шт (вместо петель и замков)</td><td></td></tr>`;
   }
-  html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td></tr>
+  html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td><td></td></tr>
+    <tr style="border-top:2px solid #e94560"><td><b>ИТОГО крепёж</b></td><td></td><td></td><td class="num"><b>${totalBolt.toLocaleString()} ₽</b></td></tr>
   </table>`;
   document.getElementById('boltMap').innerHTML = html;
 }
 
 function renderBrackets(bp, st) {
   const a = st.axles;
-  const html = `<table>
-    <tr><th>Деталь</th><th>Кол-во</th><th>Расположение</th></tr>
-    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Самосвал</b></td></tr>
-    <tr><td>Пластины дышла</td><td class="num">2 шт</td><td>на концах боковых лучей, 120×60×5 мм</td></tr>
-    <tr><td>Пластины рамы</td><td class="num">2 шт</td><td>на лонжеронах рамы, 120×60×5 мм</td></tr>
-    <tr><td>Болт + крепёж</td><td class="num">2 компл</td><td>М12×80 + 2 гайки М12 + 3 шайбы</td></tr>
-    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Подвеска</b></td></tr>
-    <tr><td>Кронштейны рессор</td><td class="num">${a*4} шт</td><td>2 на каждую рессору, расстояние между крайними 670 мм</td></tr>
-    <tr><td>Пятки рессор</td><td class="num">${a*2} шт</td><td>за задним кронштейном, 60×60 мм</td></tr>
-    <tr><td>Кронштейны амортизаторов</td><td class="num">${a*4} шт</td><td>2 на каждую ось: на оси и на аморт. балке</td></tr>
-    <tr><td>Кронштейны крыльев</td><td class="num">${a*4} шт</td><td>2 на каждое пластиковое крыло</td></tr>
-    <tr><td>Косынки (Самбарс)</td><td class="num">${st.brand === 'Барсук' ? 0 : 4} шт</td><td>по внутренним углам рамы</td></tr>
-    <tr><td>Проставки дуг (тент)</td><td class="num">${st.tentH > 0 ? (1 + Math.max(0, calcStep(st.L + BRAND[st.brand].extraMM - 800, 700).n))*2 : 0} шт</td><td>25×25×2, длина 100 мм</td></tr>
+  var pKrRes = 85, pKrAm = 79, pKrKr = 30, pKos = 27;
+  try { pKrRes = ALL_MAT_PRICES['Колёса / подвеска']['Кронштейн рессор'].price; } catch(e) {}
+  try { pKrAm = ALL_MAT_PRICES['Колёса / подвеска']['Кронштейн аморт.'].price; } catch(e) {}
+  try { pKrKr = ALL_MAT_PRICES['Колёса / подвеска']['Кронштейн крыла'].price; } catch(e) {}
+  try { pKos = ALL_MAT_PRICES['Колёса / подвеска']['Косынка усиления'].price; } catch(e) {}
+  var kosCnt = st.brand === 'Барсук' ? 0 : 4;
+  var totalBr = Math.round(a*4*pKrRes + a*4*pKrAm + a*4*pKrKr + kosCnt*pKos);
+  const html = `<table style="width:100%">
+    <tr><th>Деталь</th><th class="num">Кол-во</th><th class="num">Стоимость</th><th>Расположение</th></tr>
+    <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Самосвал</b></td></tr>
+    <tr><td>Пластины дышла</td><td class="num">2 шт</td><td></td><td>на концах боковых лучей</td></tr>
+    <tr><td>Пластины рамы</td><td class="num">2 шт</td><td></td><td>на лонжеронах рамы</td></tr>
+    <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Подвеска</b></td></tr>
+    <tr><td>Кронштейны рессор</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pKrRes)} ₽</td><td>2 на рессору, 670 мм</td></tr>
+    <tr><td>Кронштейны амортизаторов</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pKrAm)} ₽</td><td>на оси и балке</td></tr>
+    <tr><td>Кронштейны крыльев</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pKrKr)} ₽</td><td>2 на каждое крыло</td></tr>
+    ${kosCnt > 0 ? `<tr><td>Косынки (Самбарс)</td><td class="num">${kosCnt} шт</td><td class="num">${Math.round(kosCnt*pKos)} ₽</td><td>по внутренним углам рамы</td></tr>` : ''}
+    <tr style="border-top:2px solid #e94560"><td><b>ИТОГО кронштейны</b></td><td></td><td class="num"><b>${totalBr.toLocaleString()} ₽</b></td><td></td></tr>
   </table>`;
   const el = document.getElementById('bracketSpec');
   if (el) el.innerHTML = html;
@@ -1132,39 +1157,64 @@ function renderBrackets(bp, st) {
 
 function renderElectrics(bp, st, frameL) {
   const frameW = st.W + bp.extraMM;
-  // Провод: длина рамы + ширина рамы + запас 100 см
   const wireLen = Math.ceil(frameL/10 + frameW/10 + 100);
   const grovers = Math.ceil(wireLen / 25);
+  const wireM = wireLen / 100; // meters
+  var pWire = 70, pLight = 382, pFrame = 177, pPlug = 103, pHolder = 30, pHose = 26, pTube = 100, pCatW = 35, pCatY = 35, pCatR = 50;
+  try { pWire = ALL_MAT_PRICES['Электрика']['Провод чёрный 3×0.5'].price; } catch(e) {}
+  try { pLight = ALL_MAT_PRICES['Электрика']['Фонарь задний LED'].price; } catch(e) {}
+  try { pFrame = ALL_MAT_PRICES['Электрика']['Рамка номера LED'].price; } catch(e) {}
+  try { pPlug = ALL_MAT_PRICES['Электрика']['Вилка 7pin'].price; } catch(e) {}
+  try { pHolder = ALL_MAT_PRICES['Электрика']['Держатель вилки'].price; } catch(e) {}
+  try { pHose = ALL_MAT_PRICES['Электрика']['Гофра ПНД 16мм'].price; } catch(e) {}
+  try { pTube = ALL_MAT_PRICES['Электрика']['Термоусадка'].price; } catch(e) {}
+  try { pCatW = ALL_MAT_PRICES['Электрика']['Катафот белый'].price; } catch(e) {}
+  try { pCatY = ALL_MAT_PRICES['Электрика']['Катафот жёлтый'].price; } catch(e) {}
+  try { pCatR = ALL_MAT_PRICES['Электрика']['Катафот красный'].price; } catch(e) {}
+  var totalEl = Math.round(wireM * pWire + 2 * pLight + pFrame + pPlug + pHolder + 3 * pHose + pTube + 2*pCatW + 4*pCatY + 2*pCatR);
   const el = document.getElementById('electrics');
   if (!el) return;
-  el.innerHTML = `<table>
-    <tr><th>Компонент</th><th>Кол-во</th><th>Примечание</th></tr>
-    <tr><td>Провод 5×0,75 чёрный</td><td class="num">${wireLen} см</td><td>длина рамы + ширина рамы + 100 см запас</td></tr>
-    <tr><td>Гофра 16 чёрная</td><td class="num">~100 см</td><td>на запас у вилки</td></tr>
-    <tr><td>Вилка фаркопа</td><td class="num">1 шт</td><td>7-pin, под розетку фаркопа</td></tr>
-    <tr><td>Гровер 12</td><td class="num">${grovers} шт</td><td>держатели провода, шаг ~25 см по раме</td></tr>
-    <tr><td>Фонарь ФП-132А</td><td class="num">2 шт</td><td>светодиодные, сзади</td></tr>
-    <tr><td>Рамка номера с подсветкой</td><td class="num">1 шт</td><td>светодиодная, под рамой сзади</td></tr>
-    <tr><td>Термоусадка трубка 20</td><td class="num">20 см</td><td>на соединения проводов</td></tr>
-    <tr><td>Термоусадка трубка 10</td><td class="num">5 см</td><td>на соединения проводов</td></tr>
+  el.innerHTML = `<table style="width:100%">
+    <tr><th>Компонент</th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>
+    <tr><td>Провод 5×0,75 чёрный</td><td class="num">${wireM.toFixed(1)} м</td><td class="num">${Math.round(wireM*pWire)} ₽</td></tr>
+    <tr><td>Гофра 16 чёрная</td><td class="num">3 м</td><td class="num">${Math.round(3*pHose)} ₽</td></tr>
+    <tr><td>Вилка фаркопа</td><td class="num">1 шт</td><td class="num">${pPlug} ₽</td></tr>
+    <tr><td>Гровер 12</td><td class="num">${grovers} шт</td><td></td></tr>
+    <tr><td>Фонарь ФП-132А LED</td><td class="num">2 шт</td><td class="num">${2*pLight} ₽</td></tr>
+    <tr><td>Рамка номера LED</td><td class="num">1 шт</td><td class="num">${pFrame} ₽</td></tr>
+    <tr><td>Термоусадка</td><td class="num">1 компл</td><td class="num">${pTube} ₽</td></tr>
+    <tr><td>Катафоты (бел×2 жёлт×4 крас×2)</td><td class="num">8 шт</td><td class="num">${Math.round(2*pCatW+4*pCatY+2*pCatR)} ₽</td></tr>
+    <tr style="border-top:2px solid #e94560"><td><b>ИТОГО электрика</b></td><td></td><td class="num"><b>${totalEl.toLocaleString()} ₽</b></td></tr>
   </table>`;
 }
 
 function renderAttachments(st) {
+  var pHitch = 635, pChain = 86, pCarab = 15, pWin = 60, pPTS1 = 3000, pPTS2 = 4000, pJack = 1350, pDump = 280;
+  try { pHitch = ALL_MAT_PRICES['Навесное']['Сцепное устр-во В-40'].price; } catch(e) {}
+  try { pChain = ALL_MAT_PRICES['Навесное']['Цепь 6мм цинк'].price; } catch(e) {}
+  try { pCarab = ALL_MAT_PRICES['Навесное']['Карабин М10'].price; } catch(e) {}
+  try { pWin = ALL_MAT_PRICES['Навесное']['Табличка WIN'].price; } catch(e) {}
+  try { pPTS1 = ALL_MAT_PRICES['Навесное']['ПТС 1 ось'].price; } catch(e) {}
+  try { pPTS2 = ALL_MAT_PRICES['Навесное']['ПТС 2 оси'].price; } catch(e) {}
+  try { pJack = ALL_MAT_PRICES['Навесное']['Подкатное'].price; } catch(e) {}
+  try { pDump = ALL_MAT_PRICES['Борта / петли / замки']['Замок самосвальный'].price; } catch(e) {}
+  var ptsP = st.axles === 1 ? pPTS1 : pPTS2;
+  var dumpCnt = st.axles === 1 ? 2 : 0;
+  var totalAt = Math.round(pHitch + 0.5*pChain + pCarab + pWin + ptsP + pJack + dumpCnt*pDump);
   const el = document.getElementById('attachments');
   if (!el) return;
-  el.innerHTML = `<table>
-    <tr><th>Компонент</th><th class="num">Кол-во</th></tr>
-    <tr><td colspan="2" style="color:#e94560;padding-top:4px"><b>Дышло</b></td></tr>
-    <tr><td>Замок фаркопа 750 кг</td><td class="num">1 шт</td></tr>
-    <tr><td>Кронштейн вилки</td><td class="num">1 шт</td></tr>
-    <tr><td>Цепь длиннозвенная 6 мм × 50 см</td><td class="num">1 шт</td></tr>
-    <tr><td>Карабин</td><td class="num">1 шт</td></tr>
-    <tr><td>Болт М12×120 + 2 гайки М12</td><td class="num">2 компл</td></tr>
-    <tr><td colspan="2" style="color:#e94560;padding-top:4px"><b>Светоотражатели</b></td></tr>
-    <tr><td>Катафот белый (спереди)</td><td class="num">2 шт</td></tr>
-    <tr><td>Катафот жёлтый (по бокам)</td><td class="num">4 шт</td></tr>
-    <tr><td>Катафот красный треугольник (сзади)</td><td class="num">2 шт</td></tr>
+  el.innerHTML = `<table style="width:100%">
+    <tr><th>Компонент</th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>
+    <tr><td colspan="3" style="color:#e94560;padding-top:4px"><b>Дышло</b></td></tr>
+    <tr><td>Замок фаркопа 750 кг</td><td class="num">1 шт</td><td class="num">${pHitch} ₽</td></tr>
+    <tr><td>Кронштейн вилки</td><td class="num">1 шт</td><td></td></tr>
+    <tr><td>Цепь длиннозвенная 6 мм</td><td class="num">0.5 м</td><td class="num">${Math.round(0.5*pChain)} ₽</td></tr>
+    <tr><td>Карабин М10</td><td class="num">1 шт</td><td class="num">${pCarab} ₽</td></tr>
+    <tr><td>Табличка WIN</td><td class="num">1 шт</td><td class="num">${pWin} ₽</td></tr>
+    <tr><td>ПТС (${st.axles}-осный)</td><td class="num">1 шт</td><td class="num">${ptsP} ₽</td></tr>
+    <tr><td>Подкатное</td><td class="num">1 шт</td><td class="num">${pJack} ₽</td></tr>
+    ${dumpCnt > 0 ? `<tr><td>Замок самосвальный</td><td class="num">${dumpCnt} шт</td><td class="num">${dumpCnt*pDump} ₽</td></tr>` : ''}
+    <tr style="border-top:2px solid #e94560"><td><b>ИТОГО навесное</b></td><td></td><td class="num"><b>${totalAt.toLocaleString()} ₽</b></td></tr>
   </table>`;
 }
 

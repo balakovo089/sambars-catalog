@@ -98,6 +98,14 @@ canvas{display:block;cursor:grab}
   <select id="axles" onchange="onAxleChange()">
   </select>
 
+  <label>Компл.</label>
+  <select id="kitSelect" onchange="onKitChange()">
+    <option value="4">К4 (с тентом)</option>
+    <option value="3">К3 (бортовой)</option>
+    <option value="2">К2 (с полом)</option>
+    <option value="1">К1 (рама)</option>
+  </select>
+
   <div class="meta-info" id="metaInfo"></div>
 
   <h3>📊 МЕТАЛЛОПРОКАТ</h3>
@@ -244,7 +252,7 @@ const EXPORT_MODE = urlParams.get('export') === '1';
 // ══════════════════════════════════════════════════════════
 // STATE
 // ══════════════════════════════════════════════════════════
-let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1, model:'Самбарс 1.5×3.0'};
+let state = {brand:'Самбарс', W:1500, L:3000, tentH:120, axles:1, kit:4, model:'Самбарс 1.5×3.0'};
 let scale = 1.0, offX = 0, offY = 0;
 let dragging = false, dragSX, dragSY, dragOX, dragOY;
 let sectionRects = []; // [{id, y, h}] — границы секций для печати
@@ -300,6 +308,11 @@ function onModelChange() {
 
 function onAxleChange() {
   state.axles = parseInt(document.getElementById('axles').value);
+  recalc();
+}
+
+function onKitChange() {
+  state.kit = parseInt(document.getElementById('kitSelect').value);
   recalc();
 }
 
@@ -741,12 +754,18 @@ function recalc() {
     return;
   }
 
+  // ═══ FILTER BY KIT ═══
+  let kitPieces = allProfilePieces;
+  if (state.kit < 4) kitPieces = kitPieces.filter(g => !g.label.startsWith('Каркас тента') && !g.label.startsWith('Проставки дуг'));
+  if (state.kit < 3) kitPieces = kitPieces.filter(g => !g.label.startsWith('Борта'));
+  if (state.kit < 2) kitPieces = kitPieces.filter(g => !g.label.startsWith('Перемычка под шов'));
+
   // ═══ RENDER ═══
-  renderMetalSpec(allProfilePieces);
+  renderMetalSpec(kitPieces);
   
   // Group pieces by profile for efficient cutting (all pieces of same profile together)
   const groupedByProfile = {};
-  for (const grp of allProfilePieces) {
+  for (const grp of kitPieces) {
     const prof = grp.label.match(/(\d+[×x*]\d+[×x*]\d+\.?\d*)/);
     const profName = prof ? prof[1] : grp.label;  // e.g. "60×60×2" from "Рама 60×60×2"
     if (!groupedByProfile[profName]) groupedByProfile[profName] = [];

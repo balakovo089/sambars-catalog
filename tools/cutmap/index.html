@@ -1407,9 +1407,9 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   var hubsCost = (st.axles||1) * 2 * (bp.hubPrice||0);
   var tentCost = tentTotalCost || (tentArea * (bp.tentPVC_price||0));
   
-  var ptsCost = (st.axles||1) === 1 ? 3000 : 4000;
-  try { ptsCost = ALL_MAT_PRICES['Навесное']['ПТС ' + (st.axles||1) + ' ось'].price; } catch(e) {}
-  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost + ptsCost);
+  var tentCost = tentTotalCost || (tentArea * (bp.tentPVC_price||0));
+  
+  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
   
   document.getElementById('summary').innerHTML = '<table style="width:100%">' +
     '<tr><th></th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>' +

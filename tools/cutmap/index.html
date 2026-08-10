@@ -225,14 +225,14 @@ const BRAND = {
 };
 
 const TUBES = {
-  '60×40×2':  {mass:2.93, color:'#5dade2', price:1229.17/6},
-  '60×60×2':  {mass:3.56, color:'#5dade2', price:1356.3/6},
-  '40×20×2':  {mass:1.35, color:'#7f8c8d', price:577.5/6},
-  '80×40×3':  {mass:5.19, color:'#e74c3c', price:1959.3/6},
-  '50×50×3':  {mass:4.30, color:'#c0392b', price:1605.8/6},
-  '50×50×4':  {mass:5.60, color:'#c0392b', price:2075.41/6},
-  '25×25×2':  {mass:1.40, color:'#3498db', price:452.96/6},
-  '20×20×1.5':{mass:0.84, color:'#27ae60', price:355.73/6},
+  '60×40×2':  {mass:2.93, color:'#5dade2', price:205},
+  '60×60×2':  {mass:3.56, color:'#5dade2', price:226},
+  '40×20×2':  {mass:1.35, color:'#7f8c8d', price:96},
+  '80×40×3':  {mass:5.19, color:'#e74c3c', price:326},
+  '50×50×3':  {mass:4.30, color:'#c0392b', price:268},
+  '50×50×4':  {mass:5.60, color:'#c0392b', price:346},
+  '25×25×2':  {mass:1.40, color:'#3498db', price:76},
+  '20×20×1.5':{mass:0.84, color:'#27ae60', price:60},
 };
 
 // ══════════════════════════════════════════════════════════
@@ -792,11 +792,16 @@ function renderMetalSpec(pieces) {
     grouped[prof] += grp.pieces.reduce((a,b) => a+b, 0);
   }
   
-  let html = '<table><tr><th>Профиль</th><th class="num">Метров</th><th class="num">Хлыстов 6м</th></tr>';
+  let html = '<table><tr><th>Профиль</th><th class="num">Метров</th><th class="num">Цена/м</th><th class="num">Стоимость</th><th class="num">Хлыстов 6м</th></tr>';
+  let totalCost = 0;
   for (const [prof, totalM] of Object.entries(grouped)) {
     const xlysts = roundXlysts(totalM);
-    html += `<tr><td>${prof}</td><td class="num">${totalM.toFixed(1)}</td><td class="num">${xlysts}</td></tr>`;
+    const pricePerM = TUBES[prof] ? TUBES[prof].price : 0;
+    const cost = Math.round(totalM * pricePerM);
+    totalCost += cost;
+    html += `<tr><td>${prof}</td><td class="num">${totalM.toFixed(1)}</td><td class="num">${pricePerM}</td><td class="num">${cost.toLocaleString()}</td><td class="num">${xlysts}</td></tr>`;
   }
+  html += `<tr style="border-top:2px solid #e94560"><td><b>ИТОГО металл</b></td><td class="num"></td><td class="num"></td><td class="num"><b>${totalCost.toLocaleString()} ₽</b></td><td class="num"></td></tr>`;
   html += '</table>';
   document.getElementById('metalSpec').innerHTML = html;
 }

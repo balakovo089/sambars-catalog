@@ -651,6 +651,11 @@ function recalc() {
     allProfilePieces.push({label:`Поперечины 40×20×2`, pieces:Array(totalCross).fill(fpCross)});
   }
   if (centerM > 0) allProfilePieces.push({label:`Центр.балка ${frameProfile}`, pieces:[centerM]});
+  // Бизон: 2 продольные балки над нижней рамой вместо центральной
+  if (brand === 'Бизон') {
+    const sideBeamM = frameL/1000;  // длина = длина рамы
+    allProfilePieces.push({label:`Продольные балки ${frameProfile} x2`, pieces: [sideBeamM, sideBeamM]});
+  }
   // Доп. перемычки под швы фанеры пола (по одной на каждый стык)
   if (hasFloorSeam) {
     const extraCrossM = (frameW/1000);
@@ -1291,13 +1296,27 @@ function redrawCanvas() {
   ctx.lineWidth = Math.max(5, 6*scale);
   ctx.strokeRect(rX, rY, rW, rH);
 
-  // Center beam (Sambars/Bizon) — горизонтальная пунктирная линия посередине
+  // Center beam (Sambars only) — горизонтальная пунктирная линия посередине
   if (brand !== 'Барсук' && brand !== 'Бизон') {
     ctx.strokeStyle = '#5dade2';
     ctx.lineWidth = Math.max(2, 3*scale);
     ctx.setLineDash([8,4]);
     ctx.beginPath(); ctx.moveTo(rX, rY+rH/2); ctx.lineTo(rX+rW, rY+rH/2); ctx.stroke();
     ctx.setLineDash([]);
+  }
+
+  // Бизон: 2 продольные балки ровно над нижней рамой (отступ 300мм с каждой стороны)
+  if (brand === 'Бизон') {
+    const beamOffset = 300 * sc;
+    ctx.strokeStyle = '#3498db';
+    ctx.lineWidth = Math.max(2, 3*scale);
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath(); ctx.moveTo(rX, rY + beamOffset); ctx.lineTo(rX + rW, rY + beamOffset); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rX, rY + rH - beamOffset); ctx.lineTo(rX + rW, rY + rH - beamOffset); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#3498db';
+    ctx.font = `bold ${Math.max(7, 8)}px DejaVu Sans`;
+    ctx.fillText('продольные балки x2', rX + 10, rY + beamOffset - 4);
   }
 
   // Cross members + shock beams

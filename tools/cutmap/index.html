@@ -721,7 +721,19 @@ function recalc() {
 
   // ═══ RENDER ═══
   renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);
-  renderCutPlan(allProfilePieces);
+  
+  // Group pieces by profile for efficient cutting (all pieces of same profile together)
+  const groupedByProfile = {};
+  for (const grp of allProfilePieces) {
+    const prof = grp.label.split(' ').pop();  // e.g. "60×60×2" from "Рама 60×60×2"
+    if (!groupedByProfile[prof]) groupedByProfile[prof] = [];
+    groupedByProfile[prof].push(...grp.pieces);
+  }
+  const cutPlanPieces = Object.entries(groupedByProfile).map(([prof, pieces]) => ({
+    label: `Профиль ${prof}`,
+    pieces: pieces
+  }));
+  renderCutPlan(cutPlanPieces);
   renderPlywood(floorArea, sideArea, floorSheets, sideSheets, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
   if (hasTent) {
     document.getElementById('tentPlanBlock').style.display = 'block';

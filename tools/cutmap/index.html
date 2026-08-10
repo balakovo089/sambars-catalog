@@ -1104,8 +1104,13 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
     <tr><td>Срок службы</td><td>~${isBarsuk ? 2 : 7} лет</td></tr>
     <tr style="border-top:2px solid #e94560"><td><b>Ткань (${tentAreaM2.toFixed(1)} м² × ${pFabric} ₽)</b></td><td class="num"><b>${Math.round(fabricCost).toLocaleString()} ₽</b></td></tr>
-    <tr><td>Эспандер (${espanderM} м × ${pEsp} ₽)</td><td class="num">${Math.round(espCost)} ₽</td></tr>
-    <tr><td>Фурнитура (люверсы, эриксоны, поворотки)</td><td class="num">${Math.round(louvCost + valveCost)} ₽</td></tr>
+    <tr><td>Эспандер ${bp.espander}мм (${espanderM} м × ${pEsp} ₽)</td><td class="num">${Math.round(espCost)} ₽</td></tr>
+    <tr><td>Люверсы d10 (${louvers10} шт × ${pLouv} ₽)</td><td class="num">${Math.round(louvers10 * pLouv)} ₽</td></tr>
+    <tr><td>Гайка эриксона М8 (${louvers10 + 4} шт × ${pErix} ₽)</td><td class="num">${Math.round((louvers10 + 4) * pErix)} ₽</td></tr>
+    <tr><td>Подкладки (${valveLouvers} шт × ${pPad} ₽)</td><td class="num">${Math.round(valveLouvers * pPad)} ₽</td></tr>
+    ${!isBarsuk ? `<tr><td>Поворотки d37 (${turnBuckles} шт × ${pValve} ₽)</td><td class="num">${Math.round(turnBuckles * pValve)} ₽</td></tr>` : ''}
+    ${isBarsuk ? `<tr><td>Скобы (${straps} шт × ${pStaple} ₽)</td><td class="num">${Math.round(straps * pStaple)} ₽</td></tr>` : ''}
+    ${isBarsuk ? `<tr><td>Ремень ПВХ (2 шт × ${(tMM/1000).toFixed(2)} м × ${pStrap} ₽)</td><td class="num">${Math.round(2 * (tMM/1000) * pStrap)} ₽</td></tr>` : ''}
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО тент</b></td><td class="num"><b>${totalTent.toLocaleString()} ₽</b></td></tr>
   </table>`;
   document.getElementById('tentPlan').innerHTML = html;

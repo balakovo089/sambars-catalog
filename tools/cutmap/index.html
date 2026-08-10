@@ -778,17 +778,19 @@ function recalc() {
     pieces: pieces
   }));
   renderCutPlan(cutPlanPieces);
-  // K1-K2: no side plywood
+  // K1-K2: no side plywood, K1: no floor plywood
   const sideSheetsVis = state.kit >= 3 ? sideSheets : 0;
-  renderPlywood(floorArea, (state.kit >= 3 ? sideArea : 0), floorSheets, sideSheetsVis, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
+  const floorSheetsVis = state.kit >= 2 ? floorSheets : 0;
+  const floorAreaVis = state.kit >= 2 ? floorArea : 0;
+  renderPlywood(floorAreaVis, (state.kit >= 3 ? sideArea : 0), floorSheetsVis, sideSheetsVis, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
   if (hasTent && state.kit >= 4) {
     document.getElementById('tentPlanBlock').style.display = 'block';
     renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
   } else {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
-  renderBoltMap(bp, state, (state.kit >= 3 ? sBoltsCount : 0), floorBolts, axleBolts,
-    (state.kit >= 4 ? tentBolts : 0), rivetsFloor, rivetsSides);
+  renderBoltMap(bp, state, (state.kit >= 3 ? sBoltsCount : 0), (state.kit >= 2 ? floorBolts : 0), axleBolts,
+    (state.kit >= 4 ? tentBolts : 0), (state.kit >= 2 ? rivetsFloor : 0), rivetsSides);
   renderBrackets(bp, state);
   renderElectrics(bp, state, frameL);
   renderAttachments(state);
@@ -818,8 +820,27 @@ function recalc() {
     tentTotalCost = Math.round(tentTotalCost);
   }
   
-  renderSummary(allProfilePieces, bp, floorSheets, (state.kit >= 3 ? sideSheets : 0), floorArea, (state.kit >= 3 ? sideArea : 0),
-    (state.kit >= 4 ? tentArea : 0), (state.kit >= 4 ? tentTotalCost : 0), state, floorSheetType);
+  // Calculate extra costs for summary (electrics, hitch, zinc, paint, bolts, consumables)
+  const a = axles;
+  const wireM = (frameL/10 + frameW/10 + 100) / 100;
+  var electrCost = Math.round(wireM*70 + 2*382 + 177 + 103 + 30 + 3*26 + 100 + 2*35 + 4*35 + 2*50);
+  var hitchExtra = 635 + 43 + 15 + 60 + 1350;
+  if (a === 1) hitchExtra += 2*280 + 3000; else hitchExtra += 4000;
+  var zincW2 = 0, paintW2 = 0, paintA2 = 0;
+  allProfilePieces.forEach(grp => {
+    const label = grp.label; const tm = grp.pieces.reduce((a,b)=>a+b,0);
+    const prof = label.split(' ').pop(); const m = tm * (TUBES[prof]?TUBES[prof].mass:0);
+    if (['Рама','Центр.','Дышло','Борта'].some(p => label.startsWith(p))) zincW2 += m;
+    if (['Ось','Каркас тента','Проставки'].some(p => label.startsWith(p))) { paintW2 += m; paintA2 += tm*(prof==='50×50×3'||prof==='50×50×4'?0.2:prof==='20×20×1.5'?0.08:0.1); }
+  });
+  var zincEx = zincW2 * 87;
+  var paintEx = parseFloat((paintA2*0.2*2).toFixed(2)) * 750;
+  var boltEx = Math.round(2500 + a*500);
+  var consumEx = Math.round(consumables.cutDiscs*13 + consumables.grindDiscs*44 + parseFloat(consumables.wire)*250 + parseFloat(consumables.gas)*43 + consumables.gloves*25 + consumables.kragi*420);
+  var extraCost = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + consumEx);
+  
+  renderSummary(allProfilePieces, bp, (state.kit >= 2 ? floorSheets : 0), (state.kit >= 3 ? sideSheets : 0), (state.kit >= 2 ? floorArea : 0), (state.kit >= 3 ? sideArea : 0),
+    (state.kit >= 4 ? tentArea : 0), (state.kit >= 4 ? tentTotalCost : 0), state, floorSheetType, extraCost);
   renderConsumables(consumables);
   
   // ZP + operations
@@ -828,6 +849,7 @@ function recalc() {
   const skipOps = [];
   if (state.kit < 4) skipOps.push(5, 6, 8, 16, 17); // tent ops
   if (state.kit < 3) skipOps.push(2, 3, 12, 13);     // side ops
+  if (state.kit < 2) skipOps.push(14);                  // floor ops
   if (skipOps.length > 0) {
     zpData.ops = zpData.ops.filter((_, i) => !skipOps.includes(i));
     zpData.opSum = zpData.ops.reduce((s, o) => s + o.minutes, 0);
@@ -1359,7 +1381,7 @@ function renderZincPaint(pieces, bp, frameW, axles) {
   </table>`;
 }
 
-function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, tentTotalCost, st, floorSheetType) {
+function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, tentTotalCost, st, floorSheetType, extraCost) {
   // Metal cost from TUBES (safe, no ALL_MAT_PRICES dependency)
   let totalMetal = 0, metalCost = 0;
   pieces.forEach(grp => {

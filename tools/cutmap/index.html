@@ -1329,7 +1329,7 @@ function renderZinc(pieces) {
     }
   });
   const paintEstimate = (paintArea * 0.200 * 2).toFixed(2);
-  const el = document.getElementById('zincPaint');
+  const el = document.getElementById('zincBlock');
   if (!el) return;
   var pZinc = 87, pPaint = 750;
   try { pZinc = ALL_MAT_PRICES['Покраска / цинк']['Цинкование'].price; } catch(e) {}

@@ -1409,7 +1409,8 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   
   var tentCost = tentTotalCost || (tentArea * (bp.tentPVC_price||0));
   
-  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
+  var ptsCost = (st.axles||1) === 1 ? 3000 : 4000;
+  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost + ptsCost);
   
   document.getElementById('summary').innerHTML = '<table style="width:100%">' +
     '<tr><th></th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>' +

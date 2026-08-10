@@ -739,7 +739,7 @@ function recalc() {
   }
 
   // ═══ RENDER ═══
-  renderMetalSpec(allProfilePieces, bp, hasTent, tentArchCount);
+  renderMetalSpec(allProfilePieces);
   
   // Group pieces by profile for efficient cutting (all pieces of same profile together)
   const groupedByProfile = {};
@@ -775,15 +775,19 @@ function recalc() {
 // ══════════════════════════════════════════════════════════
 // RENDER HELPERS
 // ══════════════════════════════════════════════════════════
-function renderMetalSpec(pieces, bp, hasTent, archCount) {
-  let html = '<table><tr><th>Профиль</th><th>Назначение</th><th class="num">Метров</th><th class="num">Хлыстов 6м</th></tr>';
+function renderMetalSpec(pieces) {
+  // Group by profile (same logic as cut plan)
+  const grouped = {};
   for (const grp of pieces) {
-    const totalM = grp.pieces.reduce((a,b) => a+b, 0);
+    const prof = grp.label.split(' ').pop();
+    if (!grouped[prof]) grouped[prof] = 0;
+    grouped[prof] += grp.pieces.reduce((a,b) => a+b, 0);
+  }
+  
+  let html = '<table><tr><th>Профиль</th><th class="num">Метров</th><th class="num">Хлыстов 6м</th></tr>';
+  for (const [prof, totalM] of Object.entries(grouped)) {
     const xlysts = roundXlysts(totalM);
-    const parts = grp.label.split(' ');
-    const prof = parts.pop();
-    const label = parts.join(' ');
-    html += `<tr><td>${prof}</td><td>${label}</td><td class="num">${totalM.toFixed(1)}</td><td class="num">${xlysts}</td></tr>`;
+    html += `<tr><td>${prof}</td><td class="num">${totalM.toFixed(1)}</td><td class="num">${xlysts}</td></tr>`;
   }
   html += '</table>';
   document.getElementById('metalSpec').innerHTML = html;

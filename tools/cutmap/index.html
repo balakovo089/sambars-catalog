@@ -134,6 +134,9 @@ canvas{display:block;cursor:grab}
   <h3>⚖️ СВОДКА</h3>
   <div class="summary" id="summary"></div>
 
+  <h3>⏱️ ОПЕРАЦИИ</h3>
+  <div class="summary" id="operations"></div>
+
 </div>
 
 <div class="main">
@@ -768,6 +771,11 @@ function recalc() {
   renderZincPaint(allProfilePieces, bp, frameW, axles);
   renderSummary(allProfilePieces, bp, floorSheets, sideSheets, tentArea, state, floorSheetType);
   renderConsumables(consumables);
+  
+  // ZP + operations
+  const zpData = calcZP(brand, W, L, tentH, axles);
+  renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);
+  
   updateMeta();
   redrawCanvas();
 }
@@ -1232,7 +1240,33 @@ function calcZP(brand, W, L, tentH, axles) {
     tentMakerR = Math.round(tentMakerM/60 * rate);
   }
   const zpTotal = zpNoTent + tentMakerR;
-  return { welderR, painterR, assemblerR, tentMakerR, zpNoTent, zpTotal };
+  
+  // Operation names from reference sheet
+  const OP_NAMES = [
+    'Распил рамы+дышла', 'Сварка рамы+дышла', 'Распил бортов', 'Сварка бортов',
+    'Сварка оси', 'Распил каркаса тента', 'Сварка каркаса тента', 'Покраска оси',
+    'Покраска каркаса+дуг', 'Сборка оси,крыльев,колёс', 'Сборка навесного', 'Сборка электрики',
+    'Сборка бортов', 'Установка бортов', 'Обшивка пола', 'Установка дышла',
+    'Уст. каркаса тента', 'Уст. тента'
+  ];
+  const ops = OP_NAMES.map((name, i) => ({ name, minutes: opMinutes[i] }));
+  
+  return { welderR, painterR, assemblerR, tentMakerR, zpNoTent, zpTotal, ops, opSum };
+}
+
+function renderOperations(ops, totalMin, rate, zp) {
+  let html = '<table>';
+  for (const op of ops) {
+    html += `<tr><td>${op.name}</td><td class="num">${op.minutes}</td></tr>`;
+  }
+  html += `<tr style="border-top:2px solid #e94560"><td><b>ВСЕГО минут</b></td><td class="num"><b>${totalMin}</b></td></tr>`;
+  html += `<tr><td style="color:#888">Сварщик (58.5%)</td><td class="num">${zp.welderR} ₽</td></tr>`;
+  html += `<tr><td style="color:#888">Маляр (5%)</td><td class="num">${zp.painterR} ₽</td></tr>`;
+  html += `<tr><td style="color:#888">Сборщик</td><td class="num">${zp.assemblerR} ₽</td></tr>`;
+  if (zp.tentMakerR > 0) html += `<tr><td style="color:#888">Тентовик</td><td class="num">${zp.tentMakerR} ₽</td></tr>`;
+  html += `<tr style="border-top:2px solid #e94560"><td><b>ЗП (ставка ${rate}₽/ч)</b></td><td class="num"><b>${zp.zpTotal} ₽</b></td></tr>`;
+  html += '</table>';
+  document.getElementById('operations').innerHTML = html;
 }
 
 function updateMeta() {

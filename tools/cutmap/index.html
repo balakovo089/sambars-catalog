@@ -1199,39 +1199,40 @@ function renderZincPaint(pieces, bp, frameW, axles) {
 }
 
 function renderSummary(pieces, bp, fSheets, sSheets, tentArea, st, floorSheetType) {
-  // Metal cost
+  // Metal cost from TUBES (safe, no ALL_MAT_PRICES dependency)
   let totalMetal = 0, metalCost = 0;
   pieces.forEach(grp => {
     const tm = grp.pieces.reduce((a,b)=>a+b,0);
     const match = grp.label.match(/(\d+[×x*]\d+[×x*]\d+\.?\d*)/);
     const prof = match ? match[1] : '';
     totalMetal += tm;
-    metalCost += tm * (TUBES[prof] ? TUBES[prof].price : 0);
+    if (prof && TUBES[prof]) metalCost += tm * TUBES[prof].price;
   });
   
-  // Plywood
-  const pp125 = ALL_MAT_PRICES['Фанера']['1250×2500 (9 мм)'].price;
-  const pp150 = ALL_MAT_PRICES['Фанера']['1500×3000 (9 мм)'].price;
-  const plyCost = fSheets * (floorSheetType.includes('1500') ? pp150 : pp125) + sSheets * pp125;
+  // Plywood cost (hardcoded fallback if no ALL_MAT_PRICES)
+  var pp125 = 688, pp150 = 822;
+  try { pp125 = ALL_MAT_PRICES['Фанера']['1250×2500 (9 мм)'].price; } catch(e) {}
+  try { pp150 = ALL_MAT_PRICES['Фанера']['1500×3000 (9 мм)'].price; } catch(e) {}
+  var plyCost = fSheets * ((floorSheetType||'').includes('1500') ? pp150 : pp125) + sSheets * pp125;
   
   // Components
-  const wheelsCost = st.axles * 2 * bp.wheelsPrice;
-  const springsCost = st.axles * 2 * bp.springsPrice;
-  const hubsCost = st.axles * 2 * bp.hubPrice;
-  const tentCost = tentArea * bp.tentPVC_price;
+  var wheelsCost = (st.axles||1) * 2 * (bp.wheelsPrice||0);
+  var springsCost = (st.axles||1) * 2 * (bp.springsPrice||0);
+  var hubsCost = (st.axles||1) * 2 * (bp.hubPrice||0);
+  var tentCost = tentArea * (bp.tentPVC_price||0);
   
-  const totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
+  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
   
-  document.getElementById('summary').innerHTML = `<table style=\"width:100%\">
-    <tr><th></th><th class=\"num\">Кол-во</th><th class=\"num\">Стоимость</th></tr>
-    <tr><td>Металл</td><td class=\"num\">${totalMetal.toFixed(1)} м</td><td class=\"num\">${Math.round(metalCost).toLocaleString()} ₽</td></tr>
-    <tr><td>Фанера</td><td class=\"num\">${fSheets + sSheets} листов</td><td class=\"num\">${Math.round(plyCost).toLocaleString()} ₽</td></tr>
-    ${tentArea > 0 ? `<tr><td>Тент</td><td class=\"num\">${tentArea.toFixed(1)} м²</td><td class=\"num\">${Math.round(tentCost).toLocaleString()} ₽</td></tr>` : ''}
-    <tr><td>Колёса</td><td class=\"num\">${st.axles*2} шт</td><td class=\"num\">${Math.round(wheelsCost).toLocaleString()} ₽</td></tr>
-    <tr><td>Рессоры</td><td class=\"num\">${st.axles*2} шт</td><td class=\"num\">${Math.round(springsCost).toLocaleString()} ₽</td></tr>
-    <tr><td>Ступицы</td><td class=\"num\">${st.axles*2} шт</td><td class=\"num\">${Math.round(hubsCost).toLocaleString()} ₽</td></tr>
-    <tr style=\"border-top:2px solid #e94560\"><td><b>ВСЕГО материалы</b></td><td></td><td class=\"num\"><b>${totalMatCost.toLocaleString()} ₽</b></td></tr>
-  </table>`;
+  document.getElementById('summary').innerHTML = '<table style="width:100%">' +
+    '<tr><th></th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>' +
+    '<tr><td>Металл</td><td class="num">' + totalMetal.toFixed(1) + ' м</td><td class="num">' + Math.round(metalCost).toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Фанера</td><td class="num">' + (fSheets + sSheets) + ' листов</td><td class="num">' + Math.round(plyCost).toLocaleString() + ' ₽</td></tr>' +
+    (tentArea > 0 ? '<tr><td>Тент</td><td class="num">' + tentArea.toFixed(1) + ' м²</td><td class="num">' + Math.round(tentCost).toLocaleString() + ' ₽</td></tr>' : '') +
+    '<tr><td>Колёса</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(wheelsCost).toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Рессоры</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(springsCost).toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Ступицы</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(hubsCost).toLocaleString() + ' ₽</td></tr>' +
+    '<tr style="border-top:2px solid #e94560"><td><b>ВСЕГО материалы</b></td><td></td><td class="num"><b>' + totalMatCost.toLocaleString() + ' ₽</b></td></tr>' +
+  '</table>';
 }
 
 // ═══ ZP CALC (ported from bom_from_cutmap.js) ═══

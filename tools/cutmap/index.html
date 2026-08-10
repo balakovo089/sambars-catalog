@@ -791,7 +791,27 @@ function recalc() {
   renderAttachments(state);
   
   renderZincPaint(allProfilePieces, bp, frameW, axles);
-  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, floorArea, sideArea, tentArea, state, floorSheetType);
+  
+  // Calculate tent total cost (fabric + hardware)
+  let tentTotalCost = 0;
+  if (hasTent) {
+    tentTotalCost = tentArea * bp.tentPVC_price;
+    const lowerP = 2*(frameW/1000 + frameL/1000) + 0.2;
+    const espP = bp.espander === 8 ? 33 : 27;
+    tentTotalCost += (lowerP + 0.5) * espP;
+    const tc = Math.ceil(tentArea / 3);
+    tentTotalCost += tc * 3.40 + tc * 3 * 1;
+    const flapW = (frameW + 2*tentMM) / 1000;
+    const fbc = Math.max(2, Math.round(flapW / 0.3) + 1);
+    if (brand !== 'Барсук') {
+      tentTotalCost += fbc * 2 * 4.50 + fbc * 2 * 4.30;
+    } else {
+      tentTotalCost += fbc * 11 + (tentMM/1000) * 2 * 24;
+    }
+    tentTotalCost = Math.round(tentTotalCost);
+  }
+  
+  renderSummary(allProfilePieces, bp, floorSheets, sideSheets, floorArea, sideArea, tentArea, tentTotalCost, state, floorSheetType);
   renderConsumables(consumables);
   
   // ZP + operations
@@ -1151,17 +1171,33 @@ function renderAttachments(st) {
 function renderConsumables(c) {
   const el = document.getElementById('consumables');
   if (!el) return;
-  const html = `<table>
-    <tr><td>Резов (пилов)</td><td class="num"><b>${c.cuts}</b></td></tr>
-    <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td></tr>
-    <tr><td>Газ CO2</td><td class="num">${c.gas} кг</td></tr>
-    <tr><td>Диски отрезные 125×1.2</td><td class="num">${c.cutDiscs} шт</td></tr>
-    <tr><td>Диски лепестковые</td><td class="num">${c.grindDiscs} шт</td></tr>
-    <tr><td>Перчатки</td><td class="num">${c.gloves} пар</td></tr>
-    <tr><td>Краги</td><td class="num">${c.kragi} пар</td></tr>
-    <tr><td colspan="2" class="sub">нормы: ~7 г проволоки/пил, диск на 18 резов, лепесток на 55 швов</td></tr>
+  // Prices from ALL_MAT_PRICES with fallbacks
+  var pWire = 250, pGas = 43, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
+  try { pWire = ALL_MAT_PRICES['Расходники']['Проволока св. 0.8мм'].price; } catch(e) {}
+  try { pGas = ALL_MAT_PRICES['Расходники']['Газ (пропан)'].price; } catch(e) {}
+  try { pDisc = ALL_MAT_PRICES['Расходники']['Диск отрезной d125'].price; } catch(e) {}
+  try { pGrind = ALL_MAT_PRICES['Расходники']['Шлифкруг 125мм'].price; } catch(e) {}
+  try { pGloves = ALL_MAT_PRICES['Расходники']['Перчатки нитриловые'].price; } catch(e) {}
+  try { pKragi = ALL_MAT_PRICES['Расходники']['Краги сварочные'].price; } catch(e) {}
+  var wireCost = parseFloat(c.wire) * pWire;
+  var gasCost = parseFloat(c.gas) * pGas;
+  var discCost = c.cutDiscs * pDisc;
+  var grindCost = c.grindDiscs * pGrind;
+  var glovesCost = c.gloves * pGloves;
+  var kragiCost = c.kragi * pKragi;
+  var totalCons = Math.round(wireCost + gasCost + discCost + grindCost + glovesCost + kragiCost);
+  el.innerHTML = `<table style="width:100%">
+    <tr><th>Расходник</th><th class="num">Ко��-во</th><th class="num">Стоимость</th></tr>
+    <tr><td>Резов (пилов)</td><td class="num">${c.cuts}</td><td></td></tr>
+    <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td><td class="num">${Math.round(wireCost)} ₽</td></tr>
+    <tr><td>Газ (пропан)</td><td class="num">${c.gas} кг</td><td class="num">${Math.round(gasCost)} ₽</td></tr>
+    <tr><td>Диски отрезные 125</td><td class="num">${c.cutDiscs} шт</td><td class="num">${Math.round(discCost)} ₽</td></tr>
+    <tr><td>Диски лепестковые</td><td class="num">${c.grindDiscs} шт</td><td class="num">${Math.round(grindCost)} ₽</td></tr>
+    <tr><td>Перчатки нитриловые</td><td class="num">${c.gloves} пар</td><td class="num">${Math.round(glovesCost)} ₽</td></tr>
+    <tr><td>Краги сварочные</td><td class="num">${c.kragi} пар</td><td class="num">${Math.round(kragiCost)} ₽</td></tr>
+    <tr style="border-top:2px solid #e94560"><td><b>ИТОГО расходники</b></td><td></td><td class="num"><b>${totalCons.toLocaleString()} ₽</b></td></tr>
+    <tr><td colspan="3" class="sub">нормы: ~7 г проволоки/пил, диск на 18 резов, лепесток на 55 швов</td></tr>
   </table>`;
-  document.getElementById('consumables').innerHTML = html;
 }
 
 function renderZincPaint(pieces, bp, frameW, axles) {
@@ -1198,7 +1234,7 @@ function renderZincPaint(pieces, bp, frameW, axles) {
   </table>`;
 }
 
-function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, st, floorSheetType) {
+function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, tentTotalCost, st, floorSheetType) {
   // Metal cost from TUBES (safe, no ALL_MAT_PRICES dependency)
   let totalMetal = 0, metalCost = 0;
   pieces.forEach(grp => {
@@ -1226,7 +1262,7 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, st,
   var wheelsCost = (st.axles||1) * 2 * (bp.wheelsPrice||0);
   var springsCost = (st.axles||1) * 2 * (bp.springsPrice||0);
   var hubsCost = (st.axles||1) * 2 * (bp.hubPrice||0);
-  var tentCost = tentArea * (bp.tentPVC_price||0);
+  var tentCost = tentTotalCost || (tentArea * (bp.tentPVC_price||0));
   
   var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
   

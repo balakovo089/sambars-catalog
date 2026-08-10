@@ -694,6 +694,25 @@ function recalc() {
   }
   allProfilePieces.push({label:`Ось ${axleProfile}`, pieces:Array(axles).fill((frameW + 200)/1000)});
   }
+  if (sTotal > 0) {
+    // Борта: 2 длинных + 2 коротких (по размеру РАМЫ, не заявленному)
+    const sidePieces = [frameL/1000, frameL/1000, frameW/1000, frameW/1000];
+    for (let i = 0; i < totalJumpers; i++) sidePieces.push(bp.boardH/1000);
+    allProfilePieces.push({label:`Борта ${bp.sideProfile}`, pieces:sidePieces});
+  }
+  if (tentFrameM > 0) {
+    // Боковые рамки: 2 рамки × (верх + низ) = 4 куска по frameL
+    const frameRails = [frameL/1000, frameL/1000, frameL/1000, frameL/1000];
+    // Стойки рамок: tentArchCount шт × totalFrameH (борт + тент)
+    const totalFrameM = (bp.boardH + tentMM) / 1000;
+    const framePosts = Array(tentArchCount).fill(totalFrameM);
+    // Дуги Π-образные: tentArchCount шт × (ширина + 2×100 мм ножки)
+    const archPieceM = (frameW + 240) / 1000;
+    const arches = Array(tentArchCount).fill(archPieceM);
+    allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:[...frameRails, ...framePosts, ...arches]});
+    // Проставки 25×25×2 - отдельный профиль
+    allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(tentArchCount * 2).fill(0.10)});
+  }
 
   // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
   const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);

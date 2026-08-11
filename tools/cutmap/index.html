@@ -250,14 +250,13 @@ const TUBES = {
 };
 
 // ══════════════════════════════════════════════════════════
-// EXPORT MODE
+// AUTH + MODE
 // ══════════════════════════════════════════════════════════
 const urlParams = new URLSearchParams(window.location.search);
-// ═══ AUTH ═══
-(function(){const a=localStorage.getItem('sambars_auth');if(!a||a!=='director'){window.location.href='../../portal.html';return;}document.getElementById('authBadge').textContent='👑 Руководитель';})();
-
 const BATCH_MODE = urlParams.get('batch') === '1';
 const EXPORT_MODE = urlParams.get('export') === '1';
+// ═══ AUTH (skip for batch mode) ═══
+(function(){if(BATCH_MODE)return;const a=localStorage.getItem('sambars_auth');if(!a||a!=='director'){window.location.href='../../portal.html';return;}document.getElementById('authBadge').textContent='👑 Руководитель';})();
 
 // ══════════════════════════════════════════════════════════
 // STATE

@@ -35,14 +35,15 @@ const TIMEOUT = 60000; // 60 seconds max
     console.log(`📡 Открываю: ${CUTMAP_URL}`);
     await page.goto(CUTMAP_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
 
-    // Wait for JSON output in <pre> tag
-    console.log('⏳ Жду расчёт batch...');
-    await page.waitForSelector('pre', { timeout: TIMEOUT });
+    // Wait for JS to execute batchRun (setTimeout 500ms + computation)
+    console.log('⏳ Жду расчёт batch (10 сек)...');
+    await new Promise(r => setTimeout(r, 10000));
     
-    // Give a tiny bit more time for any async DOM updates
-    await new Promise(r => setTimeout(r, 500));
-    
-    const text = await page.$eval('pre', el => el.textContent);
+    // Check page content
+    const text = await page.evaluate(() => {
+      const pre = document.querySelector('pre');
+      return pre ? pre.textContent : document.body.textContent.substring(0, 500);
+    });
     
     if (!text || text.trim().length < 10) {
       throw new Error('Empty or too short output from batch');

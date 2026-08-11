@@ -105,6 +105,10 @@ td.num.bold{font-weight:bold;color:#f0c040}
 </div>
 <div class="summary-grid">
 <div class="section">
+<h3>🔩 Кронштейны (без крыльевых)</h3>
+<div id="bracketTable"></div>
+</div>
+<div class="section">
 <h3>💰 ЗП (сварка)</h3>
 <div id="zpTable"></div>
 <div id="zpTotal" style="text-align:right;font-size:15px;font-weight:bold;color:#f0c040;margin-top:8px"></div>
@@ -168,6 +172,13 @@ const TUBES = {
   '40×20×2':{mass:1.35,price:96},'80×40×3':{mass:5.19,price:326},
   '50×50×3':{mass:4.30,price:268},'50×50×4':{mass:5.60,price:346},
   '25×25×2':{mass:1.40,price:76},'20×20×1.5':{mass:0.84,price:60}
+};
+
+// ═══ BRACKET PRICES ═══
+const BRACKET_PRICES = {
+  'Кронштейн рессоры':115,'Кронштейн амортизатора':85,'Кронштейн крыла':65,
+  'Косынка усиления':30,'Пластина дышла':75,'Пластина рамы':75,
+  'Пластина под номер':50,'Кронштейн подфарника':30
 };
 
 // ═══ STATE ═══
@@ -372,6 +383,32 @@ function recalc(){
     <tr><td>Перчатки</td><td class="num">${gloves} пар</td></tr>
     <tr><td>Краги сварочные</td><td class="num">${kragi} пар</td></tr>
   </table>`;
+
+  // Brackets (all except wing brackets)
+  let aggBrackets = {};
+  positions.forEach(pos=>{
+    const m = CATALOG[pos.catIdx];
+    const qty = pos.qty;
+    const a = pos.axles;
+    const addB = (name,count)=>{ aggBrackets[name] = (aggBrackets[name]||0)+count*qty; };
+    addB('Кронштейн рессоры',a*4);
+    addB('Кронштейн амортизатора',a*4);
+    if(m.brand==='Самбарс'||m.brand==='Бизон') addB('Косынка усиления',4);
+    addB('Пластина дышла',2);
+    addB('Пластина рамы',2);
+    addB('Пластина под номер',1);
+    addB('Кронштейн подфарника',2);
+  });
+  let bHTML = '<table><tr><th>Деталь</th><th class="num">Кол-во</th></tr>';
+  let bracketTotal = 0;
+  for(const [name,qty] of Object.entries(aggBrackets)){
+    const price = BRACKET_PRICES[name]||0;
+    const cost = qty*price;
+    bracketTotal += cost;
+    bHTML += `<tr><td>${name}</td><td class="num">${qty} шт</td></tr>`;
+  }
+  bHTML += `<tr class="total-row"><td>ИТОГО</td><td class="num">${Math.round(bracketTotal).toLocaleString()} ₽</td></tr></table>`;
+  document.getElementById('bracketTable').innerHTML = bHTML;
 
   // ZP
   let zpHTML = '<table><tr><th>Операция</th><th class="num">Кол-во</th><th class="num">Минут</th><th class="num">Сумма</th></tr>';

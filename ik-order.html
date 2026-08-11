@@ -356,16 +356,19 @@ function recalc(){
   });
 
   // Metal table
-  let metalHTML = '<table><tr><th>Профиль</th><th class="num">Метров</th><th class="num">Хлыстов 6м</th><th class="num">Вес, кг</th></tr>';
-  let totalWeight = 0;
+  let metalHTML = '<table><tr><th>Профиль</th><th class="num">Метров</th><th class="num">Цена/м</th><th class="num">Хлыстов 6м</th><th class="num">Вес, кг</th><th class="num">Стоимость</th></tr>';
+  let totalWeight = 0, totalMetalCost = 0;
   const sortedProf = Object.entries(aggPieces).sort((a,b)=>b[1]-a[1]);
   sortedProf.forEach(([prof,m])=>{
     const rods = Math.ceil(m*1.10/6);
     const mass = (TUBES[prof]?TUBES[prof].mass:0)*m;
+    const price = TUBES[prof]?TUBES[prof].price:0;
+    const cost = Math.round(m*price);
     totalWeight += mass;
-    metalHTML += `<tr><td>${prof}</td><td class="num">${m.toFixed(1)}</td><td class="num">${rods}</td><td class="num">${mass.toFixed(1)}</td></tr>`;
+    totalMetalCost += cost;
+    metalHTML += `<tr><td>${prof}</td><td class="num">${m.toFixed(1)}</td><td class="num">${price}</td><td class="num">${rods}</td><td class="num">${mass.toFixed(1)}</td><td class="num">${cost.toLocaleString()} ₽</td></tr>`;
   });
-  metalHTML += `<tr class="total-row"><td>ИТОГО</td><td class="num"></td><td class="num"></td><td class="num">${totalWeight.toFixed(1)} кг</td></tr></table>`;
+  metalHTML += `<tr class="total-row"><td>ИТОГО</td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num">${totalWeight.toFixed(1)} кг</td><td class="num">${totalMetalCost.toLocaleString()} ₽</td></tr></table>`;
   document.getElementById('metalTable').innerHTML = metalHTML;
 
   // Consumables
@@ -375,13 +378,17 @@ function recalc(){
   const grindDiscs = Math.ceil(totalCuts/55);
   const gloves = Math.max(1,Math.ceil(totalCuts/100));
   const kragi = Math.max(1,Math.ceil(totalCuts/200));
+  const consPrices = {wire:250,gas:43,cutDisc:13,grindDisc:44,gloves:25,kragi:420};
+  const consCost = Math.round(wire*consPrices.wire + gas*consPrices.gas + cutDiscs*consPrices.cutDisc + grindDiscs*consPrices.grindDisc + gloves*consPrices.gloves + kragi*consPrices.kragi);
   document.getElementById('consTable').innerHTML = `<table>
-    <tr><td>Проволока 0.8 мм</td><td class="num">${wire} кг</td></tr>
-    <tr><td>Газ пропан</td><td class="num">${gas} кг</td></tr>
-    <tr><td>Диски отрезные 125</td><td class="num">${cutDiscs} шт</td></tr>
-    <tr><td>Диски лепестковые</td><td class="num">${grindDiscs} шт</td></tr>
-    <tr><td>Перчатки</td><td class="num">${gloves} пар</td></tr>
-    <tr><td>Краги сварочные</td><td class="num">${kragi} пар</td></tr>
+    <tr><th>Расходник</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Стоимость</th></tr>
+    <tr><td>Проволока 0.8 мм</td><td class="num">${wire} кг</td><td class="num">${consPrices.wire} ₽/кг</td><td class="num">${Math.round(wire*consPrices.wire)} ₽</td></tr>
+    <tr><td>Газ пропан</td><td class="num">${gas} кг</td><td class="num">${consPrices.gas} ₽/кг</td><td class="num">${Math.round(gas*consPrices.gas)} ₽</td></tr>
+    <tr><td>Диски отрезные 125</td><td class="num">${cutDiscs} шт</td><td class="num">${consPrices.cutDisc} ₽</td><td class="num">${cutDiscs*consPrices.cutDisc} ₽</td></tr>
+    <tr><td>Диски лепестковые</td><td class="num">${grindDiscs} шт</td><td class="num">${consPrices.grindDisc} ₽</td><td class="num">${grindDiscs*consPrices.grindDisc} ₽</td></tr>
+    <tr><td>Перчатки</td><td class="num">${gloves} пар</td><td class="num">${consPrices.gloves} ₽</td><td class="num">${gloves*consPrices.gloves} ₽</td></tr>
+    <tr><td>Краги сварочные</td><td class="num">${kragi} пар</td><td class="num">${consPrices.kragi} ₽</td><td class="num">${kragi*consPrices.kragi} ₽</td></tr>
+    <tr class="total-row"><td>ИТОГО</td><td class="num"></td><td class="num"></td><td class="num">${consCost.toLocaleString()} ₽</td></tr>
   </table>`;
 
   // Brackets (all except wing brackets)
@@ -399,13 +406,13 @@ function recalc(){
     addB('Пластина под номер',1);
     addB('Кронштейн подфарника',2);
   });
-  let bHTML = '<table><tr><th>Деталь</th><th class="num">Кол-во</th></tr>';
+  let bHTML = '<table><tr><th>Деталь</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Стоимость</th></tr>';
   let bracketTotal = 0;
   for(const [name,qty] of Object.entries(aggBrackets)){
     const price = BRACKET_PRICES[name]||0;
     const cost = qty*price;
     bracketTotal += cost;
-    bHTML += `<tr><td>${name}</td><td class="num">${qty} шт</td></tr>`;
+    bHTML += `<tr><td>${name}</td><td class="num">${qty} шт</td><td class="num">${price} ₽</td><td class="num">${Math.round(cost).toLocaleString()} ₽</td></tr>`;
   }
   bHTML += `<tr class="total-row"><td>ИТОГО</td><td class="num">${Math.round(bracketTotal).toLocaleString()} ₽</td></tr></table>`;
   document.getElementById('bracketTable').innerHTML = bHTML;

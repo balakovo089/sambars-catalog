@@ -841,9 +841,21 @@ function recalc() {
   });
   var zincEx = Math.round(zincW2 * 87);
   var paintEx = Math.round(parseFloat((paintA2*0.2*2).toFixed(2)) * 750);
+  // Bracket costs (sync with renderBrackets)
+  var pKrRes=0,pKrAm=0,pKrKr=0,pKosB=0,pPlateD=0,pPlateR=0,pPlateNum=0,pFogBr=0;
+  try{pKrRes=ALL_MAT_PRICES['Колёса / подвеска']['Кронштейн рессоры'].price}catch(e){}
+  try{pKrAm=ALL_MAT_PRICES['Колёса / подвеска']['Кронштейн амортизатора'].price}catch(e){}
+  try{pKrKr=ALL_MAT_PRICES['Колёса / подвеска']['Кронштейн крыла'].price}catch(e){}
+  try{pKosB=ALL_MAT_PRICES['Колёса / подвеска']['Косынка усиления'].price}catch(e){}
+  try{pPlateD=ALL_MAT_PRICES['Комплектующие (без цен)']['Пластины дышла'].price}catch(e){}
+  try{pPlateR=ALL_MAT_PRICES['Комплектующие (без цен)']['Пластины рамы'].price}catch(e){}
+  try{pPlateNum=ALL_MAT_PRICES['Комплектующие (без цен)']['Пластина под номер'].price}catch(e){}
+  try{pFogBr=ALL_MAT_PRICES['Комплектующие (без цен)']['Кронштейн подфарника'].price}catch(e){}
+  var kosCnt = brand === 'Барсук' ? 0 : 4;
+  var bracketEx = Math.round(a*4*pKrRes + a*4*pKrAm + a*4*pKrKr + kosCnt*pKosB + 2*pPlateD + 2*pPlateR + pPlateNum + 2*pFogBr);
   var boltEx = Math.round(2500 + a*500);
   var consumEx = Math.round(consumables.cutDiscs*13 + consumables.grindDiscs*44 + parseFloat(consumables.wire)*250 + parseFloat(consumables.gas)*43 + consumables.gloves*25 + consumables.kragi*420);
-  var extraCost = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + consumEx);
+  var extraCost = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + bracketEx + consumEx);
   
   // ZP + operations (calc BEFORE summary for grand total)
   const zpData = calcZP(brand, W, L, (state.kit >= 4 ? tentH : 0), axles);
@@ -868,7 +880,7 @@ function recalc() {
 
   renderSummary(kitPieces, bp, (state.kit >= 2 ? floorSheets : 0), (state.kit >= 3 ? sideSheets : 0), (state.kit >= 2 ? floorArea : 0), (state.kit >= 3 ? sideArea : 0),
     (state.kit >= 4 ? tentArea : 0), (state.kit >= 4 ? tentTotalCost : 0), state, floorSheetType,
-    electrCost, hitchExtra, zincW2, zincEx, paintA2, paintEx, boltEx, consumEx, zpData);
+    electrCost, hitchExtra, zincW2, zincEx, paintA2, paintEx, boltEx, bracketEx, consumEx, zpData);
   renderConsumables(consumables);
   renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);
   
@@ -1404,7 +1416,7 @@ function renderZincPaint(pieces, bp, frameW, axles) {
 }
 
 function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, tentTotalCost, st, floorSheetType,
-    electrCost, hitchExtra, zincW2, zincEx, paintA2, paintEx, boltEx, consumEx, zpData) {
+    electrCost, hitchExtra, zincW2, zincEx, paintA2, paintEx, boltEx, bracketEx, consumEx, zpData) {
   // Metal cost from TUBES
   let totalMetal = 0, metalCost = 0;
   pieces.forEach(grp => {
@@ -1437,7 +1449,7 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
 
   // Totals
   var totalMat = Math.round(metalCost + plyCost + tentCost + wheelsCost + springsCost + hubsCost);
-  var totalExtra = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + consumEx);
+  var totalExtra = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + bracketEx + consumEx);
   var totalZP = zpData ? zpData.zpTotal : 0;
   var grandTotal = totalMat + totalExtra + totalZP;
 
@@ -1490,6 +1502,7 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
     '<tr><td>Цинкование</td><td class="num">' + zincW2.toFixed(1) + ' кг</td><td class="num">' + zincEx.toLocaleString() + ' ₽</td></tr>' +
     '<tr><td>Покраска</td><td class="num">' + paintA2.toFixed(1) + ' м²</td><td class="num">' + paintEx.toLocaleString() + ' ₽</td></tr>' +
     '<tr><td>Крепёж</td><td></td><td class="num">' + boltEx.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Кронштейны</td><td></td><td class="num">' + bracketEx.toLocaleString() + ' ₽</td></tr>' +
     '<tr><td>Расходники</td><td></td><td class="num">' + consumEx.toLocaleString() + ' ₽</td></tr>' +
     '<tr style="border-top:1px solid #0f3460"><td><b>ВСЕГО доп.расходы</b></td><td></td><td class="num"><b>' + totalExtra.toLocaleString() + ' ₽</b></td></tr>';
 

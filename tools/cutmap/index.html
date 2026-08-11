@@ -1447,6 +1447,10 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   }
   var retail = Math.round(grandTotal * markup / 100) * 100;
   var wholesale = Math.round(grandTotal * (markup - 0.2) / 100) * 100;
+  var marginRetail = retail - grandTotal;
+  var marginPctRetail = retail > 0 ? (marginRetail / retail * 100).toFixed(1) : 0;
+  var marginWholesale = wholesale - grandTotal;
+  var marginPctWholesale = wholesale > 0 ? (marginWholesale / wholesale * 100).toFixed(1) : 0;
 
   var kitNames = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
   var kitName = kitNames[st.kit] || '';
@@ -1486,6 +1490,9 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
     '<tr><td colspan="3" style="color:#888;padding-top:8px"><b>▸ Цена продажи</b></td></tr>' +
     '<tr><td>Розница (×' + markup.toFixed(2) + ')</td><td></td><td class="num" style="color:#f0c040;font-weight:bold">' + retail.toLocaleString() + ' ₽</td></tr>' +
     '<tr><td>Опт (×' + (markup - 0.2).toFixed(2) + ')</td><td></td><td class="num" style="color:#f0c040">' + wholesale.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td colspan="3" style="color:#888;padding-top:4px"><b>▸ Маржинальность</b></td></tr>' +
+    '<tr><td>Розница</td><td class="num" style="color:#4caf50">' + marginPctRetail + '%</td><td class="num" style="color:#4caf50;font-weight:bold">' + marginRetail.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Опт</td><td class="num" style="color:#4caf50">' + marginPctWholesale + '%</td><td class="num" style="color:#4caf50">' + marginWholesale.toLocaleString() + ' ₽</td></tr>' +
     '</table>';
 
   document.getElementById('summary').innerHTML = html;

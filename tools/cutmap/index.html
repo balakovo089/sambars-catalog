@@ -687,6 +687,8 @@ function recalc() {
     }
   }
   allProfilePieces.push({label:`Дышло ${drawbarProfile}`, pieces:[dbCenter, dbSideLen, dbSideLen, (frameW)/1000]});  // центр + 2 бока + перемычка
+  // Задняя рамка: стойки под номер из 40×20×2
+  allProfilePieces.push({label:`Задняя рамка 40×20×2 (стойки номера)`, pieces:[0.2, 0.2]});  // 2 стойки по 200 мм
   // Аморт. балки и ось: для Бизона на НИЖНЕЙ раме, для остальных на верхней
   if (brand === 'Бизон') {
     const lowerW = frameW - 600; // нижняя рама на 600 мм уже

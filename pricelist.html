@@ -141,17 +141,6 @@ function filter() {
   if (!ax1) rows = rows.filter(r => r.axles !== 1);
   if (!ax2) rows = rows.filter(r => r.axles !== 2);
   
-  // When "Все комплектации": group by model+axles, take max kit
-  if (!kit) {
-    const seen = {};
-    rows = rows.filter(r => {
-      const k = r.model + '|' + r.axles;
-      if (seen[k] && seen[k].kit >= r.kit) return false;
-      seen[k] = r;
-      return true;
-    });
-  }
-  
   // Sort: brand, w, l, axles, kit
   rows.sort((a,b) => a.num-b.num || a.axles-b.axles || b.kit-a.kit);
   

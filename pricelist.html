@@ -57,8 +57,7 @@ tr:hover{background:rgba(233,69,96,0.08)}
     <option value="retail">Розница</option>
     <option value="wholesale">Опт</option>
   </select>
-  <label><input type="checkbox" id="showCost" checked onchange="filter()"> Себестоимость</label>
-  <label><input type="checkbox" id="showMargin" checked onchange="filter()"> Маржинальность</label>
+  <label><input type="checkbox" id="showDetails" checked onchange="filter()"> Себестоимость + маржа</label>
 </div>
 
 <table>
@@ -134,8 +133,8 @@ function marginClass(val) {
 function render(rows) {
   const tbody = document.getElementById('tbody');
   const priceMode = document.getElementById('priceMode').value;
-  const showCost = document.getElementById('showCost').checked;
-  const showMargin = document.getElementById('showMargin').checked;
+  const showCost = document.getElementById('showDetails').checked;
+  const showMargin = document.getElementById('showDetails').checked;
 
   // Update column visibility
   document.querySelectorAll('.cost-col').forEach(el => el.style.display = showCost ? '' : 'none');

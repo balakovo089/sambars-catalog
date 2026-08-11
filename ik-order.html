@@ -318,7 +318,7 @@ function recalc(){
       const tmm = m.tent*10;
       const fw = m.w+bp.extraMM, fl = m.l+bp.extraMM;
       const is650 = bp.tentPVC_price > 150; // 650g fabric
-      const rollW = is650 ? 2500 : 3200; // mm roll width
+      const rollW = 2500; // both 500g and 650g: 2.5m rolls
       const strips = Math.ceil((fw + 2*tmm + 440) / rollW);
       const linearM = strips * fl / 1000; // погонные метры
       if(is650) linearM650 += linearM*qty; else linearM500 += linearM*qty;
@@ -390,7 +390,7 @@ function recalc(){
   if(hasTent){
     tentSec.style.display = '';
     let thtml = '<table><tr><th>Материал</th><th class="num">Кол-во</th></tr>';
-    if(linearM500>0.01) thtml += `<tr><td><b>ПВХ 500 г/м² (серый) — рулон 3.2 м</b></td><td class="num">${linearM500.toFixed(1)} м.п.</td></tr>`;
+    if(linearM500>0.01) thtml += `<tr><td><b>ПВХ 500 г/м² (серый) — рулон 2.5 м</b></td><td class="num">${linearM500.toFixed(1)} м.п.</td></tr>`;
     if(linearM650>0.01) thtml += `<tr><td><b>ПВХ 650 г/м² (графит) — рулон 2.5 м</b></td><td class="num">${linearM650.toFixed(1)} м.п.</td></tr>`;
     for(const [name,qty] of Object.entries(tentHardware)){
       thtml += `<tr><td>${name}</td><td class="num">${typeof qty === 'number' ? qty.toFixed(1) : qty}</td></tr>`;

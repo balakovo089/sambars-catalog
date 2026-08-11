@@ -285,7 +285,9 @@ function recalc(){
   // Aggregate profiles
   const aggPieces = {};
   let totalCuts = 0, totalZpMin = 0, zpBreakdown = {};
-  let tentArea = 0, tentHardware = {};
+  let tentArea500 = 0, tentArea650 = 0, tentHardware = {};
+
+  const addTentHW = (name,qty)=>{ tentHardware[name] = (tentHardware[name]||0)+qty; };
 
   positions.forEach(pos=>{
     const m = CATALOG[pos.catIdx];
@@ -316,19 +318,25 @@ function recalc(){
       const tmm = m.tent*10;
       const fw = m.w+bp.extraMM, fl = m.l+bp.extraMM;
       const ta = ((fw+2*tmm)/1000)*(fl/1000)*1.15;
-      tentArea += ta*qty;
+      const is650 = bp.tentPVC_price > 150; // 650g fabric
+      if(is650) tentArea650 += ta*qty; else tentArea500 += ta*qty;
       // Hardware
       const lowerP = 2*(fw/1000+fl/1000)+0.2;
       const espM = (lowerP+0.5)*qty;
       const luv = Math.ceil(ta/3)*qty;
       const fW = (fw+2*tmm)/1000;
       const fbc = Math.max(2,Math.round(fW/0.3)+1);
-      const hw = bp.espander===8?33:27;
-      tentHardware['Эспандер d'+bp.espander+'мм'] = (tentHardware['Эспандер d'+bp.espander+'мм']||0)+espM;
-      tentHardware['Люверсы d10'] = (tentHardware['Люверсы d10']||0)+luv;
-      tentHardware['Заклёпки 4.8×12'] = (tentHardware['Заклёпки 4.8×12']||0)+luv*3;
-      const flapCost = m.brand==='Барсук'? fbc*11+(tmm/1000)*2*24 : fbc*2*4.50+fbc*2*4.30;
-      tentHardware['Фурнитура клапанов'] = (tentHardware['Фурнитура клапанов']||0)+flapCost*qty;
+      const espName = bp.espander===8?'Эспандер d8мм':'Эспандер d6мм';
+      addTentHW(espName,espM);
+      addTentHW('Люверсы d10',luv);
+      addTentHW('Заклёпки 4.8×12',luv*3);
+      if(m.brand==='Барсук'){
+        addTentHW('Скобы + ремни (Барсук)',fbc*11*qty);
+        addTentHW('Ремень стяжной',(tmm/1000)*2*24*qty);
+      } else {
+        addTentHW('Поворотки d37',fbc*2*qty);
+        addTentHW('Подкладки d32',fbc*2*qty);
+      }
     }
   });
 
@@ -374,17 +382,14 @@ function recalc(){
 
   // Tent
   const tentSec = document.getElementById('tentSection');
-  if(tentArea>0.01){
+  const hasTent = tentArea500>0.01 || tentArea650>0.01;
+  if(hasTent){
     tentSec.style.display = '';
     let thtml = '<table><tr><th>Материал</th><th class="num">Кол-во</th></tr>';
-    const tentNames = positions.filter(p=>{const m=CATALOG[p.catIdx];return p.kit>=4&&m.tent>0;}).map(p=>{
-      const m=CATALOG[p.catIdx];const bp=BRAND[m.brand];
-      return bp.tentPVC + (bp.espander===8?' (650 г/м²)':' (500 г/м²)');
-    });
-    const uniqTent = [...new Set(tentNames)];
-    thtml += `<tr><td>Ткань: ${uniqTent.join(' / ')}</td><td class="num">${tentArea.toFixed(1)} м²</td></tr>`;
+    if(tentArea500>0.01) thtml += `<tr><td><b>ПВХ 500 г/м² (серый)</b></td><td class="num">${tentArea500.toFixed(1)} м²</td></tr>`;
+    if(tentArea650>0.01) thtml += `<tr><td><b>ПВХ 650 г/м² (графит)</b></td><td class="num">${tentArea650.toFixed(1)} м²</td></tr>`;
     for(const [name,qty] of Object.entries(tentHardware)){
-      thtml += `<tr><td>${name}</td><td class="num">${qty.toFixed(1)}</td></tr>`;
+      thtml += `<tr><td>${name}</td><td class="num">${typeof qty === 'number' ? qty.toFixed(1) : qty}</td></tr>`;
     }
     thtml += '</table>';
     document.getElementById('tentTable').innerHTML = thtml;

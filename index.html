@@ -312,9 +312,18 @@ function renderCard(model, idx) {
   const visualW = Math.max(50, dimsW * scale);
   const visualH = Math.max(30, dimsL * scale);
   
-  let prices = model.variants.map(v => v.price);
-  let minPrice = Math.min(...prices);
-  let maxPrice = Math.max(...prices);
+  // Prices from PRICE_MAP, fallback to hardcoded
+  let priceArr = [];
+  const kitMap2 = {'рама':1,'рама с полом':2,'бортовой':3,'бортовой с тентом':4};
+  for (const v of model.variants) {
+    const k = kitMap2[v.body_type];
+    if (!k) continue;
+    const p = PRICE_MAP[model.num + '|' + v.axles + '|' + k];
+    if (p) priceArr.push(p.retail);
+    else priceArr.push(v.price);
+  }
+  let minPrice = Math.min(...priceArr);
+  let maxPrice = Math.max(...priceArr);
   
   let photosHtml = '';
   if (model.photos && model.photos.length > 0) {

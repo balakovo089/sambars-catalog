@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Заказ ИК-4 — Сварка прицепов</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;padding:20px}
+h1{color:#e94560;font-size:22px;margin-bottom:4px}
+h2{color:#e94560;font-size:16px;margin:16px 0 8px}
+h3{color:#f39c12;font-size:14px;margin:12px 0 6px}
+.section{background:#111827;border:1px solid #1e293b;border-radius:8px;padding:14px 18px;margin-bottom:14px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:8px}
+.row label{font-size:13px;color:#888;white-space:nowrap}
+.row input,.row select{background:#16213e;border:1px solid #2a3a5c;color:#fff;padding:6px 10px;border-radius:4px;font-size:13px}
+.row input[type=number]{width:80px;text-align:right}
+.row input[type=date]{width:140px}
+.btn{padding:6px 14px;border-radius:4px;border:none;cursor:pointer;font-size:13px;font-weight:600}
+.btn-add{background:#2ecc71;color:#111}
+.btn-del{background:#c0392b;color:#fff;padding:2px 8px;font-size:11px}
+.btn-export{background:#5dade2;color:#111}
+.btn-pdf{background:#e67e22;color:#111}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+th{background:#16213e;color:#888;padding:6px 10px;text-align:left}
+th.num{text-align:right}
+td{padding:5px 10px;border-bottom:1px solid #1a1a3a}
+td.num{text-align:right;font-family:monospace}
+td.num.bold{font-weight:bold;color:#f0c040}
+.total-row td{border-top:2px solid #e94560;font-weight:bold}
+.sub{color:#888;font-size:11px}
+.chk-group{display:flex;flex-wrap:wrap;gap:12px}
+.chk-group label{font-size:13px;color:#ccc;display:flex;align-items:center;gap:5px;cursor:pointer}
+.pos-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #1e293b}
+.pos-item span{flex:1;font-size:13px}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media print{
+  body{background:#fff;color:#000;padding:10px;font-size:11px}
+  .section{background:#fff;border:1px solid #ccc;break-inside:avoid}
+  h1,h2,h3{color:#000}
+  .btn,.btn-add,.btn-del,.btn-export,.btn-pdf,.row:first-child{display:none}
+  input,select{border:none;background:transparent;color:#000;-webkit-appearance:none}
+  table{font-size:10px}
+  th{background:#eee;color:#000}
+  td.num.bold,.total-row td{color:#000}
+}
+</style>
+</head>
+<body>
+<h1>🔩 Заказ на сварку — ИК-4</h1>
+
+<!-- META -->
+<div class="section">
+<div class="row">
+  <label>Заказ №</label><input type="text" id="orderNum" value="1" style="width:60px">
+  <label>от</label><input type="date" id="orderDate">
+  <label>Срок</label><input type="date" id="orderDeadline">
+  <label style="margin-left:16px">Ставка нормо-часа</label>
+  <input type="number" id="zpRate" value="150" style="width:80px"><label>₽/ч</label>
+</div>
+</div>
+
+<!-- POSITIONS -->
+<div class="section">
+<h2>📋 Позиции заказа</h2>
+<div class="row">
+  <select id="modelSelect"></select>
+  <select id="kitSelect">
+    <option value="4">К4 — Бортовой с тентом</option>
+    <option value="3">К3 — Бортовой</option>
+    <option value="2">К2 — Рама с полом</option>
+    <option value="1">К1 — Рама</option>
+  </select>
+  <label>Осей:</label><select id="axleSelect"></select>
+  <label>Кол-во:</label><input type="number" id="posQty" value="1" min="1" style="width:60px">
+  <button class="btn btn-add" onclick="addPosition()">+ Добавить</button>
+</div>
+<div id="posList"></div>
+</div>
+
+<!-- OPERATIONS -->
+<div class="section">
+<h2>⚙️ Операции</h2>
+<div class="chk-group">
+  <label><input type="checkbox" id="opFrame" checked onchange="recalc()"> Рама + дышло</label>
+  <label><input type="checkbox" id="opSides" checked onchange="recalc()"> Борта</label>
+  <label><input type="checkbox" id="opTentFrame" checked onchange="recalc()"> Каркас тента</label>
+  <label><input type="checkbox" id="opAxles" checked onchange="recalc()"> Оси</label>
+  <label><input type="checkbox" id="opTent" checked onchange="recalc()"> Тент (ткань+фурнитура)</label>
+</div>
+</div>
+
+<!-- RESULTS -->
+<div id="results" style="display:none">
+<h2>📊 Спецификация</h2>
+<div class="summary-grid">
+<div class="section">
+<h3>🔩 Раскрой металла</h3>
+<div id="metalTable"></div>
+</div>
+<div class="section">
+<h3>🧤 Расходники</h3>
+<div id="consTable"></div>
+</div>
+</div>
+<div class="summary-grid">
+<div class="section">
+<h3>💰 ЗП (сварка)</h3>
+<div id="zpTable"></div>
+<div id="zpTotal" style="text-align:right;font-size:15px;font-weight:bold;color:#f0c040;margin-top:8px"></div>
+</div>
+<div class="section" id="tentSection" style="display:none">
+<h3>🏕️ Тенты</h3>
+<div id="tentTable"></div>
+</div>
+</div>
+<div class="section" style="text-align:right">
+  <span style="font-size:18px;font-weight:bold;color:#e94560" id="grandTotal"></span>
+</div>
+<div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px">
+  <button class="btn btn-export" onclick="exportCSV()">📥 Excel (CSV)</button>
+  <button class="btn btn-pdf" onclick="window.print()">🖨️ PDF</button>
+</div>
+</div>
+
+<script>
+// ═══ DATA (from cutmap) ═══
+const CATALOG = [
+  {num:1,brand:"Барсук",model:"Барсук 1.25×2.0",w:1250,l:2000,tent:50,ax:[1]},
+  {num:2,brand:"Барсук",model:"Барсук 1.25×2.5",w:1250,l:2500,tent:70,ax:[1,2]},
+  {num:3,brand:"Барсук",model:"Барсук 1.25×3.0",w:1250,l:3000,tent:120,ax:[1,2]},
+  {num:4,brand:"Барсук",model:"Барсук 1.5×2.5",w:1500,l:2500,tent:70,ax:[1,2]},
+  {num:5,brand:"Барсук",model:"Барсук 1.5×3.0",w:1500,l:3000,tent:120,ax:[1,2]},
+  {num:6,brand:"Барсук",model:"Барсук 1.5×3.5",w:1500,l:3500,tent:120,ax:[1,2]},
+  {num:7,brand:"Самбарс",model:"Самбарс 1.25×2.0",w:1250,l:2000,tent:70,ax:[1]},
+  {num:8,brand:"Самбарс",model:"Самбарс 1.25×2.5",w:1250,l:2500,tent:120,ax:[1,2]},
+  {num:9,brand:"Самбарс",model:"Самбарс 1.25×3.0",w:1250,l:3000,tent:120,ax:[1,2]},
+  {num:10,brand:"Самбарс",model:"Самбарс 1.5×2.5",w:1500,l:2500,tent:120,ax:[1,2]},
+  {num:11,brand:"Самбарс",model:"Самбарс 1.5×3.0",w:1500,l:3000,tent:120,ax:[1,2]},
+  {num:12,brand:"Самбарс",model:"Самбарс 1.5×3.5",w:1500,l:3500,tent:120,ax:[1,2]},
+  {num:13,brand:"Самбарс",model:"Самбарс 1.7×3.0",w:1700,l:3000,tent:140,ax:[1,2]},
+  {num:14,brand:"Самбарс",model:"Самбарс 1.7×3.5",w:1700,l:3500,tent:140,ax:[1,2]},
+  {num:15,brand:"Самбарс",model:"Самбарс 1.7×4.0",w:1700,l:4000,tent:140,ax:[1,2]},
+  {num:16,brand:"Самбарс",model:"Самбарс 2.0×3.5",w:2000,l:3500,tent:170,ax:[1,2]},
+  {num:17,brand:"Самбарс",model:"Самбарс 2.0×4.0",w:2000,l:4000,tent:170,ax:[1,2]},
+  {num:18,brand:"Самбарс",model:"Самбарс 2.0×4.5",w:2000,l:4500,tent:170,ax:[1,2]},
+  {num:19,brand:"Бизон",model:"Бизон 2.0×3.5",w:2000,l:3500,tent:170,ax:[2]},
+  {num:20,brand:"Бизон",model:"Бизон 2.0×4.0",w:2000,l:4000,tent:170,ax:[2]}
+];
+
+const BRAND = {
+  'Барсук':{frameProfile:'60×40×2',extraMM:60,sideProfile:'20×20×1.5',sideThick:30,boardH:300,
+    drawbarProfile:'60×40×2',axleProfile:'50×50×3',springs:3,
+    tentPVC:'ПВХ 500 г/м2',espander:6,rate:400,wheelsPrice:3650,springsPrice:1190,hubPrice:1250,
+    tentPVC_price:120},
+  'Самбарс':{frameProfile:'60×60×2',extraMM:70,sideProfile:'25×25×2',sideThick:35,boardH:300,
+    drawbarProfile:'80×40×3',axleProfile:'50×50×4',springs:5,
+    tentPVC:'ПВХ 650 г/м2',espander:8,rate:500,wheelsPrice:3555,springsPrice:1302.56,hubPrice:1250,
+    tentPVC_price:176.78},
+  'Бизон':{frameProfile:'60×60×2',extraMM:70,sideProfile:'25×25×2',sideThick:35,boardH:300,
+    drawbarProfile:'80×40×3',axleProfile:'50×50×4',springs:7,
+    tentPVC:'ПВХ 650 г/м2',espander:8,rate:500,wheelsPrice:3555,springsPrice:2395,hubPrice:1250,
+    tentPVC_price:176.78}
+};
+
+const TUBES = {
+  '60×40×2':{mass:2.93,price:205},'60×60×2':{mass:3.56,price:226},
+  '40×20×2':{mass:1.35,price:96},'80×40×3':{mass:5.19,price:326},
+  '50×50×3':{mass:4.30,price:268},'50×50×4':{mass:5.60,price:346},
+  '25×25×2':{mass:1.40,price:76},'20×20×1.5':{mass:0.84,price:60}
+};
+
+// ═══ STATE ═══
+let positions = []; // [{catIdx, kit, axles, qty}]
+
+// ═══ INIT ═══
+const modelSel = document.getElementById('modelSelect');
+CATALOG.forEach((m,i) => {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = `#${m.num} ${m.model}`;
+  modelSel.appendChild(opt);
+});
+modelSel.value = '10';
+onModelSelect();
+modelSel.onchange = onModelSelect;
+
+document.getElementById('orderDate').valueAsDate = new Date();
+const dl = new Date(); dl.setDate(dl.getDate()+14);
+document.getElementById('orderDeadline').valueAsDate = dl;
+
+function onModelSelect(){
+  const idx = parseInt(modelSel.value);
+  const m = CATALOG[idx];
+  const axSel = document.getElementById('axleSelect');
+  axSel.innerHTML = '';
+  m.ax.forEach(a => { const o=document.createElement('option');o.value=a;o.textContent=a;axSel.appendChild(o); });
+  axSel.value = m.ax[0];
+}
+
+// ═══ POSITIONS ═══
+function addPosition(){
+  const catIdx = parseInt(modelSel.value);
+  const kit = parseInt(document.getElementById('kitSelect').value);
+  const axles = parseInt(document.getElementById('axleSelect').value);
+  const qty = parseInt(document.getElementById('posQty').value) || 1;
+  positions.push({catIdx,kit,axles,qty});
+  renderPositions();
+  recalc();
+}
+
+function removePosition(i){ positions.splice(i,1); renderPositions(); recalc(); }
+
+function renderPositions(){
+  const el = document.getElementById('posList');
+  if(!positions.length){ el.innerHTML='<div class="sub">Нет позиций. Добавьте модель выше.</div>'; return; }
+  el.innerHTML = positions.map((p,i)=>{
+    const m = CATALOG[p.catIdx];
+    const kn = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'][p.kit];
+    return `<div class="pos-item">
+      <span><b>${m.model}</b> — ${kn} — ${p.axles} ось(и) — <b>×${p.qty} шт</b></span>
+      <button class="btn btn-del" onclick="removePosition(${i})">✕</button></div>`;
+  }).join('');
+}
+
+// ═══ CALC ═══
+function calcStep(total,divisor){const n=Math.max(1,Math.round(total/divisor));return{n,step:total/n};}
+
+function calcProfilePieces(m,bp,axles,kit){
+  const frameW=m.w+bp.extraMM, frameL=m.l+bp.extraMM;
+  const fp = bp.frameProfile, dp = bp.drawbarProfile;
+  const crossStep = calcStep(frameL/1000,0.6);
+  const totalCross = crossStep.n;
+  const fpCrossHalf = frameW/2000;
+  const fpCross = frameW/1000;
+
+  const pieces = {}; // prof → meters
+
+  const add = (prof,meters)=>{ pieces[prof] = (pieces[prof]||0)+meters; };
+
+  if(document.getElementById('opFrame').checked){
+    // Frame
+    const centerM = bp.frameProfile==='60×60×2' ? frameL/1000 : 0;
+    add(fp, frameL/1000*2 + frameW/1000*2 + centerM);
+    // Crossbars
+    add('40×20×2', totalCross * (bp.frameProfile==='60×60×2'?fpCrossHalf*2:fpCross));
+    // Drawbar
+    add(dp, 5.2);
+  }
+
+  if(document.getElementById('opSides').checked && kit>=3){
+    const sideStep = calcStep(frameL/1000,0.8);
+    const totalJumpers = sideStep.n;
+    const sideL = frameL/1000*2 + frameW/1000*2;
+    const jumperM = totalJumpers * bp.boardH/1000;
+    add(bp.sideProfile, sideL + jumperM);
+  }
+
+  if(document.getElementById('opTentFrame').checked && kit>=4 && m.tent>0){
+    const tentMM = m.tent*10;
+    const totalFrameH = (bp.boardH + tentMM)/1000;
+    const archCount = Math.max(1,Math.round(frameL/700));
+    // Side frames: 4 rails × frameL/1000
+    add('20×20×1.5', frameL/1000*4 + archCount*totalFrameH + archCount*(frameW+240)/1000);
+    // Spacers
+    add('25×25×2', archCount*2*0.10);
+  }
+
+  if(document.getElementById('opAxles').checked){
+    add(bp.axleProfile, axles*(frameW+200)/1000);
+    // Axle connector bar
+    if(bp.frameProfile==='60×60×2') add(fp, axles*frameW/1000);
+    else add(fp, axles*fpCrossHalf*2);
+  }
+
+  return pieces;
+}
+
+function recalc(){
+  if(!positions.length){ document.getElementById('results').style.display='none'; return; }
+  document.getElementById('results').style.display='block';
+
+  const rate = parseInt(document.getElementById('zpRate').value)||150;
+
+  // Aggregate profiles
+  const aggPieces = {};
+  let totalCuts = 0, totalZpMin = 0, zpBreakdown = {};
+  let tentArea = 0, tentHardware = {};
+
+  positions.forEach(pos=>{
+    const m = CATALOG[pos.catIdx];
+    const bp = BRAND[m.brand];
+    const axles = pos.axles;
+    const kit = pos.kit;
+    const qty = pos.qty;
+
+    // Profiles
+    const profPieces = calcProfilePieces(m,bp,axles,kit);
+    for(const [prof,meters] of Object.entries(profPieces)){
+      aggPieces[prof] = (aggPieces[prof]||0) + meters*qty;
+    }
+
+    // ZP calculations
+    const opMins = calcZPMinutes(m,bp,axles,kit);
+    for(const [op,min] of Object.entries(opMins)){
+      const k = op;
+      zpBreakdown[k] = {min:(zpBreakdown[k]?zpBreakdown[k].min:0)+min*qty, qty:(zpBreakdown[k]?zpBreakdown[k].qty:0)+qty};
+      totalZpMin += min*qty;
+      // Cuts = 1 cut per piece per model (rough)
+      const proCount = Object.values(profPieces).reduce((s,v)=>s+v,0)*0.15; // ~cuts per meter
+      totalCuts += Math.round(proCount*qty);
+    }
+
+    // Tent
+    if(document.getElementById('opTent').checked && kit>=4 && m.tent>0){
+      const tmm = m.tent*10;
+      const fw = m.w+bp.extraMM, fl = m.l+bp.extraMM;
+      const ta = ((fw+2*tmm)/1000)*(fl/1000)*1.15;
+      tentArea += ta*qty;
+      // Hardware
+      const lowerP = 2*(fw/1000+fl/1000)+0.2;
+      const espM = (lowerP+0.5)*qty;
+      const luv = Math.ceil(ta/3)*qty;
+      const fW = (fw+2*tmm)/1000;
+      const fbc = Math.max(2,Math.round(fW/0.3)+1);
+      const hw = bp.espander===8?33:27;
+      tentHardware['Эспандер d'+bp.espander+'мм'] = (tentHardware['Эспандер d'+bp.espander+'мм']||0)+espM;
+      tentHardware['Люверсы d10'] = (tentHardware['Люверсы d10']||0)+luv;
+      tentHardware['Заклёпки 4.8×12'] = (tentHardware['Заклёпки 4.8×12']||0)+luv*3;
+      const flapCost = m.brand==='Барсук'? fbc*11+(tmm/1000)*2*24 : fbc*2*4.50+fbc*2*4.30;
+      tentHardware['Фурнитура клапанов'] = (tentHardware['Фурнитура клапанов']||0)+flapCost*qty;
+    }
+  });
+
+  // Metal table
+  let metalHTML = '<table><tr><th>Профиль</th><th class="num">Метров</th><th class="num">Хлыстов 6м</th><th class="num">Вес, кг</th></tr>';
+  let totalWeight = 0;
+  const sortedProf = Object.entries(aggPieces).sort((a,b)=>b[1]-a[1]);
+  sortedProf.forEach(([prof,m])=>{
+    const rods = Math.ceil(m*1.10/6);
+    const mass = (TUBES[prof]?TUBES[prof].mass:0)*m;
+    totalWeight += mass;
+    metalHTML += `<tr><td>${prof}</td><td class="num">${m.toFixed(1)}</td><td class="num">${rods}</td><td class="num">${mass.toFixed(1)}</td></tr>`;
+  });
+  metalHTML += `<tr class="total-row"><td>ИТОГО</td><td class="num"></td><td class="num"></td><td class="num">${totalWeight.toFixed(1)} кг</td></tr></table>`;
+  document.getElementById('metalTable').innerHTML = metalHTML;
+
+  // Consumables
+  const wire = (totalCuts*0.007).toFixed(2);
+  const gas = (totalCuts*0.007).toFixed(2);
+  const cutDiscs = Math.ceil(totalCuts/18);
+  const grindDiscs = Math.ceil(totalCuts/55);
+  const gloves = Math.max(1,Math.ceil(totalCuts/100));
+  const kragi = Math.max(1,Math.ceil(totalCuts/200));
+  document.getElementById('consTable').innerHTML = `<table>
+    <tr><td>Проволока 0.8 мм</td><td class="num">${wire} кг</td></tr>
+    <tr><td>Газ пропан</td><td class="num">${gas} кг</td></tr>
+    <tr><td>Диски отрезные 125</td><td class="num">${cutDiscs} шт</td></tr>
+    <tr><td>Диски лепестковые</td><td class="num">${grindDiscs} шт</td></tr>
+    <tr><td>Перчатки</td><td class="num">${gloves} пар</td></tr>
+    <tr><td>Краги сварочные</td><td class="num">${kragi} пар</td></tr>
+  </table>`;
+
+  // ZP
+  let zpHTML = '<table><tr><th>Операция</th><th class="num">Кол-во</th><th class="num">Минут</th><th class="num">Сумма</th></tr>';
+  const zpTotal = Math.round(totalZpMin/60*rate);
+  for(const [op,data] of Object.entries(zpBreakdown)){
+    const sum = Math.round(data.min/60*rate);
+    zpHTML += `<tr><td>${op}</td><td class="num">${data.qty} шт</td><td class="num">${data.min}</td><td class="num">${sum.toLocaleString()} ₽</td></tr>`;
+  }
+  zpHTML += `<tr class="total-row"><td>ИТОГО</td><td></td><td class="num">${totalZpMin}</td><td class="num">${zpTotal.toLocaleString()} ₽</td></tr></table>`;
+  document.getElementById('zpTable').innerHTML = zpHTML;
+  document.getElementById('zpTotal').innerHTML = `ЗП (ставка ${rate} ₽/ч): <b>${zpTotal.toLocaleString()} ₽</b>`;
+
+  // Tent
+  const tentSec = document.getElementById('tentSection');
+  if(tentArea>0.01){
+    tentSec.style.display = '';
+    let thtml = '<table><tr><th>Материал</th><th class="num">Кол-во</th></tr>';
+    const tentNames = positions.filter(p=>{const m=CATALOG[p.catIdx];return p.kit>=4&&m.tent>0;}).map(p=>{
+      const m=CATALOG[p.catIdx];const bp=BRAND[m.brand];
+      return bp.tentPVC + (bp.espander===8?' (650 г/м²)':' (500 г/м²)');
+    });
+    const uniqTent = [...new Set(tentNames)];
+    thtml += `<tr><td>Ткань: ${uniqTent.join(' / ')}</td><td class="num">${tentArea.toFixed(1)} м²</td></tr>`;
+    for(const [name,qty] of Object.entries(tentHardware)){
+      thtml += `<tr><td>${name}</td><td class="num">${qty.toFixed(1)}</td></tr>`;
+    }
+    thtml += '</table>';
+    document.getElementById('tentTable').innerHTML = thtml;
+  } else {
+    tentSec.style.display = 'none';
+  }
+
+  document.getElementById('grandTotal').innerHTML = 'ИТОГО металла: '+totalWeight.toFixed(0)+' кг | ЗП сварка: '+zpTotal.toLocaleString()+' ₽';
+}
+
+function calcZPMinutes(m,bp,axles,kit){
+  const result = {};
+  const L = m.l, W = m.w, brand = m.brand;
+  const extraMM = bp.extraMM;
+  const frameW = W+extraMM, frameL = L+extraMM;
+
+  // Reference minutes for 1.25×2.5
+  const refS=[75,290,45,120,60]; // [распил рамы,сварка рамы,распил бортов,сварка бортов,сварка оси]
+  const refB=[65,270,40,110,50];
+  const ref = brand==='Барсук'?refB:refS;
+  const lenStep = brand==='Барсук'?15:19;
+  const lenSteps = (L-2500)/500;
+  const LEN_F=[0.25,0.45,0,0,0]; // length factors: frame cut, frame weld, sides cut, sides weld, axle weld
+  const lenMin = LEN_F.map(f=>Math.round(f*lenStep*lenSteps));
+  // Width surcharge
+  let ws=0;
+  if(brand==='Самбарс'){
+    if(W<=1500)ws=0;else if(W<=1700)ws=Math.round((W-1500)/200*40);
+    else if(W<=1930)ws=40+Math.round((W-1700)/230*50);else ws=90+Math.round((W-1930)/70*15);
+  }else if(brand==='Барсук'){if(W<=1250)ws=0;else if(W<=1500)ws=25;}
+  const W_F=[0.15,0.25,0,0,0];
+  const wMin = W_F.map(f=>Math.round(f*ws));
+  // Axle2 surcharge
+  let as2=0;if(axles===2)as2=brand==='Барсук'?40:60;
+  const A_F=[0.25,0.25,0,0,0.50];
+  const aMin = A_F.map(f=>Math.round(f*as2));
+  // Op minutes
+  const mins = ref.map((b,i)=>b+lenMin[i]+wMin[i]+aMin[i]);
+
+  const ops = document.getElementById('opFrame');
+  const sides = document.getElementById('opSides');
+  const tf = document.getElementById('opTentFrame');
+  const ax = document.getElementById('opAxles');
+
+  if(ops.checked){ result['Распил рамы+дышла']=mins[0]; result['Сварка рамы+дышла']=mins[1]; }
+  if(sides.checked&&kit>=3){ result['Распил бортов']=mins[2]; result['Сварка бортов']=mins[3]; }
+  if(ax.checked){ result['Сварка оси']=mins[4]; }
+  if(tf.checked&&kit>=4&&m.tent>0){
+    const tentMM = m.tent*10;
+    const totalFrameH = bp.boardH + tentMM;
+    const perimeter = 2*(frameW+2*tentMM+frameL)/1000;
+    const ta = ((frameW+2*tentMM)/1000)*(frameL/1000)*1.15;
+    const refTA = ((1500+70+2*1200)/1000)*((3500+70)/1000)*1.15;
+    const tentMakerM = Math.round(485*ta/refTA);
+    // Tent frame cut+weld
+    const archCount = Math.max(1,Math.round(frameL/700));
+    const cutPerArch = 6; // rails + posts + arches
+    result['Распил каркаса тента']=Math.round(archCount*cutPerArch*2.5);
+    result['Сварка каркаса тента']=Math.round(archCount*15);
+    if(document.getElementById('opTent').checked){
+      result['Изготовление тента']=tentMakerM;
+    }
+  }
+
+  return result;
+}
+
+// ═══ EXPORT ═══
+function exportCSV(){
+  if(!positions.length)return;
+  const rate = document.getElementById('zpRate').value;
+  let csv='\uFEFFЗАКАЗ ИК-4 №'+document.getElementById('orderNum').value+'\n';
+  csv+='от '+document.getElementById('orderDate').value+' | Срок: '+document.getElementById('orderDeadline').value+' | Ставка: '+rate+' ₽/ч\n\n';
+  csv+='Модель;Комплектация;Осей;Кол-во\n';
+  positions.forEach(p=>{
+    const m=CATALOG[p.catIdx];
+    const kn=['','Рама','Рама с полом','Бортовой','Бортовой с тентом'][p.kit];
+    csv+=m.model+';'+kn+';'+p.axles+';'+p.qty+'\n';
+  });
+  // Add metal table
+  csv+='\nРАСКРОЙ МЕТАЛЛА\nПрофиль;Метров;Хлыстов 6м;Вес кг\n';
+  document.querySelectorAll('#metalTable table tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td,th');
+    csv+=Array.from(tds).map(t=>t.textContent).join(';')+'\n';
+  });
+  // Consumables
+  csv+='\nРАСХОДНИКИ\n';
+  document.querySelectorAll('#consTable table tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td');
+    csv+=Array.from(tds).map(t=>t.textContent).join(';')+'\n';
+  });
+  // ZP
+  csv+='\nЗП\n';
+  document.querySelectorAll('#zpTable table tr').forEach(tr=>{
+    const tds=tr.querySelectorAll('td,th');
+    csv+=Array.from(tds).map(t=>t.textContent).join(';')+'\n';
+  });
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='zakaz-ik4-'+document.getElementById('orderNum').value+'.csv';a.click();
+}
+</script>
+</body>
+</html>

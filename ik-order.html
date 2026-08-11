@@ -285,7 +285,7 @@ function recalc(){
   // Aggregate profiles
   const aggPieces = {};
   let totalCuts = 0, totalZpMin = 0, zpBreakdown = {};
-  let tentArea500 = 0, tentArea650 = 0, tentHardware = {};
+  let linearM500 = 0, linearM650 = 0, tentHardware = {};
 
   const addTentHW = (name,qty)=>{ tentHardware[name] = (tentHardware[name]||0)+qty; };
 
@@ -313,13 +313,17 @@ function recalc(){
       totalCuts += Math.round(proCount*qty);
     }
 
-    // Tent
+    // Tent — linear meters from roll strips
     if(document.getElementById('opTent').checked && kit>=4 && m.tent>0){
       const tmm = m.tent*10;
       const fw = m.w+bp.extraMM, fl = m.l+bp.extraMM;
-      const ta = ((fw+2*tmm)/1000)*(fl/1000)*1.15;
       const is650 = bp.tentPVC_price > 150; // 650g fabric
-      if(is650) tentArea650 += ta*qty; else tentArea500 += ta*qty;
+      const rollW = is650 ? 2500 : 3200; // mm roll width
+      const strips = Math.ceil((fw + 2*tmm + 440) / rollW);
+      const linearM = strips * fl / 1000; // погонные метры
+      if(is650) linearM650 += linearM*qty; else linearM500 += linearM*qty;
+      // Hardware (needs area, not linear)
+      const ta = ((fw+2*tmm)/1000)*(fl/1000)*1.15;
       // Hardware
       const lowerP = 2*(fw/1000+fl/1000)+0.2;
       const espM = (lowerP+0.5)*qty;
@@ -382,12 +386,12 @@ function recalc(){
 
   // Tent
   const tentSec = document.getElementById('tentSection');
-  const hasTent = tentArea500>0.01 || tentArea650>0.01;
+  const hasTent = linearM500>0.01 || linearM650>0.01;
   if(hasTent){
     tentSec.style.display = '';
     let thtml = '<table><tr><th>Материал</th><th class="num">Кол-во</th></tr>';
-    if(tentArea500>0.01) thtml += `<tr><td><b>ПВХ 500 г/м² (серый)</b></td><td class="num">${tentArea500.toFixed(1)} м²</td></tr>`;
-    if(tentArea650>0.01) thtml += `<tr><td><b>ПВХ 650 г/м² (графит)</b></td><td class="num">${tentArea650.toFixed(1)} м²</td></tr>`;
+    if(linearM500>0.01) thtml += `<tr><td><b>ПВХ 500 г/м² (серый) — рулон 3.2 м</b></td><td class="num">${linearM500.toFixed(1)} м.п.</td></tr>`;
+    if(linearM650>0.01) thtml += `<tr><td><b>ПВХ 650 г/м² (графит) — рулон 2.5 м</b></td><td class="num">${linearM650.toFixed(1)} м.п.</td></tr>`;
     for(const [name,qty] of Object.entries(tentHardware)){
       thtml += `<tr><td>${name}</td><td class="num">${typeof qty === 'number' ? qty.toFixed(1) : qty}</td></tr>`;
     }

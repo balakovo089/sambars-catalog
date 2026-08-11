@@ -1239,7 +1239,10 @@ function renderBrackets(bp, st) {
   var pPlateD = 0, pPlateR = 0;
   try { pPlateD = ALL_MAT_PRICES['Комплектующие (без цен)']['Пластины дышла'].price; } catch(e) {}
   try { pPlateR = ALL_MAT_PRICES['Комплектующие (без цен)']['Пластины рамы'].price; } catch(e) {}
-  var totalBr = Math.round(a*4*pKrRes + a*4*pKrAm + a*4*pKrKr + kosCnt*pKos + 2*pPlateD + 2*pPlateR);
+  var pPlateNum = 0, pFogBr = 0;
+  try { pPlateNum = ALL_MAT_PRICES['Комплектующие (без цен)']['Пластина под номер'].price; } catch(e) {}
+  try { pFogBr = ALL_MAT_PRICES['Комплектующие (без цен)']['Кронштейн подфарника'].price; } catch(e) {}
+  var totalBr = Math.round(a*4*pKrRes + a*4*pKrAm + a*4*pKrKr + kosCnt*pKos + 2*pPlateD + 2*pPlateR + pPlateNum + 2*pFogBr);
   const html = `<table style="width:100%">
     <tr><th>Деталь</th><th class="num">Кол-во</th><th class="num">Стоимость</th><th>Расположение</th></tr>
     <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Самосвал</b></td></tr>
@@ -1250,6 +1253,9 @@ function renderBrackets(bp, st) {
     <tr><td>Кронштейны амортизаторов</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pKrAm)} ₽</td><td>на оси и балке</td></tr>
     <tr><td>Кронштейны крыльев</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pKrKr)} ₽</td><td>2 на каждое крыло</td></tr>
     ${kosCnt > 0 ? `<tr><td>Косынки (Самбарс)</td><td class="num">${kosCnt} шт</td><td class="num">${Math.round(kosCnt*pKos)} ₽</td><td>по внутренним углам рамы</td></tr>` : ''}
+    <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Задняя рамка</b></td></tr>
+    <tr><td>Пластина под номер</td><td class="num">1 шт</td><td class="num">${Math.round(pPlateNum)} ₽</td><td>на задней рамке</td></tr>
+    <tr><td>Кронштейн подфарника</td><td class="num">2 шт</td><td class="num">${Math.round(2*pFogBr)} ₽</td><td>под задними фонарями</td></tr>
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО кронштейны</b></td><td></td><td class="num"><b>${totalBr.toLocaleString()} ₽</b></td><td></td></tr>
   </table>`;
   const el = document.getElementById('bracketSpec');
@@ -3013,6 +3019,8 @@ const ALL_MAT_PRICES = {
     'Передний борт М8×80': {price:30, unit:'₽/шт'},
     'Пластины дышла': {price:75, unit:'₽/шт'},
     'Пластины рамы': {price:75, unit:'₽/шт'},
+    'Пластина под номер': {price:50, unit:'₽/шт'},
+    'Кронштейн подфарника': {price:30, unit:'₽/шт'},
     'Кронштейн вилки': {price:30, unit:'₽/шт'},
     'Гровер 12': {price:1, unit:'₽/шт'},
   },

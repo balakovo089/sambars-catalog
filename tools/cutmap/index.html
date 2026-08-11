@@ -732,18 +732,6 @@ function recalc() {
     allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(tentArchCount * 2).fill(0.10)});
   }
 
-  // ═══ РАСХОДНИКИ (привязаны к количеству резов/пилов) ═══
-  const totalCuts = allProfilePieces.reduce((sum, g) => sum + g.pieces.length, 0);
-  const consumables = {
-    cuts: totalCuts,
-    wire: (totalCuts * 0.007).toFixed(3),
-    gas: (totalCuts * 0.007).toFixed(3),
-    cutDiscs: Math.ceil(totalCuts / 18),
-    grindDiscs: Math.ceil(totalCuts / 55),
-    gloves: Math.max(1, Math.ceil(totalCuts / 100)),
-    kragi: Math.max(1, Math.ceil(totalCuts / 200)),
-  };
-
   // ═══ EXPORT MODE ═══
   if (EXPORT_MODE) {
     const exp = buildExportData(state, allProfilePieces, bp, floorSheets, sideSheets, floorSheetType,
@@ -761,6 +749,18 @@ function recalc() {
   if (state.kit < 4) kitPieces = kitPieces.filter(g => !g.label.startsWith('Каркас тента') && !g.label.startsWith('Проставки дуг'));
   if (state.kit < 3) kitPieces = kitPieces.filter(g => !g.label.startsWith('Борта'));
   if (state.kit < 2) kitPieces = kitPieces.filter(g => !g.label.startsWith('Перемычка под шов'));
+
+  // ═══ РАСХОДНИКИ (по комплектации) ═══
+  const totalCuts = kitPieces.reduce((sum, g) => sum + g.pieces.length, 0);
+  const consumables = {
+    cuts: totalCuts,
+    wire: (totalCuts * 0.007).toFixed(3),
+    gas: (totalCuts * 0.007).toFixed(3),
+    cutDiscs: Math.ceil(totalCuts / 18),
+    grindDiscs: Math.ceil(totalCuts / 55),
+    gloves: Math.max(1, Math.ceil(totalCuts / 100)),
+    kragi: Math.max(1, Math.ceil(totalCuts / 200)),
+  };
 
   // ═══ RENDER ═══
   renderMetalSpec(kitPieces);
@@ -827,23 +827,19 @@ function recalc() {
   var hitchExtra = 635 + 43 + 15 + 60 + 1350;
   if (a === 1) hitchExtra += 2*280 + 3000; else hitchExtra += 4000;
   var zincW2 = 0, paintW2 = 0, paintA2 = 0;
-  allProfilePieces.forEach(grp => {
+  zpPieces.forEach(grp => {
     const label = grp.label; const tm = grp.pieces.reduce((a,b)=>a+b,0);
     const prof = label.split(' ').pop(); const m = tm * (TUBES[prof]?TUBES[prof].mass:0);
     if (['Рама','Центр.','Дышло','Борта'].some(p => label.startsWith(p))) zincW2 += m;
     if (['Ось','Каркас тента','Проставки'].some(p => label.startsWith(p))) { paintW2 += m; paintA2 += tm*(prof==='50×50×3'||prof==='50×50×4'?0.2:prof==='20×20×1.5'?0.08:0.1); }
   });
-  var zincEx = zincW2 * 87;
-  var paintEx = parseFloat((paintA2*0.2*2).toFixed(2)) * 750;
+  var zincEx = Math.round(zincW2 * 87);
+  var paintEx = Math.round(parseFloat((paintA2*0.2*2).toFixed(2)) * 750);
   var boltEx = Math.round(2500 + a*500);
   var consumEx = Math.round(consumables.cutDiscs*13 + consumables.grindDiscs*44 + parseFloat(consumables.wire)*250 + parseFloat(consumables.gas)*43 + consumables.gloves*25 + consumables.kragi*420);
   var extraCost = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + consumEx);
   
-  renderSummary(allProfilePieces, bp, (state.kit >= 2 ? floorSheets : 0), (state.kit >= 3 ? sideSheets : 0), (state.kit >= 2 ? floorArea : 0), (state.kit >= 3 ? sideArea : 0),
-    (state.kit >= 4 ? tentArea : 0), (state.kit >= 4 ? tentTotalCost : 0), state, floorSheetType, extraCost);
-  renderConsumables(consumables);
-  
-  // ZP + operations
+  // ZP + operations (calc BEFORE summary for grand total)
   const zpData = calcZP(brand, W, L, (state.kit >= 4 ? tentH : 0), axles);
   // Filter operations by kit level
   const skipOps = [];
@@ -853,7 +849,21 @@ function recalc() {
   if (skipOps.length > 0) {
     zpData.ops = zpData.ops.filter((_, i) => !skipOps.includes(i));
     zpData.opSum = zpData.ops.reduce((s, o) => s + o.minutes, 0);
+    // Recalculate ZP totals for filtered ops
+    const wM = Math.round(zpData.opSum * 0.585);
+    const pM = Math.round(zpData.opSum * 0.05);
+    const aM = zpData.opSum - wM - pM;
+    zpData.welderR = Math.round(wM / 60 * bp.rate);
+    zpData.painterR = Math.round(pM / 60 * bp.rate);
+    zpData.assemblerR = Math.round(aM / 60 * bp.rate);
+    zpData.zpNoTent = zpData.welderR + zpData.painterR + zpData.assemblerR;
+    zpData.zpTotal = zpData.zpNoTent + (zpData.tentMakerR || 0);
   }
+
+  renderSummary(kitPieces, bp, (state.kit >= 2 ? floorSheets : 0), (state.kit >= 3 ? sideSheets : 0), (state.kit >= 2 ? floorArea : 0), (state.kit >= 3 ? sideArea : 0),
+    (state.kit >= 4 ? tentArea : 0), (state.kit >= 4 ? tentTotalCost : 0), state, floorSheetType,
+    electrCost, hitchExtra, zincW2, zincEx, paintA2, paintEx, boltEx, consumEx, zpData);
+  renderConsumables(consumables);
   renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);
   
   updateMeta();
@@ -1381,8 +1391,9 @@ function renderZincPaint(pieces, bp, frameW, axles) {
   </table>`;
 }
 
-function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, tentTotalCost, st, floorSheetType, extraCost) {
-  // Metal cost from TUBES (safe, no ALL_MAT_PRICES dependency)
+function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, tentTotalCost, st, floorSheetType,
+    electrCost, hitchExtra, zincW2, zincEx, paintA2, paintEx, boltEx, consumEx, zpData) {
+  // Metal cost from TUBES
   let totalMetal = 0, metalCost = 0;
   pieces.forEach(grp => {
     const tm = grp.pieces.reduce((a,b)=>a+b,0);
@@ -1391,39 +1402,71 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
     totalMetal += tm;
     if (prof && TUBES[prof]) metalCost += tm * TUBES[prof].price;
   });
-  
-  // Plywood: real square meters (whole sheets including waste)
-  const sheetArea125 = 3.125;
-  const sheetArea150 = 4.5;
+  metalCost = Math.round(metalCost);
+
+  // Plywood
+  const sheetArea125 = 3.125, sheetArea150 = 4.5;
   var isWide = (floorSheetType||'').includes('1500');
   var floorTotalM2 = fSheets * (isWide ? sheetArea150 : sheetArea125);
   var sideTotalM2 = sSheets * sheetArea125;
-  var plyWaste = (floorTotalM2 - (fArea||0)) + (sideTotalM2 - (sArea||0));
-  
   var pp125 = 688, pp150 = 822;
   try { pp125 = ALL_MAT_PRICES['Фанера']['1250×2500 (9 мм)'].price; } catch(e) {}
   try { pp150 = ALL_MAT_PRICES['Фанера']['1500×3000 (9 мм)'].price; } catch(e) {}
-  var plyCost = floorTotalM2 * (isWide ? pp150 : pp125) + sideTotalM2 * pp125;
-  
-  // Components
-  var wheelsCost = (st.axles||1) * 2 * (bp.wheelsPrice||0);
-  var springsCost = (st.axles||1) * 2 * (bp.springsPrice||0);
-  var hubsCost = (st.axles||1) * 2 * (bp.hubPrice||0);
+  var plyCost = Math.round(floorTotalM2 * (isWide ? pp150 : pp125) + sideTotalM2 * pp125);
+
+  // Wheels/springs/hubs
+  var wheelsCost = st.axles * 2 * (bp.wheelsPrice||0);
+  var springsCost = st.axles * 2 * (bp.springsPrice||0);
+  var hubsCost = st.axles * 2 * (bp.hubPrice||0);
+
+  // Tent
   var tentCost = tentTotalCost || (tentArea * (bp.tentPVC_price||0));
-  
-  var totalMatCost = Math.round(metalCost + plyCost + wheelsCost + springsCost + hubsCost + tentCost);
-  
-  document.getElementById('summary').innerHTML = '<table style="width:100%">' +
+  tentCost = Math.round(tentCost);
+
+  // Totals
+  var totalMat = Math.round(metalCost + plyCost + tentCost + wheelsCost + springsCost + hubsCost);
+  var totalExtra = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + consumEx);
+  var totalZP = zpData ? zpData.zpTotal : 0;
+  var grandTotal = totalMat + totalExtra + totalZP;
+
+  var kitNames = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
+  var kitName = kitNames[st.kit] || '';
+
+  var html = '<table style="width:100%">' +
+    '<tr><th colspan="3" style="text-align:left;color:#e94560;font-size:13px">' + kitName + ' (К' + st.kit + ')</th></tr>' +
     '<tr><th></th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>' +
-    '<tr><td>Металл</td><td class="num">' + totalMetal.toFixed(1) + ' м</td><td class="num">' + Math.round(metalCost).toLocaleString() + ' ₽</td></tr>' +
-    '<tr><td>Фанера</td><td class="num">' + (fSheets + sSheets) + ' листов / ' + (floorTotalM2 + sideTotalM2).toFixed(1) + ' м²</td><td class="num">' + Math.round(plyCost).toLocaleString() + ' ₽</td></tr>' +
-    (plyWaste > 0.05 ? '<tr><td class="sub"> в т.ч. остаток</td><td class="num sub">' + plyWaste.toFixed(1) + ' м²</td><td></td></tr>' : '') +
-    (tentArea > 0 ? '<tr><td>Тент</td><td class="num">' + tentArea.toFixed(1) + ' м²</td><td class="num">' + Math.round(tentCost).toLocaleString() + ' ₽</td></tr>' : '') +
-    '<tr><td>Колёса</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(wheelsCost).toLocaleString() + ' ₽</td></tr>' +
-    '<tr><td>Рессоры</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(springsCost).toLocaleString() + ' ₽</td></tr>' +
-    '<tr><td>Ступицы</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + Math.round(hubsCost).toLocaleString() + ' ₽</td></tr>' +
-    '<tr style="border-top:2px solid #e94560"><td><b>ВСЕГО материалы</b></td><td></td><td class="num"><b>' + totalMatCost.toLocaleString() + ' ₽</b></td></tr>' +
-  '</table>';
+    '<tr><td colspan="3" style="color:#888;padding-top:4px"><b>▸ Материалы</b></td></tr>' +
+    '<tr><td>Металл</td><td class="num">' + totalMetal.toFixed(1) + ' м</td><td class="num">' + metalCost.toLocaleString() + ' ₽</td></tr>';
+
+  if (fSheets > 0) {
+    html += '<tr><td>Фанера</td><td class="num">' + (fSheets + sSheets) + ' листов</td><td class="num">' + plyCost.toLocaleString() + ' ₽</td></tr>';
+  }
+  if (tentArea > 0) {
+    html += '<tr><td>Тент</td><td class="num">' + tentArea.toFixed(1) + ' м²</td><td class="num">' + tentCost.toLocaleString() + ' ₽</td></tr>';
+  }
+
+  html += '<tr><td>Колёса</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + wheelsCost.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Рессоры</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + springsCost.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Ступицы</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + hubsCost.toLocaleString() + ' ₽</td></tr>' +
+    '<tr style="border-top:1px solid #0f3460"><td><b>ВСЕГО материалы</b></td><td></td><td class="num"><b>' + totalMat.toLocaleString() + ' ₽</b></td></tr>' +
+    '<tr><td colspan="3" style="color:#888;padding-top:8px"><b>▸ Доп.расходы</b></td></tr>' +
+    '<tr><td>Электрика</td><td></td><td class="num">' + electrCost.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Навесное</td><td></td><td class="num">' + hitchExtra.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Цинкование</td><td class="num">' + zincW2.toFixed(1) + ' кг</td><td class="num">' + zincEx.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Покраска</td><td class="num">' + paintA2.toFixed(1) + ' м²</td><td class="num">' + paintEx.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Крепёж</td><td></td><td class="num">' + boltEx.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Расходники</td><td></td><td class="num">' + consumEx.toLocaleString() + ' ₽</td></tr>' +
+    '<tr style="border-top:1px solid #0f3460"><td><b>ВСЕГО доп.расходы</b></td><td></td><td class="num"><b>' + totalExtra.toLocaleString() + ' ₽</b></td></tr>';
+
+  if (zpData && totalZP > 0) {
+    html += '<tr><td colspan="3" style="color:#888;padding-top:8px"><b>▸ Заработная плата</b></td></tr>' +
+      '<tr><td>ЗП (ставка ' + bp.rate + '₽/ч)</td><td class="num">' + zpData.opSum + ' мин</td><td class="num">' + totalZP.toLocaleString() + ' ₽</td></tr>';
+  }
+
+  html += '<tr style="border-top:2px solid #e94560"><td><b>ИТОГО себестоимость</b></td><td></td><td class="num"><b>' + grandTotal.toLocaleString() + ' ₽</b></td></tr>' +
+    '</table>';
+
+  document.getElementById('summary').innerHTML = html;
 }
 
 // ═══ ZP CALC (ported from bom_from_cutmap.js) ═══

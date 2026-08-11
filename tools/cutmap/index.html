@@ -289,8 +289,10 @@ function init() {
 // MODEL SELECTION
 // ══════════════════════════════════════════════════════════
 let currentModelIdx = 9;
+var BATCH_RUNNING = false;
 
 function onModelChange() {
+  if(BATCH_RUNNING) return;
   const idx = parseInt(document.getElementById('modelSelect').value);
   currentModelIdx = idx;
   const m = CATALOG[idx];
@@ -322,6 +324,7 @@ function onAxleChange() {
 }
 
 function onKitChange() {
+  if(BATCH_RUNNING) return;
   state.kit = parseInt(document.getElementById('kitSelect').value);
   recalc();
 }

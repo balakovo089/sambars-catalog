@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Самбарс — Сотрудники</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh}
+.card{background:#111827;border:1px solid #1e293b;border-radius:12px;padding:32px;width:360px;text-align:center}
+h1{color:#e94560;font-size:24px;margin-bottom:4px}
+h2{color:#f39c12;font-size:16px;margin-bottom:20px;font-weight:normal}
+.sub{color:#888;font-size:13px;margin-bottom:20px}
+input{width:100%;padding:10px 14px;background:#16213e;border:1px solid #2a3a5c;color:#fff;border-radius:6px;font-size:15px;text-align:center;margin-bottom:12px}
+input:focus{outline:none;border-color:#e94560}
+.btn{width:100%;padding:10px;border:none;border-radius:6px;font-size:15px;font-weight:600;cursor:pointer;background:#e94560;color:#fff;margin-bottom:8px}
+.btn:hover{background:#c0392b}
+.error{color:#e94560;font-size:13px;margin-top:8px;display:none}
+.menu{display:none}
+.menu .btn{padding:14px;margin-bottom:8px;font-size:16px;text-align:left}
+.menu .btn.ik4{background:#2ecc71;color:#111}
+.menu .btn.dir{background:#f39c12;color:#111}
+.logout-btn{background:transparent!important;border:1px solid #555!important;color:#888!important;margin-top:20px;font-size:12px!important}
+</style>
+</head>
+<body>
+<div class="card" id="loginCard">
+<h1>🔐 Сотрудникам</h1>
+<h2>Самбарс / Барсук / Бизон</h2>
+<input type="password" id="passInput" placeholder="Введите пароль" autofocus onkeydown="if(event.key==='Enter')login()">
+<button class="btn" onclick="login()">Войти</button>
+<div class="error" id="errorMsg">Неверный пароль</div>
+</div>
+
+<div class="card menu" id="menuCard">
+<h1 id="menuTitle">🔐 Меню</h1>
+<div id="menuItems"></div>
+<button class="btn logout-btn" onclick="logout()">Выйти</button>
+</div>
+
+<script>
+// ═══ AUTH ═══
+const USERS = {
+  'ik42025':'ik4',   // менеджер ИК-4 — поменять на свой пароль
+  'director2025':'director'  // руководитель — поменять на свой пароль
+};
+
+function login(){
+  const pw = document.getElementById('passInput').value.trim();
+  const level = USERS[pw];
+  if(!level){ document.getElementById('errorMsg').style.display='block'; return; }
+  localStorage.setItem('sambars_auth',level);
+  showMenu(level);
+}
+
+function showMenu(level){
+  document.getElementById('loginCard').style.display='none';
+  document.getElementById('menuCard').style.display='block';
+  document.getElementById('errorMsg').style.display='none';
+  document.getElementById('menuTitle').textContent = level==='director'?'📊 Руководитель':'📋 Заказ ИК-4';
+
+  let html = '';
+  html += `<a href="ik-order.html" class="btn ik4">📋 Заказ на сварку — ИК-4</a>`;
+
+  if(level==='director'){
+    html += `<a href="pricelist.html" class="btn dir">📊 Прайс-лист</a>`;
+    html += `<a href="tools/cutmap/" class="btn dir">⚙️ Калькулятор (кутмап)</a>`;
+  }
+
+  html += `<a href="index.html" class="btn" style="background:#5dade2;color:#111">🏠 Каталог (на сайт)</a>`;
+  document.getElementById('menuItems').innerHTML = html;
+}
+
+function logout(){
+  localStorage.removeItem('sambars_auth');
+  document.getElementById('loginCard').style.display='block';
+  document.getElementById('menuCard').style.display='none';
+  document.getElementById('passInput').value='';
+}
+
+// Auto-login if already authenticated
+(function(){
+  const auth = localStorage.getItem('sambars_auth');
+  if(auth) showMenu(auth);
+})();
+</script>
+</body>
+</html>

@@ -31,6 +31,11 @@ tr:hover{background:rgba(233,69,96,0.08)}
 </style>
 </head>
 <body>
+<div style="background:#16213e;padding:5px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;border-bottom:1px solid #2a3a5c">
+  <a href="portal.html" style="color:#f39c12;text-decoration:none;font-weight:600">← Меню</a>
+  <span id="authBadge" style="color:#888"></span>
+</div>
+
 <h1>📋 Прайс-лист прицепов</h1>
 <p class="subtitle">Сгенерировано из калькулятора cutmap | Цены округлены до 100₽</p>
 
@@ -67,6 +72,9 @@ tr:hover{background:rgba(233,69,96,0.08)}
 </table>
 
 <script>
+// ═══ AUTH ═══
+(function(){const a=localStorage.getItem('sambars_auth');if(!a||a!=='director'){window.location.href='portal.html';return;}document.getElementById('authBadge').textContent='👑 Руководитель';})();
+
 let DATA = [];
 let _visibleRows = [];
 

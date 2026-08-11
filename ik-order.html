@@ -47,6 +47,12 @@ td.num.bold{font-weight:bold;color:#f0c040}
 </style>
 </head>
 <body>
+<!-- NAV BAR -->
+<div style="background:#16213e;padding:5px 14px;display:flex;justify-content:space-between;align-items:center;font-size:12px;border-bottom:1px solid #2a3a5c">
+  <a href="portal.html" style="color:#f39c12;text-decoration:none;font-weight:600">← Меню</a>
+  <span id="authBadge" style="color:#888"></span>
+</div>
+
 <h1>🔩 Заказ на сварку — ИК-4</h1>
 
 <!-- META -->
@@ -128,6 +134,8 @@ td.num.bold{font-weight:bold;color:#f0c040}
 </div>
 
 <script>
+// ═══ AUTH CHECK ═══
+(function(){const a=localStorage.getItem('sambars_auth');if(!a){window.location.href='portal.html';return;}document.getElementById('authBadge').textContent=a==='director'?'👑 Руководитель':'👤 ИК-4';})();
 // ═══ DATA (from cutmap) ═══
 const CATALOG = [
   {num:1,brand:"Барсук",model:"Барсук 1.25×2.0",w:1250,l:2000,tent:50,ax:[1]},

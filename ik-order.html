@@ -406,13 +406,13 @@ function calcZPMinutes(m,bp,axles,kit){
   const extraMM = bp.extraMM;
   const frameW = W+extraMM, frameL = L+extraMM;
 
-  // Reference minutes for 1.25×2.5
-  const refS=[75,290,45,120,60]; // [распил рамы,сварка рамы,распил бортов,сварка бортов,сварка оси]
-  const refB=[65,270,40,110,50];
+  // Reference minutes for 1.25×2.5 — indices: 0-распил рамы,1-сварка рамы,2-распил бортов,3-сварка бортов,4-сварка оси,5-распил каркаса,6-сварка каркаса
+  const refS=[75,290,45,120,60,55,190];
+  const refB=[65,270,40,110,50,45,170];
   const ref = brand==='Барсук'?refB:refS;
   const lenStep = brand==='Барсук'?15:19;
   const lenSteps = (L-2500)/500;
-  const LEN_F=[0.25,0.45,0,0,0]; // length factors: frame cut, frame weld, sides cut, sides weld, axle weld
+  const LEN_F=[0.25,0.45,0,0,0,0,0]; // frame cut, frame weld, sides cut, sides weld, axle weld, tent frame cut, tent frame weld
   const lenMin = LEN_F.map(f=>Math.round(f*lenStep*lenSteps));
   // Width surcharge
   let ws=0;
@@ -420,11 +420,11 @@ function calcZPMinutes(m,bp,axles,kit){
     if(W<=1500)ws=0;else if(W<=1700)ws=Math.round((W-1500)/200*40);
     else if(W<=1930)ws=40+Math.round((W-1700)/230*50);else ws=90+Math.round((W-1930)/70*15);
   }else if(brand==='Барсук'){if(W<=1250)ws=0;else if(W<=1500)ws=25;}
-  const W_F=[0.15,0.25,0,0,0];
+  const W_F=[0.15,0.25,0,0,0,0,0];
   const wMin = W_F.map(f=>Math.round(f*ws));
   // Axle2 surcharge
   let as2=0;if(axles===2)as2=brand==='Барсук'?40:60;
-  const A_F=[0.25,0.25,0,0,0.50];
+  const A_F=[0.25,0.25,0,0,0.50,0,0];
   const aMin = A_F.map(f=>Math.round(f*as2));
   // Op minutes
   const mins = ref.map((b,i)=>b+lenMin[i]+wMin[i]+aMin[i]);
@@ -438,19 +438,13 @@ function calcZPMinutes(m,bp,axles,kit){
   if(sides.checked&&kit>=3){ result['Распил бортов']=mins[2]; result['Сварка бортов']=mins[3]; }
   if(ax.checked){ result['Сварка оси']=mins[4]; }
   if(tf.checked&&kit>=4&&m.tent>0){
-    const tentMM = m.tent*10;
-    const totalFrameH = bp.boardH + tentMM;
-    const perimeter = 2*(frameW+2*tentMM+frameL)/1000;
-    const ta = ((frameW+2*tentMM)/1000)*(frameL/1000)*1.15;
-    const refTA = ((1500+70+2*1200)/1000)*((3500+70)/1000)*1.15;
-    const tentMakerM = Math.round(485*ta/refTA);
-    // Tent frame cut+weld
-    const archCount = Math.max(1,Math.round(frameL/700));
-    const cutPerArch = 6; // rails + posts + arches
-    result['Распил каркаса тента']=Math.round(archCount*cutPerArch*2.5);
-    result['Сварка каркаса тента']=Math.round(archCount*15);
+    result['Распил каркаса тента']=mins[5];
+    result['Сварка каркаса тента']=mins[6];
     if(document.getElementById('opTent').checked){
-      result['Изготовление тента']=tentMakerM;
+      const tentMM = m.tent*10;
+      const ta = ((frameW+2*tentMM)/1000)*(frameL/1000)*1.15;
+      const refTA = ((1500+70+2*1200)/1000)*((3500+70)/1000)*1.15;
+      result['Изготовление тента']=Math.round(485*ta/refTA);
     }
   }
 

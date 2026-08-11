@@ -52,7 +52,6 @@ tr:hover{background:rgba(233,69,96,0.08)}
   </select>
   <label><input type="checkbox" id="filterAxles1" checked onchange="filter()"> 1 ось</label>
   <label><input type="checkbox" id="filterAxles2" checked onchange="filter()"> 2 оси</label>
-  <label><input type="checkbox" id="showAllKits" onchange="filter()"> Все К</label>
   <select id="priceMode" onchange="filter()">
     <option value="retail">Розница</option>
     <option value="wholesale">Опт</option>
@@ -83,8 +82,7 @@ fetch('pricelist.json')
   .then(r => r.json())
   .then(data => {
     DATA = data;
-    currentKit = 4;
-    document.getElementById('filterKit').value = '4';
+    document.getElementById('filterKit').value = '';
     filter();
   })
   .catch(err => {
@@ -96,19 +94,15 @@ function filter() {
   const kit = document.getElementById('filterKit').value;
   const ax1 = document.getElementById('filterAxles1').checked;
   const ax2 = document.getElementById('filterAxles2').checked;
-  const showAll = document.getElementById('showAllKits').checked;
   
   let rows = DATA;
   if (brand) rows = rows.filter(r => r.brand === brand);
-  if (!showAll) {
-    if (kit) rows = rows.filter(r => r.kit == kit);
-    else rows = rows.filter(r => r.kit == currentKit);
-  }
+  if (kit) rows = rows.filter(r => r.kit == kit);
   if (!ax1) rows = rows.filter(r => r.axles !== 1);
   if (!ax2) rows = rows.filter(r => r.axles !== 2);
   
-  // Group by model+axles, take max kit
-  if (!showAll) {
+  // When "Все комплектации": group by model+axles, take max kit
+  if (!kit) {
     const seen = {};
     rows = rows.filter(r => {
       const k = r.model + '|' + r.axles;

@@ -249,7 +249,7 @@ const TUBES = {
 // EXPORT MODE
 // ══════════════════════════════════════════════════════════
 const urlParams = new URLSearchParams(window.location.search);
-const EXPORT_MODE = urlParams.get('export') === '1';
+const BATCH_MODE = urlParams.get('batch') === '1';
 
 // ══════════════════════════════════════════════════════════
 // STATE
@@ -800,6 +800,9 @@ function recalc() {
   if (state.kit < 4) zpPieces = zpPieces.filter(g => !g.label.startsWith('Каркас тента') && !g.label.startsWith('Проставки дуг'));
   if (state.kit < 3) zpPieces = zpPieces.filter(g => !g.label.startsWith('Борта'));
   renderZincPaint(zpPieces, bp, frameW, axles);
+  
+  // Save summary for BATCH_MODE
+  window.__summaryData = null; // will be set later after calc
   
   // Calculate tent total cost (fabric + hardware) - only for K4
   let tentTotalCost = 0;
@@ -1496,6 +1499,15 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
     '</table>';
 
   document.getElementById('summary').innerHTML = html;
+
+  // Save summary for BATCH_MODE
+  window.__summaryData = {
+    model: st.model, brand: st.brand, w: st.W, l: st.L, axles: st.axles, kit: st.kit,
+    kitName: kitName,
+    cost: grandTotal, retail: retail, wholesale: wholesale,
+    marginRetail: marginRetail, marginPctRetail: marginPctRetail,
+    marginWholesale: marginWholesale, marginPctWholesale: marginPctWholesale
+  };
 }
 
 // ═══ ZP CALC (ported from bom_from_cutmap.js) ═══
@@ -2885,7 +2897,10 @@ function updatePrintLayout() {
 
 
 // ══════════════════════════════════════════════════════════
-if (EXPORT_MODE) {
+if (BATCH_MODE) {
+  init();
+  setTimeout(batchRun, 500);
+} else if (EXPORT_MODE) {
   state.brand = urlParams.get('brand') || 'Самбарс';
   state.W = parseInt(urlParams.get('w')) || 1500;
   state.L = parseInt(urlParams.get('l')) || 2500;
@@ -2895,6 +2910,55 @@ if (EXPORT_MODE) {
   recalc();
 } else {
   init();
+}
+
+// ═══ BATCH MODE ═══
+function batchRun() {
+  var results = [];
+  var kitNames = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
+  
+  for (var mi = 0; mi < CATALOG.length; mi++) {
+    var m = CATALOG[mi];
+    for (var ai = 0; ai < m.ax.length; ai++) {
+      var ax = m.ax[ai];
+      for (var ki = 4; ki >= 1; ki--) {
+        // Set state
+        state.brand = m.brand;
+        state.W = m.w;
+        state.L = m.l;
+        state.tentH = ki >= 4 ? (m.tent || 0) : 0;
+        state.axles = ax;
+        state.kit = ki;
+        state.model = m.model;
+        
+        // Select model in DOM for proper kit dropdown
+        document.getElementById('modelSelect').value = mi;
+        document.getElementById('axles').value = ax;
+        document.getElementById('kitSelect').value = ki;
+        
+        recalc();
+        
+        if (window.__summaryData) {
+          var d = window.__summaryData;
+          results.push({
+            num: m.num,
+            model: m.model,
+            brand: m.brand,
+            w: m.w, l: m.l,
+            axles: ax,
+            kit: ki, kitName: kitNames[ki] || ('К'+ki),
+            cost: d.cost, retail: d.retail, wholesale: d.wholesale,
+            marginRetail: d.marginRetail, marginPctRetail: d.marginPctRetail,
+            marginWholesale: d.marginWholesale, marginPctWholesale: d.marginPctWholesale
+          });
+        }
+      }
+    }
+  }
+  
+  // Output JSON
+  document.body.innerHTML = '<pre style="margin:20px;font-family:monospace;font-size:12px;color:#fff;background:#111;padding:20px">' +
+    JSON.stringify(results, null, 2) + '</pre>';
 }
 
 // ═══ PRICE PANEL ═══

@@ -1429,6 +1429,25 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   var totalZP = zpData ? zpData.zpTotal : 0;
   var grandTotal = totalMat + totalExtra + totalZP;
 
+  // Markup by brand × width (from standards)
+  var wCm = (st.W||1250) / 10;
+  var markup = 1.50; // fallback
+  if (st.brand === 'Барсук') {
+    if (wCm <= 125) markup = 1.50;
+    else if (wCm <= 150) markup = 1.60;
+    else markup = 1.60;
+  } else if (st.brand === 'Самбарс') {
+    if (wCm <= 125) markup = 1.55;
+    else if (wCm <= 150) markup = 1.65;
+    else if (wCm <= 170) markup = 1.80;
+    else if (wCm <= 193) markup = 2.00;
+    else markup = 2.00;
+  } else if (st.brand === 'Бизон') {
+    markup = 2.00;
+  }
+  var retail = Math.round(grandTotal * markup / 100) * 100;
+  var wholesale = Math.round(grandTotal * (markup - 0.2) / 100) * 100;
+
   var kitNames = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
   var kitName = kitNames[st.kit] || '';
 
@@ -1464,6 +1483,9 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   }
 
   html += '<tr style="border-top:2px solid #e94560"><td><b>ИТОГО себестоимость</b></td><td></td><td class="num"><b>' + grandTotal.toLocaleString() + ' ₽</b></td></tr>' +
+    '<tr><td colspan="3" style="color:#888;padding-top:8px"><b>▸ Цена продажи</b></td></tr>' +
+    '<tr><td>Розница (×' + markup.toFixed(2) + ')</td><td></td><td class="num" style="color:#f0c040;font-weight:bold">' + retail.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Опт (×' + (markup - 0.2).toFixed(2) + ')</td><td></td><td class="num" style="color:#f0c040">' + wholesale.toLocaleString() + ' ₽</td></tr>' +
     '</table>';
 
   document.getElementById('summary').innerHTML = html;

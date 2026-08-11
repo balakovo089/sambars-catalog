@@ -55,23 +55,14 @@ tr:hover{background:rgba(233,69,96,0.08)}
   <select id="priceMode" onchange="filter()">
     <option value="retail">Розница</option>
     <option value="wholesale">Опт</option>
+    <option value="both">Опт + Розница</option>
   </select>
   <label><input type="checkbox" id="showDetails" checked onchange="filter()"> Себестоимость + маржа</label>
   <button onclick="exportExcel()" style="background:#2ecc71;border:none;color:#111;padding:6px 14px;border-radius:4px;cursor:pointer;font-weight:bold;font-size:13px">📥 Экспорт в Excel</button>
 </div>
 
 <table>
-<thead>
-<tr>
-  <th>Модель</th>
-  <th>Бренд</th>
-  <th>Осей</th>
-  <th>Компл.</th>
-  <th class="num cost-col">Себестоимость</th>
-  <th class="num price-col">Цена</th>
-  <th class="num margin-col">Маржа</th>
-</tr>
-</thead>
+<thead id="thead"></thead>
 <tbody id="tbody"></tbody>
 </table>
 
@@ -83,27 +74,33 @@ function exportExcel() {
   if (_visibleRows.length === 0) return;
   const priceMode = document.getElementById('priceMode').value;
   const showDetails = document.getElementById('showDetails').checked;
-  const priceLabel = priceMode === 'retail' ? 'Розница' : 'Опт';
+  const isBoth = priceMode === 'both';
 
-  // Build CSV with BOM for Excel Cyrillic support
   let csv = '\uFEFF';
-
-  // Header
   csv += 'Модель;Бренд;Осей;Комплектация';
   if (showDetails) csv += ';Себестоимость';
-  csv += ';' + priceLabel;
-  if (showDetails) csv += ';Маржа (₽);Маржа (%)';
+  if (isBoth) {
+    csv += ';Розница;Опт';
+    if (showDetails) csv += ';Маржа розн. (₽);Маржа розн. (%);Маржа опт (₽);Маржа опт (%)';
+  } else {
+    csv += ';' + (priceMode === 'retail' ? 'Розница' : 'Опт');
+    if (showDetails) csv += ';Маржа (₽);Маржа (%)';
+  }
   csv += '\n';
 
-  // Data rows
   _visibleRows.forEach(r => {
     csv += `${r.model};${r.brand};${r.axles};${r.kitName}`;
     if (showDetails) csv += `;${r.cost}`;
-    csv += `;${priceMode === 'retail' ? r.retail : r.wholesale}`;
-    if (showDetails) {
-      const margin = priceMode === 'retail' ? r.marginRetail : r.marginWholesale;
-      const marginPct = priceMode === 'retail' ? r.marginPctRetail : r.marginPctWholesale;
-      csv += `;${margin};${marginPct}%`;
+    if (isBoth) {
+      csv += `;${r.retail};${r.wholesale}`;
+      if (showDetails) csv += `;${r.marginRetail};${r.marginPctRetail}%;${r.marginWholesale};${r.marginPctWholesale}%`;
+    } else {
+      csv += `;${priceMode === 'retail' ? r.retail : r.wholesale}`;
+      if (showDetails) {
+        const margin = priceMode === 'retail' ? r.marginRetail : r.marginWholesale;
+        const marginPct = priceMode === 'retail' ? r.marginPctRetail : r.marginPctWholesale;
+        csv += `;${margin};${marginPct}%`;
+      }
     }
     csv += '\n';
   });
@@ -160,7 +157,22 @@ function render(rows) {
   const showCost = document.getElementById('showDetails').checked;
   const showMargin = document.getElementById('showDetails').checked;
 
-  // Update column visibility
+  const isBoth = priceMode === 'both';
+
+  // Update header
+  var h = '<tr><th>Модель</th><th>Бренд</th><th>Осей</th><th>Компл.</th>';
+  if (showCost) h += '<th class="num cost-col">Себестоимость</th>';
+  if (isBoth) {
+    h += '<th class="num r-col">Розница</th><th class="num w-col">Опт</th>';
+    if (showMargin) h += '<th class="num margin-col r-col">Маржа розн.</th><th class="num margin-col w-col">Маржа опт</th>';
+  } else {
+    h += '<th class="num price-col">Цена</th>';
+    if (showMargin) h += '<th class="num margin-col">Маржа</th>';
+  }
+  h += '</tr>';
+  document.getElementById('thead').innerHTML = h;
+
+  // Column visibility
   document.querySelectorAll('.cost-col').forEach(el => el.style.display = showCost ? '' : 'none');
   document.querySelectorAll('.margin-col').forEach(el => el.style.display = showMargin ? '' : 'none');
 
@@ -170,29 +182,33 @@ function render(rows) {
   } else {
     tbody.innerHTML = rows.map(r => {
       const bc = r.brand === 'Барсук' ? 'brand-barsuk' : r.brand === 'Самбарс' ? 'brand-sambars' : 'brand-bizon';
-      const price = priceMode === 'retail' ? r.retail : r.wholesale;
-      const margin = priceMode === 'retail' ? r.marginRetail : r.marginWholesale;
-      const marginPct = priceMode === 'retail' ? r.marginPctRetail : r.marginPctWholesale;
-      return `<tr>
-        <td><b>${r.model}</b></td>
-        <td class="${bc}">${r.brand}</td>
-        <td>${r.axles}</td>
-        <td>${r.kitName}</td>
-        ${showCost ? `<td class="num cost">${r.cost.toLocaleString()} ₽</td>` : ''}
-        <td class="num retail">${price.toLocaleString()} ₽</td>
-        ${showMargin ? `<td class="num ${marginClass(parseFloat(marginPct))}">${margin.toLocaleString()} ₽ (${marginPct}%)</td>` : ''}
-      </tr>`;
+      var row = `<tr><td><b>${r.model}</b></td><td class="${bc}">${r.brand}</td><td>${r.axles}</td><td>${r.kitName}</td>`;
+      if (showCost) row += `<td class="num cost">${r.cost.toLocaleString()} ₽</td>`;
+      if (isBoth) {
+        row += `<td class="num retail">${r.retail.toLocaleString()} ₽</td><td class="num">${r.wholesale.toLocaleString()} ₽</td>`;
+        if (showMargin) row += `<td class="num ${marginClass(parseFloat(r.marginPctRetail))}">${r.marginRetail.toLocaleString()} ₽ (${r.marginPctRetail}%)</td><td class="num">${r.marginWholesale.toLocaleString()} ₽ (${r.marginPctWholesale}%)</td>`;
+      } else {
+        const price = priceMode === 'retail' ? r.retail : r.wholesale;
+        const margin = priceMode === 'retail' ? r.marginRetail : r.marginWholesale;
+        const marginPct = priceMode === 'retail' ? r.marginPctRetail : r.marginPctWholesale;
+        row += `<td class="num retail">${price.toLocaleString()} ₽</td>`;
+        if (showMargin) row += `<td class="num ${marginClass(parseFloat(marginPct))}">${margin.toLocaleString()} ₽ (${marginPct}%)</td>`;
+      }
+      return row + '</tr>';
     }).join('');
   }
 
   const pm = document.getElementById('priceMode').value;
-  const avgPrice = Math.round(rows.reduce((s,r) => s + (pm === 'retail' ? r.retail : r.wholesale), 0) / rows.length);
-  const avgMargin = (rows.reduce((s,r) => s + parseFloat(pm === 'retail' ? r.marginPctRetail : r.marginPctWholesale), 0) / rows.length).toFixed(1);
-
-  document.getElementById('stats').innerHTML =
-    `<span>${rows.length}</span> позиций | ` +
-    `Средняя цена: <span>${avgPrice.toLocaleString()} ₽</span> | ` +
-    `Средняя маржа: <span>${avgMargin}%</span>`;
+  var stats = `<span>${rows.length}</span> позиций`;
+  if (pm === 'both') {
+    stats += ` | Розница сред: <span>${Math.round(rows.reduce((s,r)=>s+r.retail,0)/rows.length).toLocaleString()} ₽</span>`;
+    stats += ` | Опт сред: <span>${Math.round(rows.reduce((s,r)=>s+r.wholesale,0)/rows.length).toLocaleString()} ₽</span>`;
+  } else {
+    const avgPrice = Math.round(rows.reduce((s,r)=>s+(pm==='retail'?r.retail:r.wholesale),0)/rows.length);
+    const avgMargin = (rows.reduce((s,r)=>s+parseFloat(pm==='retail'?r.marginPctRetail:r.marginPctWholesale),0)/rows.length).toFixed(1);
+    stats += ` | Средняя цена: <span>${avgPrice.toLocaleString()} ₽</span> | Средняя маржа: <span>${avgMargin}%</span>`;
+  }
+  document.getElementById('stats').innerHTML = stats;
 }
 </script>
 </body>

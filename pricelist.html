@@ -52,7 +52,13 @@ tr:hover{background:rgba(233,69,96,0.08)}
   </select>
   <label><input type="checkbox" id="filterAxles1" checked onchange="filter()"> 1 ось</label>
   <label><input type="checkbox" id="filterAxles2" checked onchange="filter()"> 2 оси</label>
-  <label><input type="checkbox" id="showAllKits" onchange="filter()"> Показать все К</label>
+  <label><input type="checkbox" id="showAllKits" onchange="filter()"> Все К</label>
+  <select id="priceMode" onchange="filter()">
+    <option value="retail">Розница</option>
+    <option value="wholesale">Опт</option>
+  </select>
+  <label><input type="checkbox" id="showCost" checked onchange="filter()"> Себестоимость</label>
+  <label><input type="checkbox" id="showMargin" checked onchange="filter()"> Маржинальность</label>
 </div>
 
 <table>
@@ -62,11 +68,9 @@ tr:hover{background:rgba(233,69,96,0.08)}
   <th>Бренд</th>
   <th>Осей</th>
   <th>Компл.</th>
-  <th class="num">Себестоимость</th>
-  <th class="num">Розница</th>
-  <th class="num">Опт</th>
-  <th class="num">Маржа розн.</th>
-  <th class="num">Маржа опт</th>
+  <th class="num cost-col">Себестоимость</th>
+  <th class="num price-col">Цена</th>
+  <th class="num margin-col">Маржа</th>
 </tr>
 </thead>
 <tbody id="tbody"></tbody>
@@ -129,29 +133,43 @@ function marginClass(val) {
 
 function render(rows) {
   const tbody = document.getElementById('tbody');
+  const priceMode = document.getElementById('priceMode').value;
+  const showCost = document.getElementById('showCost').checked;
+  const showMargin = document.getElementById('showMargin').checked;
+
+  // Update column visibility
+  document.querySelectorAll('.cost-col').forEach(el => el.style.display = showCost ? '' : 'none');
+  document.querySelectorAll('.margin-col').forEach(el => el.style.display = showMargin ? '' : 'none');
+
   if (rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="9" style="color:#888;padding:20px;text-align:center">Нет данных по фильтрам</td></tr>';
+    const cols = 3 + (showCost ? 1 : 0) + 1 + (showMargin ? 1 : 0);
+    tbody.innerHTML = `<tr><td colspan="${cols}" style="color:#888;padding:20px;text-align:center">Нет данных по фильтрам</td></tr>`;
   } else {
     tbody.innerHTML = rows.map(r => {
       const bc = r.brand === 'Барсук' ? 'brand-barsuk' : r.brand === 'Самбарс' ? 'brand-sambars' : 'brand-bizon';
+      const price = priceMode === 'retail' ? r.retail : r.wholesale;
+      const margin = priceMode === 'retail' ? r.marginRetail : r.marginWholesale;
+      const marginPct = priceMode === 'retail' ? r.marginPctRetail : r.marginPctWholesale;
       return `<tr>
         <td><b>${r.model}</b></td>
         <td class="${bc}">${r.brand}</td>
         <td>${r.axles}</td>
         <td>${r.kitName}</td>
-        <td class="num cost">${r.cost.toLocaleString()} ₽</td>
-        <td class="num retail">${r.retail.toLocaleString()} ₽</td>
-        <td class="num">${r.wholesale.toLocaleString()} ₽</td>
-        <td class="num ${marginClass(parseFloat(r.marginPctRetail))}">${r.marginRetail.toLocaleString()} ₽ (${r.marginPctRetail}%)</td>
-        <td class="num">${r.marginWholesale.toLocaleString()} ₽ (${r.marginPctWholesale}%)</td>
+        ${showCost ? `<td class="num cost">${r.cost.toLocaleString()} ₽</td>` : ''}
+        <td class="num retail">${price.toLocaleString()} ₽</td>
+        ${showMargin ? `<td class="num ${marginClass(parseFloat(marginPct))}">${margin.toLocaleString()} ₽ (${marginPct}%)</td>` : ''}
       </tr>`;
     }).join('');
   }
-  
-  document.getElementById('stats').innerHTML = 
+
+  const pm = document.getElementById('priceMode').value;
+  const avgPrice = Math.round(rows.reduce((s,r) => s + (pm === 'retail' ? r.retail : r.wholesale), 0) / rows.length);
+  const avgMargin = (rows.reduce((s,r) => s + parseFloat(pm === 'retail' ? r.marginPctRetail : r.marginPctWholesale), 0) / rows.length).toFixed(1);
+
+  document.getElementById('stats').innerHTML =
     `<span>${rows.length}</span> позиций | ` +
-    `Средняя розница: <span>${Math.round(rows.reduce((s,r)=>s+r.retail,0)/rows.length).toLocaleString()} ₽</span> | ` +
-    `Средняя маржа: <span>${(rows.reduce((s,r)=>s+parseFloat(r.marginPctRetail),0)/rows.length).toFixed(1)}%</span>`;
+    `Средняя цена: <span>${avgPrice.toLocaleString()} ₽</span> | ` +
+    `Средняя маржа: <span>${avgMargin}%</span>`;
 }
 </script>
 </body>

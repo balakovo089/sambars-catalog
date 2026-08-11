@@ -110,6 +110,33 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
 @keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
 .card { animation:fadeIn .3s ease; }
 
+.cart-btn{display:inline-block;margin-left:6px;padding:4px 10px;background:#2ecc71;color:#111;border:none;border-radius:12px;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+.cart-btn:hover{background:#27ae60;transform:scale(1.05)}
+.cart-btn.dealer-cart{background:#f39c12}
+.cart-btn.dealer-cart:hover{background:#e67e22}
+.cart-icon{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border:1px solid #2ecc71;border-radius:20px;color:#2ecc71;font-size:14px;font-weight:600;background:transparent;cursor:pointer;transition:all .2s;margin-left:6px;text-decoration:none}
+.cart-icon:hover{background:#2ecc71;color:#1a1d23}
+.cart-icon .badge{background:#e94560;color:#fff;border-radius:10px;padding:1px 7px;font-size:11px;min-width:20px;text-align:center}
+.cart-icon.dealer-icon{border-color:#f39c12;color:#f39c12}
+.cart-icon.dealer-icon:hover{background:#f39c12;color:#1a1d23}
+.cart-modal{max-width:520px;max-height:80vh;overflow-y:auto}
+.cart-modal h3{margin-bottom:8px}
+.cart-list{text-align:left;margin-bottom:16px}
+.cart-item{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #333;font-size:13px;gap:8px}
+.cart-item .ci-name{flex:2;color:#e0e0e0}
+.cart-item .ci-qty{color:#888;font-size:12px}
+.cart-item .ci-price{color:#2ecc71;font-weight:600;white-space:nowrap}
+.cart-item .ci-remove{color:#c0392b;cursor:pointer;font-size:16px;padding:0 4px}
+.cart-total{font-size:16px;font-weight:700;color:#f39c12;text-align:right;padding:8px 0;border-top:2px solid #e94560;margin-bottom:12px}
+.cart-contacts{margin-top:12px}
+.cart-contacts input,.cart-contacts textarea{width:100%;padding:8px 12px;background:#1a1d23;color:#e0e0e0;border:1px solid #444;border-radius:6px;margin-bottom:8px;font-size:13px;font-family:inherit}
+.cart-contacts textarea{resize:vertical;min-height:50px}
+.cart-send-btns{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:8px}
+.cart-send-btns a,.cart-send-btns button{padding:6px 12px;border-radius:6px;font-size:12px;font-weight:600;text-decoration:none;cursor:pointer}
+.cart-send-btns .tg{background:#2aabee;color:#fff}
+.cart-send-btns .wa{background:#25d366;color:#fff}
+.cart-send-btns .copy{background:#5dade2;color:#111}
+.cart-send-btns .mail{background:#e67e22;color:#111}
 @media (max-width:768px) {
   .cards-grid { grid-template-columns:1fr; }
   .filters { padding:12px 16px; }
@@ -123,7 +150,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
 
 <div class="header">
   <h1>🔧 Каталог прицепов</h1>
-  <p>Барсук · Самбарс · Бизон — выбери свою комплектацию <a href="invest.html" class="invest-link">💼 Инвесторам</a><a href="price.pdf" class="invest-link" style="border-color:#f39c12;color:#f39c12" download>📥 Прайс PDF</a><a href="portal.html" class="invest-link" style="border-color:#e94560;color:#e94560">🔐 Сотрудникам</a><button class="dealer-btn" id="dealerBtn" onclick="toggleDealerModal()">🤝 Партнёрский вход</button></p>
+  <p>Барсук · Самбарс · Бизон — выбери свою комплектацию <a href="invest.html" class="invest-link">💼 Инвесторам</a><a href="price.pdf" class="invest-link" style="border-color:#f39c12;color:#f39c12" download>📥 Прайс PDF</a><a href="portal.html" class="invest-link" style="border-color:#e94560;color:#e94560">🔐 Сотрудникам</a><button class="dealer-btn" id="dealerBtn" onclick="toggleDealerModal()">🤝 Партнёрский вход</button><button class="cart-icon" id="cartIcon" onclick="openCart()" title="Корзина">🛒 <span class="badge" id="cartCount" style="display:none">0</span></button></p>
 </div>
 
 <div class="filters">
@@ -346,8 +373,8 @@ function renderCard(model, idx) {
     const has2 = model.axle_options.includes(2);
     let d1 = null, d2 = null;
     if (isDealer) { d1 = p1 ? getDealerPrice(model, 1, p1, bt) : null; d2 = p2 ? getDealerPrice(model, 2, p2, bt) : null; }
-    const cell1 = p1 !== null ? '<span class="price-cell">'+fmtPrice(p1)+' ₽</span>'+(isDealer&&d1?'<br><span class="dealer-price">'+fmtPrice(d1)+' ₽</span>':'') : '<span class="price-na">—</span>';
-    const cell2 = p2 !== null ? '<span class="price-cell">'+fmtPrice(p2)+' ₽</span>'+(isDealer&&d2?'<br><span class="dealer-price">'+fmtPrice(d2)+' ₽</span>':'') : '<span class="price-na">—</span>';
+    const cell1 = p1 !== null ? '<button class="cart-btn'+(isDealer?' dealer-cart':'')+'" onclick="addToCart(event,\''+model.model.replace(/'/g,"\\'")+'\',\''+model.brand+'\',\''+bt+'\',1,'+(isDealer&&d1?d1:p1)+')">'+fmtPrice(isDealer&&d1?d1:p1)+' ₽</button>' : '<span class="price-na">—</span>';
+    const cell2 = p2 !== null ? '<button class="cart-btn'+(isDealer?' dealer-cart':'')+'" onclick="addToCart(event,\''+model.model.replace(/'/g,"\\'")+'\',\''+model.brand+'\',\''+bt+'\',2,'+(isDealer&&d2?d2:p2)+')">'+fmtPrice(isDealer&&d2?d2:p2)+' ₽</button>' : '<span class="price-na">—</span>';
     matrixRows += '<tr><td class="body-label">'+(BODY_ICONS[bt]||'')+' '+(BODY_LABELS[bt]||bt)+'</td><td>'+(has1?cell1:'<span class="price-na">—</span>')+'</td><td>'+(has2?cell2:'<span class="price-na">—</span>')+'</td></tr>';
   }
   
@@ -448,6 +475,57 @@ document.getElementById('view-table').addEventListener('click', function() {
 });
 
 updateDealerUI();
+
+// ═══ CART ═══
+function getCartKey(){return isDealer?'sambars_cart_dealer':'sambars_cart';}
+function getCart(){try{return JSON.parse(localStorage.getItem(getCartKey())||'[]');}catch(e){return[];}}
+function saveCart(c){localStorage.setItem(getCartKey(),JSON.stringify(c));updateCartIcon();}
+function addToCart(e,model,brand,bodyType,axles,price){e.stopPropagation();e.preventDefault();
+  var c=getCart();var found=c.find(i=>i.model===model&&i.bodyType===bodyType&&i.axles===axles);
+  if(found)found.qty++;else c.push({model:model,brand:brand,bodyType:bodyType,axles:axles,price:price,qty:1});
+  saveCart(c);openCart();}
+function removeFromCart(i){var c=getCart();c.splice(i,1);saveCart(c);renderCart();}
+function openCart(){var c=getCart();if(!c.length)return;
+  document.getElementById('cartModal').classList.add('show');renderCart();}
+function closeCart(){document.getElementById('cartModal').classList.remove('show');}
+function clearCart(){localStorage.removeItem(getCartKey());updateCartIcon();closeCart();}
+function updateCartIcon(){
+  var c=getCart(),total=c.reduce((s,i)=>s+i.qty,0);
+  var cnt=document.getElementById('cartCount'),icon=document.getElementById('cartIcon');
+  if(total>0){cnt.style.display='';cnt.textContent=total;}else{cnt.style.display='none';}
+  if(isDealer){icon.classList.add('dealer-icon');icon.innerHTML='🤝 <span class="badge" id="cartCount"'+(total?'':' style="display:none"')+'>'+total+'</span>';cnt=document.getElementById('cartCount');}
+  else{icon.classList.remove('dealer-icon');icon.innerHTML='🛒 <span class="badge" id="cartCount"'+(total?'':' style="display:none"')+'>'+total+'</span>';}
+}
+function renderCart(){
+  var c=getCart(),list=document.getElementById('cartList'),total=0;
+  if(!c.length){list.innerHTML='<div style="color:#888;text-align:center;padding:12px">Корзина пуста</div>';closeCart();return;}
+  list.innerHTML=c.map(function(item,i){
+    var sub=item.price*item.qty;total+=sub;
+    return '<div class="cart-item"><span class="ci-name">'+item.model+' — '+item.bodyType+' — '+item.axles+' ось</span><span class="ci-qty">×'+item.qty+'</span><span class="ci-price">'+fmtPrice(sub)+' ₽</span><span class="ci-remove" onclick="removeFromCart('+i+')">✕</span></div>';
+  }).join('');
+  document.getElementById('cartTotal').textContent='Итого: '+fmtPrice(total)+' ₽';
+  var name=(document.getElementById('cartName').value||'Клиент').trim();
+  var phone=(document.getElementById('cartPhone').value||'').trim();
+  var comment=(document.getElementById('cartComment').value||'').trim();
+  var msg='🛒 НОВЫЙ ЗАКАЗ'+(isDealer?' (ДИЛЕР)':'')+'%0A%0A';
+  c.forEach(function(i){msg+=('• '+i.model+' — '+i.bodyType+' — '+i.axles+'ось ×'+i.qty+' = '+fmtPrice(i.price*i.qty)+' ₽%0A');});
+  msg+='%0A💰 Итого: '+fmtPrice(total)+' ₽';
+  if(name)msg+='%0A👤 '+name;if(phone)msg+='%0A📞 '+phone;if(comment)msg+='%0A💬 '+comment;
+  document.getElementById('tgLink').href='https://t.me/+79276193220?text='+msg;
+  document.getElementById('waLink').href='https://wa.me/79276193220?text='+msg;
+  document.getElementById('mailLink').href='mailto:fabrikamo-s@mail.ru?subject=Заказ%20Самбарс&body='+msg;
+}
+function copyOrder(){
+  var c=getCart(),name=document.getElementById('cartName').value.trim()||'Клиент';
+  var phone=document.getElementById('cartPhone').value.trim(),comment=document.getElementById('cartComment').value.trim();
+  var txt='НОВЫЙ ЗАКАЗ'+(isDealer?' (ДИЛЕР)':'')+'\n';
+  c.forEach(function(i){txt+=i.model+' — '+i.bodyType+' — '+i.axles+'ось ×'+i.qty+' = '+fmtPrice(i.price*i.qty)+' ₽\n';});
+  txt+='\nИтого: '+fmtPrice(c.reduce((s,i)=>s+i.price*i.qty,0))+' ₽';
+  if(name)txt+='\n👤 '+name;if(phone)txt+='\n📞 '+phone;if(comment)txt+='\n💬 '+comment;
+  navigator.clipboard.writeText(txt).then(function(){alert('✅ Заказ скопирован! Отправьте менеджеру в Telegram или WhatsApp.');clearCart();});
+}
+['cartName','cartPhone','cartComment'].forEach(function(id){document.getElementById(id).addEventListener('input',renderCart);});
+updateCartIcon();
 </script>
 
 <!-- ═══ Дилерское окно ═══ -->
@@ -460,6 +538,30 @@ updateDealerUI();
       <button onclick="document.getElementById('dealerModal').classList.remove('show')">Отмена</button>
     </div>
   </div>
+</div>
+
+<!-- ═══ Корзина ═══ -->
+<div class="modal-overlay" id="cartModal">
+<div class="modal-box cart-modal">
+<h3>🛒 Корзина</h3>
+<div class="cart-list" id="cartList"></div>
+<div class="cart-total" id="cartTotal"></div>
+<div class="cart-contacts">
+  <input type="text" id="cartName" placeholder="Ваше имя">
+  <input type="tel" id="cartPhone" placeholder="Телефон">
+  <textarea id="cartComment" placeholder="Комментарий (необязательно)"></textarea>
+</div>
+<div class="cart-send-btns">
+  <button class="copy" onclick="copyOrder()">📋 Копировать</button>
+  <a class="tg" id="tgLink" href="#" target="_blank">📱 Telegram</a>
+  <a class="wa" id="waLink" href="#" target="_blank">💬 WhatsApp</a>
+  <a class="mail" id="mailLink" href="#">📧 Email</a>
+</div>
+<div class="btn-row" style="margin-top:10px">
+  <button onclick="closeCart()">Продолжить покупки</button>
+  <button class="primary" onclick="clearCart()">Очистить корзину</button>
+</div>
+</div>
 </div>
 
 </body>

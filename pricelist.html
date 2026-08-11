@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Прайс-лист Самбарс / Барсук / Бизон</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a1a;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;padding:20px}
+h1{color:#e94560;margin-bottom:4px}
+.subtitle{color:#888;font-size:13px;margin-bottom:16px}
+.filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.filters select,.filters input{background:#16213e;border:1px solid #2a3a5c;color:#fff;padding:6px 10px;border-radius:4px;font-size:13px}
+.filters label{font-size:12px;color:#888;display:flex;align-items:center;gap:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#16213e;color:#888;padding:8px 10px;text-align:left;position:sticky;top:0;z-index:1}
+th.num{text-align:right}
+td{padding:6px 10px;border-bottom:1px solid #1a1a3a}
+td.num{text-align:right;font-family:monospace}
+tr:hover{background:rgba(233,69,96,0.08)}
+.brand-barsuk{color:#5dade2}
+.brand-sambars{color:#e74c3c}
+.brand-bizon{color:#f39c12}
+.cost{color:#888}
+.retail{color:#f0c040;font-weight:bold}
+.margin-good{color:#4caf50}
+.margin-ok{color:#ff9800}
+.margin-low{color:#e94560}
+.stats{display:flex;gap:20px;margin-bottom:12px;font-size:12px;color:#888}
+.stats span{color:#e0e0e0;font-weight:bold}
+</style>
+</head>
+<body>
+<h1>📋 Прайс-лист прицепов</h1>
+<p class="subtitle">Сгенерировано из калькулятора cutmap | Цены округлены до 100₽</p>
+
+<div class="stats" id="stats"></div>
+
+<div class="filters">
+  <select id="filterBrand" onchange="filter()">
+    <option value="">Все бренды</option>
+    <option value="Барсук">Барсук</option>
+    <option value="Самбарс">Самбарс</option>
+    <option value="Бизон">Бизон</option>
+  </select>
+  <select id="filterKit" onchange="filter()">
+    <option value="">Все комплектации</option>
+    <option value="4">К4 — Бортовой с тентом</option>
+    <option value="3">К3 — Бортовой</option>
+    <option value="2">К2 — Рама с полом</option>
+    <option value="1">К1 — Рама</option>
+  </select>
+  <label><input type="checkbox" id="filterAxles1" checked onchange="filter()"> 1 ось</label>
+  <label><input type="checkbox" id="filterAxles2" checked onchange="filter()"> 2 оси</label>
+  <label><input type="checkbox" id="showAllKits" onchange="filter()"> Показать все К</label>
+</div>
+
+<table>
+<thead>
+<tr>
+  <th>Модель</th>
+  <th>Бренд</th>
+  <th>Осей</th>
+  <th>Компл.</th>
+  <th class="num">Себестоимость</th>
+  <th class="num">Розница</th>
+  <th class="num">Опт</th>
+  <th class="num">Маржа розн.</th>
+  <th class="num">Маржа опт</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<script>
+let DATA = [];
+let currentKit = 4;
+
+fetch('pricelist.json')
+  .then(r => r.json())
+  .then(data => {
+    DATA = data;
+    currentKit = 4;
+    document.getElementById('filterKit').value = '4';
+    filter();
+  })
+  .catch(err => {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="9" style="color:#e94560;padding:20px">❌ Ошибка загрузки pricelist.json. Запусти gen_pricelist.js для генерации.</td></tr>';
+  });
+
+function filter() {
+  const brand = document.getElementById('filterBrand').value;
+  const kit = document.getElementById('filterKit').value;
+  const ax1 = document.getElementById('filterAxles1').checked;
+  const ax2 = document.getElementById('filterAxles2').checked;
+  const showAll = document.getElementById('showAllKits').checked;
+  
+  let rows = DATA;
+  if (brand) rows = rows.filter(r => r.brand === brand);
+  if (!showAll) {
+    if (kit) rows = rows.filter(r => r.kit == kit);
+    else rows = rows.filter(r => r.kit == currentKit);
+  }
+  if (!ax1) rows = rows.filter(r => r.axles !== 1);
+  if (!ax2) rows = rows.filter(r => r.axles !== 2);
+  
+  // Group by model+axles, take max kit
+  if (!showAll) {
+    const seen = {};
+    rows = rows.filter(r => {
+      const k = r.model + '|' + r.axles;
+      if (seen[k] && seen[k].kit >= r.kit) return false;
+      seen[k] = r;
+      return true;
+    });
+  }
+  
+  // Sort: brand, w, l, axles, kit
+  rows.sort((a,b) => a.num-b.num || a.axles-b.axles || b.kit-a.kit);
+  
+  render(rows);
+}
+
+function marginClass(val) {
+  if (val >= 30) return 'margin-good';
+  if (val >= 20) return 'margin-ok';
+  return 'margin-low';
+}
+
+function render(rows) {
+  const tbody = document.getElementById('tbody');
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="9" style="color:#888;padding:20px;text-align:center">Нет данных по фильтрам</td></tr>';
+  } else {
+    tbody.innerHTML = rows.map(r => {
+      const bc = r.brand === 'Барсук' ? 'brand-barsuk' : r.brand === 'Самбарс' ? 'brand-sambars' : 'brand-bizon';
+      return `<tr>
+        <td><b>${r.model}</b></td>
+        <td class="${bc}">${r.brand}</td>
+        <td>${r.axles}</td>
+        <td>${r.kitName}</td>
+        <td class="num cost">${r.cost.toLocaleString()} ₽</td>
+        <td class="num retail">${r.retail.toLocaleString()} ₽</td>
+        <td class="num">${r.wholesale.toLocaleString()} ₽</td>
+        <td class="num ${marginClass(parseFloat(r.marginPctRetail))}">${r.marginRetail.toLocaleString()} ₽ (${r.marginPctRetail}%)</td>
+        <td class="num">${r.marginWholesale.toLocaleString()} ₽ (${r.marginPctWholesale}%)</td>
+      </tr>`;
+    }).join('');
+  }
+  
+  document.getElementById('stats').innerHTML = 
+    `<span>${rows.length}</span> позиций | ` +
+    `Средняя розница: <span>${Math.round(rows.reduce((s,r)=>s+r.retail,0)/rows.length).toLocaleString()} ₽</span> | ` +
+    `Средняя маржа: <span>${(rows.reduce((s,r)=>s+parseFloat(r.marginPctRetail),0)/rows.length).toFixed(1)}%</span>`;
+}
+</script>
+</body>
+</html>

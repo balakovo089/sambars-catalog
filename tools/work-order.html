@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Заказ-наряд на производство</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#1a1d23;color:#e0e0e0;min-height:100vh}
+.header{background:linear-gradient(135deg,#2c3e50,#1a1d23);padding:20px 28px;border-bottom:3px solid #e94560;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.header h1{font-size:22px;color:#e94560}
+.header .back{color:#f39c12;text-decoration:none;font-size:14px;font-weight:600}
+.container{max-width:960px;margin:0 auto;padding:20px}
+
+.tabs{display:flex;gap:4px;background:#22252b;border-radius:10px;padding:4px;margin-bottom:20px}
+.tab{padding:10px 24px;border:none;border-radius:8px;background:transparent;color:#aaa;cursor:pointer;font-size:14px;font-weight:600;transition:all .2s}
+.tab.active{background:#e94560;color:#fff}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+.card{background:#22252b;border-radius:12px;border:1px solid #333;padding:20px;margin-bottom:16px}
+.card h3{color:#f39c12;font-size:15px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:10px}
+.field{flex:1;min-width:180px}
+.field label{display:block;font-size:11px;color:#888;margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select{width:100%;padding:8px 12px;background:#1a1d23;color:#e0e0e0;border:1px solid #444;border-radius:6px;font-size:13px}
+.field input:focus,.field select:focus{outline:none;border-color:#e94560}
+
+.params{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.param{background:rgba(233,69,96,.1);color:#e94560;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:500}
+
+.op-block{margin-bottom:14px}
+.op-block h4{font-size:13px;color:#e0e0e0;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #2a2d35;display:flex;justify-content:space-between;align-items:center}
+.op-block h4 .sub{font-size:11px;color:#888;font-weight:400}
+.op-item{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #2a2d35;font-size:13px}
+.op-item:last-child{border-bottom:none}
+.op-item input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#e94560}
+.op-item .op-name{flex:1;color:#ccc}
+.op-item .op-price{color:#2ecc71;font-weight:600;min-width:70px;text-align:right}
+.op-item .op-min{color:#666;font-size:11px;min-width:50px;text-align:right}
+.op-total{text-align:right;padding:8px 0;font-size:14px;font-weight:700;color:#e94560}
+
+.extra-item{display:flex;gap:8px;align-items:center;padding:4px 0}
+.extra-item .en{flex:1;min-width:100px}
+.extra-item .ep{width:80px}
+.extra-item .eq{width:50px}
+.extra-item .esub{color:#2ecc71;font-weight:600;min-width:80px;text-align:right}
+.extra-item .edel{cursor:pointer;color:#e94560;font-size:16px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:6px;border:1px solid #444;background:#2a2d35;color:#aaa;cursor:pointer;font-size:13px;transition:all .2s}
+.btn:hover{border-color:#f39c12;color:#f39c12}
+.btn.primary{background:#e94560;color:#fff;border-color:#e94560;font-weight:600}
+.btn.primary:hover{background:#c0392b}
+.btn.green{background:#2ecc71;color:#111;border-color:#2ecc71;font-weight:600}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+
+.summary{background:#1a1a1a;border-radius:12px;padding:20px;border:2px solid #e94560}
+.summary h3{color:#e94560;margin-bottom:12px}
+.summary-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;border-bottom:1px solid #2a2d35}
+.summary-row:last-child{border-bottom:none}
+.summary-row .sr{color:#2ecc71;font-weight:600}
+.summary-total{font-size:18px;font-weight:700;color:#e94560;padding:10px 0 0;text-align:right}
+
+@media print{
+  body{background:#fff;color:#000}
+  .header,.tabs,.btn-row,#tab1 .card:last-child{display:none}
+  .card{background:#fff;border:1px solid #ccc;break-inside:avoid}
+  .card h3{color:#000}
+  .field input,.field select{background:#fff;color:#000;border:1px solid #999}
+  .param{background:#eee;color:#000}
+  .op-item .op-price{color:#000}
+  .summary{background:#fff;border:2px solid #000}
+  .summary h3{color:#000}
+  .summary-total{color:#000}
+}
+
+@media(max-width:600px){
+  .container{padding:10px}
+  .card{padding:14px}
+  .field{min-width:100%}
+  .params{gap:4px}
+  .param{font-size:11px;padding:3px 7px}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 Заказ-наряд на производство</h1>
+  <a href="cutmap/" class="back">← В каталог</a>
+</div>
+
+<div class="container">
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('tab1',this)">📋 Заказ-наряд</button>
+  <button class="tab" onclick="switchTab('tab2',this)">🏕️ Заказ на тент</button>
+</div>
+
+<!-- ═══════════════ ЗАКАЗ-НАРЯД ═══════════════ -->
+<div class="tab-content active" id="tab1">
+
+<div class="card">
+  <h3>👤 Заказчик</h3>
+  <div class="row">
+    <div class="field"><label>ФИО клиента</label><input type="text" id="clientName" oninput="saveState()"></div>
+    <div class="field"><label>Телефон</label><input type="tel" id="clientPhone" oninput="saveState()"></div>
+    <div class="field"><label>Дата заказа</label><input type="date" id="orderDate" oninput="saveState()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>🔧 Прицеп</h3>
+  <div class="row">
+    <div class="field"><label>Бренд</label><select id="brand" onchange="onBrandChange()"><option value="Барсук">Барсук</option><option value="Самбарс">Самбарс</option><option value="Бизон">Бизон</option></select></div>
+    <div class="field"><label>Длина (м)</label><select id="trailerLen" onchange="onModelChange()"><option value="2.0">2.0</option><option value="2.5">2.5</option><option value="3.0">3.0</option><option value="3.5">3.5</option><option value="4.0">4.0</option><option value="4.5">4.5</option></select></div>
+    <div class="field"><label>Ширина (м)</label><select id="trailerW" onchange="onModelChange()"><option value="1.25">1.25</option><option value="1.5">1.5</option><option value="1.7">1.7</option><option value="2.0">2.0</option></select></div>
+    <div class="field"><label>Комплектация</label><select id="kit" onchange="onModelChange()"><option value="4">К4 (с тентом)</option><option value="3">К3 (бортовой)</option><option value="2">К2 (с полом)</option><option value="1">К1 (рама)</option></select></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Осей</label><select id="axles" onchange="onModelChange()"><option value="1">1 ось</option><option value="2">2 оси</option></select></div>
+    <div class="field"><label>Рессоры</label><input type="text" id="springs" readonly></div>
+    <div class="field"><label>Ступицы</label><input type="text" id="hubs" readonly></div>
+    <div class="field"><label>Колёса</label><input type="text" id="wheels" readonly></div>
+  </div>
+  <div class="row" id="dopRow">
+    <div class="field"><label>Доп. оборудование / примечания</label><input type="text" id="dopEquip" placeholder="ящик, лебёдка, фургон..." oninput="saveState()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>📅 Сроки этапов (ручной ввод)</h3>
+  <div class="row">
+    <div class="field"><label>Сварка</label><input type="date" id="dateWelding" oninput="saveState()"></div>
+    <div class="field"><label>Малярка</label><input type="date" id="datePaint" oninput="saveState()"></div>
+    <div class="field"><label>Сборка</label><input type="date" id="dateAssembly" oninput="saveState()"></div>
+    <div class="field"><label>Сдача</label><input type="date" id="dateReady" oninput="saveState()"></div>
+  </div>
+</div>
+
+<div class="card" id="welderBlock">
+  <div class="op-block">
+    <h4>🔧 СВАРЩИК <span class="sub" id="welderRate"></span></h4>
+    <div id="welderOps"></div>
+    <div class="op-total" id="welderTotal"></div>
+  </div>
+</div>
+
+<div class="card" id="painterBlock">
+  <div class="op-block">
+    <h4>🎨 МАЛЯР <span class="sub" id="painterRate"></span></h4>
+    <div id="painterOps"></div>
+    <div class="op-total" id="painterTotal"></div>
+  </div>
+</div>
+
+<div class="card" id="assemblerBlock">
+  <div class="op-block">
+    <h4>🔩 СБОРЩИК <span class="sub" id="assemblerRate"></span></h4>
+    <div id="assemblerOps"></div>
+    <div class="op-total" id="assemblerTotal"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>➕ Дополнительные работы (ручной ввод)</h3>
+  <div id="extraOps"></div>
+  <div class="op-total" id="extraTotal"></div>
+  <button class="btn" onclick="addExtraOp()">+ Добавить операцию</button>
+</div>
+
+<div class="summary">
+  <h3>💰 Итого по заказу (без тента)</h3>
+  <div class="summary-row"><span>Сварщик</span><span class="sr" id="sumWelder">0 ₽</span></div>
+  <div class="summary-row"><span>Маляр</span><span class="sr" id="sumPainter">0 ₽</span></div>
+  <div class="summary-row"><span>Сборщик</span><span class="sr" id="sumAssembler">0 ₽</span></div>
+  <div class="summary-row"><span>Доп. работы</span><span class="sr" id="sumExtra">0 ₽</span></div>
+  <div class="summary-total">Итого ЗП: <span id="sumTotal">0 ₽</span></div>
+</div>
+
+<div class="btn-row">
+  <button class="btn primary" onclick="printPage()">🖨️ Печать</button>
+  <button class="btn green" onclick="exportExcel()">📥 Скачать Excel</button>
+  <button class="btn" onclick="clearForm()">🗑 Очистить</button>
+</div>
+
+</div><!-- /tab1 -->
+
+<!-- ═══════════════ ЗАКАЗ НА ТЕНТ ═══════════════ -->
+<div class="tab-content" id="tab2">
+
+<div class="card">
+  <h3>🏕️ Параметры тента</h3>
+  <div class="row">
+    <div class="field"><label>Бренд</label><select id="tentBrand" onchange="recalcTent()"><option value="Барсук">Барсук</option><option value="Самбарс" selected>Самбарс</option></select></div>
+    <div class="field"><label>Длина (м)</label><select id="tentLen" onchange="recalcTent()"><option value="2.0">2.0</option><option value="2.5">2.5</option><option value="3.0">3.0</option><option value="3.5" selected>3.5</option><option value="4.0">4.0</option><option value="4.5">4.5</option></select></div>
+    <div class="field"><label>Ширина (м)</label><select id="tentW" onchange="recalcTent()"><option value="1.25">1.25</option><option value="1.5" selected>1.5</option><option value="1.7">1.7</option><option value="2.0">2.0</option></select></div>
+  </div>
+  <div class="row">
+    <div class="field"><label>Цвет тента</label><select id="tentColor" onchange="saveState()"><option>графит</option><option>серый</option><option>камуфляж</option><option>чёрный</option></select></div>
+    <div class="field"><label>Аэроскос</label><select id="tentAero" onchange="recalcTent()"><option value="0">Нет</option><option value="1">Да</option></select></div>
+    <div class="field"><label>Высота тента (мм)</label><input type="number" id="tentH" value="1200" oninput="recalcTent()"></div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="op-block">
+    <h4>🏕️ ТЕНТОВИК <span class="sub" id="tentMakerRate"></span></h4>
+    <div id="tentMakerOps"></div>
+    <div class="op-total" id="tentMakerTotal"></div>
+  </div>
+</div>
+
+<div class="card">
+  <h3>➕ Доп. работы по тенту</h3>
+  <div id="tentExtraOps"></div>
+  <div class="op-total" id="tentExtraTotal"></div>
+  <button class="btn" onclick="addTentExtraOp()">+ Добавить операцию</button>
+</div>
+
+<div class="summary">
+  <h3>💰 Итого по тенту</h3>
+  <div class="summary-row"><span>Тентовик (основное)</span><span class="sr" id="sumTentMaker">0 ₽</span></div>
+  <div class="summary-row"><span>Доп. работы</span><span class="sr" id="sumTentExtra">0 ₽</span></div>
+  <div class="summary-total">Итого тент: <span id="sumTentTotal">0 ₽</span></div>
+</div>
+
+<div class="btn-row">
+  <button class="btn primary" onclick="printPage()">🖨️ Печать</button>
+  <button class="btn green" onclick="exportExcel()">📥 Скачать Excel</button>
+  <button class="btn" onclick="clearTentForm()">🗑 Очистить</button>
+</div>
+
+</div><!-- /tab2 -->
+
+</div><!-- /container -->
+
+<script>
+// ═══ BRAND DATA ═══
+const BRAND = {
+  'Барсук': {rate:400, boardH:300, extraMM:60, profile:'60×40×2', springs:'Al-ko 3 листа', hub:'Жигули 4×98', wheel:'R13', espander:6},
+  'Самбарс':{rate:500, boardH:300, extraMM:70, profile:'60×60×2', springs:'Al-ko 5 листов', hub:'Жигули 4×98', wheel:'R14', espander:8},
+  'Бизон':  {rate:500, boardH:300, extraMM:70, profile:'60×60×2', springs:'Al-ko 5 листов', hub:'Жигули 4×98', wheel:'R14', espander:8}
+};
+
+// ═══ Зависимости ширины от бренда ═══
+const BRAND_WIDTHS = {
+  'Барсук': ['1.25','1.5'],
+  'Самбарс': ['1.25','1.5','1.7','2.0'],
+  'Бизон': ['2.0']
+};
+const BRAND_LENS = {
+  'Барсук': ['2.0','2.5','3.0','3.5'],
+  'Самбарс': ['2.0','2.5','3.0','3.5','4.0','4.5'],
+  'Бизон': ['3.5','4.0']
+};
+
+// ═══ Операции и их привязка к рабочим ═══
+const OP_NAMES = [
+  'Распил рамы+дышла', 'Сварка рамы+дышла', 'Распил бортов', 'Сварка бортов',
+  'Сварка оси', 'Распил каркаса тента', 'Сварка каркаса тента', 'Покраска оси',
+  'Покраска каркаса+дуг', 'Сборка оси,крыльев,колёс', 'Сборка навесного', 'Сборка электрики',
+  'Сборка бортов', 'Установка бортов', 'Обшивка пола', 'Установка дышла',
+  'Уст. каркаса тента', 'Уст. тента'
+];
+
+const OP_WORKER = [
+  'welder','welder','welder','welder','welder','welder','welder',  // 0-6
+  'painter','painter',                                              // 7-8
+  'assembler','assembler','assembler','assembler','assembler','assembler','assembler','assembler','assembler' // 9-17
+];
+
+// REF_OPS_S for Самбарс, REF_OPS_B for Барсук
+const REF_OPS_S = [75, 290, 45, 120, 60, 55, 190, 15, 60, 60, 25, 60, 120, 90, 55, 35, 50, 55];
+const REF_OPS_B = [65, 270, 40, 110, 50, 45, 170, 15, 50, 50, 25, 50, 110, 80, 50, 30, 45, 50];
+
+function calcMinutes(brand, W, L, axles, kit) {
+  const refOps = brand === 'Барсук' ? REF_OPS_B : REF_OPS_S;
+  const lenSteps = Math.max(0, Math.round((L - 2500) / 500));
+  const lenStep = brand === 'Барсук' ? 15 : 19;
+  const LEN_FACTORS = [0.25, 0.45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.30, 0, 0, 0, 0];
+  const lenMinutes = LEN_FACTORS.map(f => Math.round(f * lenStep * lenSteps));
+  
+  let widthSurcharge = 0;
+  if (brand === 'Самбарс') {
+    if (W <= 1500) widthSurcharge = 0;
+    else if (W <= 1700) widthSurcharge = Math.round((W-1500)/200*40);
+    else if (W <= 1930) widthSurcharge = 40 + Math.round((W-1700)/230*50);
+    else widthSurcharge = 90 + Math.round((W-1930)/70*15);
+  } else if (brand === 'Барсук') {
+    if (W <= 1250) widthSurcharge = 0;
+    else if (W <= 1500) widthSurcharge = 25;
+  }
+  const WIDTH_FACTORS = [0.15, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.35, 0.05, 0.05, 0.10, 0.05];
+  const widthMinutes = WIDTH_FACTORS.map(f => Math.round(f * widthSurcharge));
+  
+  let axle2Surcharge = 0;
+  if (axles === 2) axle2Surcharge = brand === 'Барсук' ? 40 : 60;
+  const AXLE_FACTORS = [0.25, 0.25, 0, 0, 0.50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const axleMinutes = AXLE_FACTORS.map(f => Math.round(f * axle2Surcharge));
+  
+  return refOps.map((base,i) => {
+    let m = base + lenMinutes[i] + widthMinutes[i] + axleMinutes[i];
+    // filter by kit
+    const opName = OP_NAMES[i];
+    if (kit < 3 && (opName.includes('борт') || opName.includes('Борт'))) m = 0;
+    if (kit < 4 && (opName.includes('каркас') || opName.includes('тент'))) m = 0;
+    if (kit < 2 && opName.includes('пол')) m = 0;
+    if (kit < 2 && (opName.includes('навесн') || opName.includes('электр') || opName.includes('дышл'))) {} // keep for K1
+    return Math.max(0, m);
+  });
+}
+
+// ═══ Рендер операций ═══
+let state = { extras: [], tentExtras: [], checked: {} };
+
+function renderOps() {
+  const brand = document.getElementById('brand').value;
+  const L = parseFloat(document.getElementById('trailerLen').value) * 1000;
+  const W = parseFloat(document.getElementById('trailerW').value) * 1000;
+  const axles = parseInt(document.getElementById('axles').value);
+  const kit = parseInt(document.getElementById('kit').value);
+  const bp = BRAND[brand];
+  
+  // Init checked state
+  OP_NAMES.forEach((_, i) => {
+    if (state.checked[i] === undefined) state.checked[i] = true;
+  });
+  
+  const minutes = calcMinutes(brand, W, L, axles, kit);
+  
+  // Group by worker
+  const groups = { welder: [], painter: [], assembler: [] };
+  OP_NAMES.forEach((name, i) => {
+    if (minutes[i] > 0) {
+      groups[OP_WORKER[i]].push({name, minutes: minutes[i], idx: i});
+    }
+  });
+  
+  const rate = bp.rate;
+  document.getElementById('welderRate').textContent = `× ${rate} ₽/ч`;
+  document.getElementById('painterRate').textContent = `× ${rate} ₽/ч`;
+  document.getElementById('assemblerRate').textContent = `× ${rate} ₽/ч`;
+  
+  renderGroup('welder', groups.welder, rate);
+  renderGroup('painter', groups.painter, rate);
+  renderGroup('assembler', groups.assembler, rate);
+  
+  renderExtras();
+  updateSummary();
+}
+
+function renderGroup(worker, ops, rate) {
+  const div = document.getElementById(worker + 'Ops');
+  const totalEl = document.getElementById(worker + 'Total');
+  let total = 0;
+  
+  let html = '';
+  ops.forEach(op => {
+    const checked = state.checked[op.idx] !== false;
+    const price = Math.round(op.minutes / 60 * rate);
+    if (checked) total += price;
+    html += `<div class="op-item">
+      <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleOp(${op.idx})">
+      <span class="op-name">${op.name}</span>
+      <span class="op-min">${op.minutes} мин</span>
+      <span class="op-price">${price} ₽</span>
+    </div>`;
+  });
+  
+  div.innerHTML = html || '<div style="color:#666;padding:8px">Нет операций для этой комплектации</div>';
+  totalEl.textContent = `Итого ${workerLabels[worker]}: ${total.toLocaleString()} ₽`;
+}
+
+const workerLabels = { welder: 'сварщик', painter: 'маляр', assembler: 'сборщик' };
+
+function toggleOp(idx) {
+  state.checked[idx] = !state.checked[idx];
+  renderOps();
+  saveState();
+}
+
+// ═══ Доп. работы ═══
+function renderExtras() {
+  const div = document.getElementById('extraOps');
+  let total = 0;
+  let html = '';
+  state.extras.forEach((e, i) => {
+    const sub = (e.price || 0) * (e.qty || 1);
+    total += sub;
+    html += `<div class="extra-item">
+      <input class="en" placeholder="Название" value="${e.name||''}" oninput="updateExtra(${i},'name',this.value)">
+      <select class="ep" onchange="updateExtra(${i},'worker',this.value)">
+        <option ${e.worker==='Сварщик'?'selected':''}>Сварщик</option>
+        <option ${e.worker==='Маляр'?'selected':''}>Маляр</option>
+        <option ${e.worker==='Сборщик'?'selected':''}>Сборщик</option>
+      </select>
+      <input class="ep" type="number" placeholder="Цена" value="${e.price||''}" oninput="updateExtra(${i},'price',parseInt(this.value)||0)">
+      <input class="eq" type="number" placeholder="Кол" value="${e.qty||1}" min="1" oninput="updateExtra(${i},'qty',parseInt(this.value)||1)">
+      <span class="esub">${sub} ₽</span>
+      <span class="edel" onclick="removeExtra(${i})">✕</span>
+    </div>`;
+  });
+  div.innerHTML = html;
+  document.getElementById('extraTotal').textContent = total > 0 ? `Итого доп. работ: ${total.toLocaleString()} ₽` : '';
+  updateSummary();
+}
+
+function addExtraOp() {
+  state.extras.push({name:'', worker:'Сварщик', price:0, qty:1});
+  renderExtras();
+  saveState();
+}
+
+function updateExtra(i, key, val) {
+  state.extras[i][key] = val;
+  renderExtras();
+  saveState();
+}
+
+function removeExtra(i) {
+  state.extras.splice(i, 1);
+  renderExtras();
+  saveState();
+}
+
+// ═══ Тент ═══
+function recalcTent() {
+  const brand = document.getElementById('tentBrand').value;
+  const bp = BRAND[brand];
+  const L = parseFloat(document.getElementById('tentLen').value) * 1000;
+  const W = parseFloat(document.getElementById('tentW').value) * 1000;
+  const tentH = parseInt(document.getElementById('tentH').value) || 1200;
+  const aero = parseInt(document.getElementById('tentAero').value);
+  const extraMM = bp.extraMM;
+  const frameW = W + extraMM;
+  const frameL = L + extraMM;
+  const tentMM = tentH + 20;
+  
+  document.getElementById('tentMakerRate').textContent = `× ${bp.rate} ₽/ч`;
+  
+  const perimeter = 2 * (frameW + 2*tentMM + frameL) / 1000;
+  const tentArea = ((frameW+2*tentMM)/1000) * (frameL/1000) * 1.15;
+  const refTentArea = ((1500+70+2*1200)/1000) * ((3500+70)/1000) * 1.15;
+  const refTentMins = 485;
+  const tentTotalMin = Math.round(refTentMins * tentArea / refTentArea);
+  
+  // Tenter operations (5 ops from standards)
+  const tenterOps = [
+    {name: 'Раскрой+сварка ПВХ', minutes: Math.round(tentTotalMin * 0.28), rate: 0.28},
+    {name: 'Усилители на сгибах', minutes: Math.round(tentTotalMin * 0.12), rate: 0.12},
+    {name: 'Формирование углов', minutes: Math.round(tentTotalMin * 0.18), rate: 0.18, units: aero ? '6 шт' : '4 шт'},
+    {name: 'Люверсы d10', minutes: Math.round(tentTotalMin * 0.22), rate: 0.22},
+    {name: 'Поворотки/скобы на клапанах', minutes: Math.round(tentTotalMin * 0.20), rate: 0.20}
+  ];
+  
+  const div = document.getElementById('tentMakerOps');
+  const rate = bp.rate;
+  let total = 0;
+  let html = '';
+  
+  // Init tent checked state
+  tenterOps.forEach((op, i) => {
+    const key = 'tent_' + i;
+    if (state.tentChecked === undefined) state.tentChecked = {};
+    if (state.tentChecked[key] === undefined) state.tentChecked[key] = true;
+    const checked = state.tentChecked[key];
+    const price = Math.round(op.minutes / 60 * rate);
+    if (checked) total += price;
+    const units = op.units ? ` (${op.units})` : '';
+    html += `<div class="op-item">
+      <input type="checkbox" ${checked ? 'checked' : ''} onchange="toggleTentOp('${key}')">
+      <span class="op-name">${op.name}${units}</span>
+      <span class="op-min">${op.minutes} мин</span>
+      <span class="op-price">${price} ₽</span>
+    </div>`;
+  });
+  
+  div.innerHTML = html;
+  document.getElementById('tentMakerTotal').textContent = `Итого тентовик: ${total.toLocaleString()} ₽`;
+  
+  renderTentExtras();
+  updateTentSummary();
+}
+
+function toggleTentOp(key) {
+  if (!state.tentChecked) state.tentChecked = {};
+  state.tentChecked[key] = !state.tentChecked[key];
+  recalcTent();
+  saveState();
+}
+
+function renderTentExtras() {
+  const div = document.getElementById('tentExtraOps');
+  let total = 0, html = '';
+  state.tentExtras.forEach((e, i) => {
+    const sub = (e.price || 0) * (e.qty || 1);
+    total += sub;
+    html += `<div class="extra-item">
+      <input class="en" placeholder="Название" value="${e.name||''}" oninput="updateTentExtra(${i},'name',this.value)">
+      <input class="ep" type="number" placeholder="Цена" value="${e.price||''}" oninput="updateTentExtra(${i},'price',parseInt(this.value)||0)">
+      <input class="eq" type="number" placeholder="Кол" value="${e.qty||1}" min="1" oninput="updateTentExtra(${i},'qty',parseInt(this.value)||1)">
+      <span class="esub">${sub} ₽</span>
+      <span class="edel" onclick="removeTentExtra(${i})">✕</span>
+    </div>`;
+  });
+  div.innerHTML = html;
+  document.getElementById('tentExtraTotal').textContent = total > 0 ? `Итого доп. работ: ${total.toLocaleString()} ₽` : '';
+  updateTentSummary();
+}
+
+function addTentExtraOp() {
+  state.tentExtras.push({name:'', price:0, qty:1});
+  renderTentExtras();
+  saveState();
+}
+
+function updateTentExtra(i, key, val) {
+  state.tentExtras[i][key] = val;
+  renderTentExtras();
+  saveState();
+}
+
+function removeTentExtra(i) {
+  state.tentExtras.splice(i, 1);
+  renderTentExtras();
+  saveState();
+}
+
+// ═══ Итоги ═══
+function updateSummary() {
+  const welderEl = document.getElementById('welderTotal');
+  const painterEl = document.getElementById('painterTotal');
+  const assemblerEl = document.getElementById('assemblerTotal');
+  const extraEl = document.getElementById('extraTotal');
+  
+  let w = parseInt((welderEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  let p = parseInt((painterEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  let a = parseInt((assemblerEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  let ex = parseInt((extraEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  
+  document.getElementById('sumWelder').textContent = w.toLocaleString() + ' ₽';
+  document.getElementById('sumPainter').textContent = p.toLocaleString() + ' ₽';
+  document.getElementById('sumAssembler').textContent = a.toLocaleString() + ' ₽';
+  document.getElementById('sumExtra').textContent = ex.toLocaleString() + ' ₽';
+  document.getElementById('sumTotal').textContent = (w + p + a + ex).toLocaleString() + ' ₽';
+}
+
+function updateTentSummary() {
+  const m = parseInt((document.getElementById('tentMakerTotal').textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  const te = parseInt((document.getElementById('tentExtraTotal').textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  document.getElementById('sumTentMaker').textContent = m.toLocaleString() + ' ₽';
+  document.getElementById('sumTentExtra').textContent = te.toLocaleString() + ' ₽';
+  document.getElementById('sumTentTotal').textContent = (m + te).toLocaleString() + ' ₽';
+}
+
+// ═══ UI ═══
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+  saveState();
+}
+
+function onBrandChange() {
+  const brand = document.getElementById('brand').value;
+  const widths = BRAND_WIDTHS[brand];
+  const lens = BRAND_LENS[brand];
+  
+  const wSel = document.getElementById('trailerW');
+  wSel.innerHTML = widths.map(w => `<option value="${w}">${w}</option>`).join('');
+  
+  const lSel = document.getElementById('trailerLen');
+  lSel.innerHTML = lens.map(l => `<option value="${l}">${l}</option>`).join('');
+  
+  // Update axles availability for Бизон
+  const axSel = document.getElementById('axles');
+  if (brand === 'Бизон') {
+    axSel.innerHTML = '<option value="2">2 оси</option>';
+  } else {
+    axSel.innerHTML = '<option value="1">1 ось</option><option value="2">2 оси</option>';
+  }
+  
+  updateParams();
+  renderOps();
+}
+
+function onModelChange() {
+  updateParams();
+  renderOps();
+}
+
+function updateParams() {
+  const brand = document.getElementById('brand').value;
+  const bp = BRAND[brand];
+  document.getElementById('springs').value = bp.springs;
+  document.getElementById('hubs').value = bp.hub;
+  document.getElementById('wheels').value = bp.wheel;
+}
+
+// ═══ Export ═══
+function printPage() { window.print(); }
+
+function exportExcel() {
+  const client = document.getElementById('clientName').value || 'Клиент';
+  const phone = document.getElementById('clientPhone').value || '';
+  const date = document.getElementById('orderDate').value || '';
+  
+  let csv = 'ЗАКАЗ-НАРЯД\n';
+  csv += `Заказчик,${client},,Телефон,${phone},,Дата,${date}\n`;
+  csv += `Бренд,${document.getElementById('brand').value},,Длина,${document.getElementById('trailerLen').value} м,,Ширина,${document.getElementById('trailerW').value} м\n`;
+  csv += `Комплектация,К${document.getElementById('kit').value},,Осей,${document.getElementById('axles').value}\n\n`;
+  csv += 'ОПЕРАЦИЯ,МИНУТЫ,ЦЕНА ₽\n';
+  
+  ['welder','painter','assembler'].forEach(w => {
+    const div = document.getElementById(w + 'Ops');
+    const rows = div.querySelectorAll('.op-item');
+    rows.forEach(r => {
+      const cb = r.querySelector('input[type=checkbox]');
+      if (cb && cb.checked) {
+        csv += `${r.querySelector('.op-name').textContent},${r.querySelector('.op-min').textContent},${r.querySelector('.op-price').textContent}\n`;
+      }
+    });
+  });
+  
+  state.extras.forEach(e => {
+    const sub = (e.price||0) * (e.qty||1);
+    if (sub > 0) csv += `${e.name} (${e.worker}),,${sub}\n`;
+  });
+  
+  csv += `\nИТОГО ЗП (без тента),,${document.getElementById('sumTotal').textContent}\n`;
+  
+  const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `zakaz-naryad_${client}_${date}.csv`;
+  a.click();
+}
+
+function clearForm() {
+  document.getElementById('clientName').value = '';
+  document.getElementById('clientPhone').value = '';
+  document.getElementById('orderDate').value = '';
+  document.getElementById('dateWelding').value = '';
+  document.getElementById('datePaint').value = '';
+  document.getElementById('dateAssembly').value = '';
+  document.getElementById('dateReady').value = '';
+  document.getElementById('dopEquip').value = '';
+  state.extras = [];
+  state.checked = {};
+  localStorage.removeItem('workOrderState');
+  onBrandChange();
+}
+
+function clearTentForm() {
+  state.tentExtras = [];
+  state.tentChecked = {};
+  localStorage.removeItem('workOrderState');
+  recalcTent();
+}
+
+// ═══ Save/Load ═══
+function saveState() {
+  const data = {
+    clientName: document.getElementById('clientName').value,
+    clientPhone: document.getElementById('clientPhone').value,
+    orderDate: document.getElementById('orderDate').value,
+    brand: document.getElementById('brand').value,
+    trailerLen: document.getElementById('trailerLen').value,
+    trailerW: document.getElementById('trailerW').value,
+    kit: document.getElementById('kit').value,
+    axles: document.getElementById('axles').value,
+    dateWelding: document.getElementById('dateWelding').value,
+    datePaint: document.getElementById('datePaint').value,
+    dateAssembly: document.getElementById('dateAssembly').value,
+    dateReady: document.getElementById('dateReady').value,
+    dopEquip: document.getElementById('dopEquip').value,
+    tentBrand: document.getElementById('tentBrand').value,
+    tentLen: document.getElementById('tentLen').value,
+    tentW: document.getElementById('tentW').value,
+    tentColor: document.getElementById('tentColor').value,
+    tentAero: document.getElementById('tentAero').value,
+    tentH: document.getElementById('tentH').value,
+    extras: state.extras,
+    tentExtras: state.tentExtras,
+    checked: state.checked,
+    tentChecked: state.tentChecked
+  };
+  localStorage.setItem('workOrderState', JSON.stringify(data));
+}
+
+function loadState() {
+  const raw = localStorage.getItem('workOrderState');
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    if (data.clientName) document.getElementById('clientName').value = data.clientName;
+    if (data.clientPhone) document.getElementById('clientPhone').value = data.clientPhone;
+    if (data.orderDate) document.getElementById('orderDate').value = data.orderDate;
+    if (data.brand) document.getElementById('brand').value = data.brand;
+    if (data.trailerLen) document.getElementById('trailerLen').value = data.trailerLen;
+    if (data.trailerW) document.getElementById('trailerW').value = data.trailerW;
+    if (data.kit) document.getElementById('kit').value = data.kit;
+    if (data.axles) document.getElementById('axles').value = data.axles;
+    if (data.dateWelding) document.getElementById('dateWelding').value = data.dateWelding;
+    if (data.datePaint) document.getElementById('datePaint').value = data.datePaint;
+    if (data.dateAssembly) document.getElementById('dateAssembly').value = data.dateAssembly;
+    if (data.dateReady) document.getElementById('dateReady').value = data.dateReady;
+    if (data.dopEquip) document.getElementById('dopEquip').value = data.dopEquip;
+    if (data.tentBrand) document.getElementById('tentBrand').value = data.tentBrand;
+    if (data.tentLen) document.getElementById('tentLen').value = data.tentLen;
+    if (data.tentW) document.getElementById('tentW').value = data.tentW;
+    if (data.tentColor) document.getElementById('tentColor').value = data.tentColor;
+    if (data.tentAero) document.getElementById('tentAero').value = data.tentAero;
+    if (data.tentH) document.getElementById('tentH').value = data.tentH;
+    if (data.extras) state.extras = data.extras;
+    if (data.tentExtras) state.tentExtras = data.tentExtras;
+    if (data.checked) state.checked = data.checked;
+    if (data.tentChecked) state.tentChecked = data.tentChecked;
+  } catch(e) { console.warn('loadState error:', e); }
+}
+
+// ═══ Init ═══
+loadState();
+onBrandChange();
+recalcTent();
+</script>
+</body>
+</html>

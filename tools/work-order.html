@@ -562,16 +562,13 @@ function removeTentExtra(i) {
 }
 
 // ═══ Итоги ═══
+function parsePrice(el) { return parseInt(el.textContent.replace(/\D/g,'')) || 0; }
+
 function updateSummary() {
-  const welderEl = document.getElementById('welderTotal');
-  const painterEl = document.getElementById('painterTotal');
-  const assemblerEl = document.getElementById('assemblerTotal');
-  const extraEl = document.getElementById('extraTotal');
-  
-  let w = parseInt((welderEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
-  let p = parseInt((painterEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
-  let a = parseInt((assemblerEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
-  let ex = parseInt((extraEl.textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  const w = parsePrice(document.getElementById('welderTotal'));
+  const p = parsePrice(document.getElementById('painterTotal'));
+  const a = parsePrice(document.getElementById('assemblerTotal'));
+  const ex = parsePrice(document.getElementById('extraTotal'));
   
   document.getElementById('sumWelder').textContent = w.toLocaleString() + ' ₽';
   document.getElementById('sumPainter').textContent = p.toLocaleString() + ' ₽';
@@ -581,8 +578,8 @@ function updateSummary() {
 }
 
 function updateTentSummary() {
-  const m = parseInt((document.getElementById('tentMakerTotal').textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
-  const te = parseInt((document.getElementById('tentExtraTotal').textContent.match(/\d[\d ]*/) || ['0'])[0].replace(/\s/g,'')) || 0;
+  const m = parsePrice(document.getElementById('tentMakerTotal'));
+  const te = parsePrice(document.getElementById('tentExtraTotal'));
   document.getElementById('sumTentMaker').textContent = m.toLocaleString() + ' ₽';
   document.getElementById('sumTentExtra').textContent = te.toLocaleString() + ' ₽';
   document.getElementById('sumTentTotal').textContent = (m + te).toLocaleString() + ' ₽';

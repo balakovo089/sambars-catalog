@@ -102,9 +102,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
   <h3>👤 Заказчик</h3>
   <div class="row">
-    <div class="field"><label>ФИО клиента</label><input type="text" id="clientName" oninput="saveState()"></div>
-    <div class="field"><label>Телефон</label><input type="tel" id="clientPhone" oninput="saveState()"></div>
-    <div class="field"><label>Дата заказа</label><input type="date" id="orderDate" oninput="saveState()"></div>
+    <div class="field"><label>ФИО клиента</label><input type="text" id="clientName" oninput="saveState();syncToTent()"></div>
+    <div class="field"><label>Телефон</label><input type="tel" id="clientPhone" oninput="saveState();syncToTent()"></div>
+    <div class="field"><label>Дата заказа</label><input type="date" id="orderDate" oninput="saveState();syncToTent()"></div>
   </div>
 </div>
 
@@ -191,9 +191,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="card">
   <h3>👤 Клиент</h3>
   <div class="row">
-    <div class="field"><label>ФИО клиента</label><input type="text" id="tentClientName" oninput="syncClient('name',this.value)"></div>
-    <div class="field"><label>Телефон</label><input type="tel" id="tentClientPhone" oninput="syncClient('phone',this.value)"></div>
-    <div class="field"><label>Дата заказа</label><input type="date" id="tentOrderDate" oninput="syncClient('date',this.value)"></div>
+    <div class="field"><label>ФИО клиента</label><div id="tentClientName" style="padding:8px 12px;background:#1a1d23;border-radius:6px;min-height:20px;color:#e0e0e0;font-size:13px">—</div></div>
+    <div class="field"><label>Телефон</label><div id="tentClientPhone" style="padding:8px 12px;background:#1a1d23;border-radius:6px;min-height:20px;color:#e0e0e0;font-size:13px">—</div></div>
+    <div class="field"><label>Дата заказа</label><div id="tentOrderDate" style="padding:8px 12px;background:#1a1d23;border-radius:6px;min-height:20px;color:#e0e0e0;font-size:13px">—</div></div>
   </div>
 </div>
 
@@ -594,6 +594,7 @@ function switchTab(id, btn) {
   document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById(id).classList.add('active');
+  if (id === 'tab2') syncToTent();
   saveState();
 }
 
@@ -688,9 +689,9 @@ function clearForm() {
 }
 
 function clearTentForm() {
-  document.getElementById('tentClientName').value = '';
-  document.getElementById('tentClientPhone').value = '';
-  document.getElementById('tentOrderDate').value = '';
+  document.getElementById('tentClientName').textContent = '—';
+  document.getElementById('tentClientPhone').textContent = '—';
+  document.getElementById('tentOrderDate').textContent = '—';
   state.tentExtras = [];
   state.tentChecked = {};
   localStorage.removeItem('workOrderState');
@@ -698,11 +699,10 @@ function clearTentForm() {
 }
 
 // ═══ Синхронизация клиента между вкладками ═══
-function syncClient(field, val) {
-  if (field === 'name') { document.getElementById('clientName').value = val; }
-  if (field === 'phone') { document.getElementById('clientPhone').value = val; }
-  if (field === 'date') { document.getElementById('orderDate').value = val; }
-  saveState();
+function syncToTent() {
+  document.getElementById('tentClientName').textContent = document.getElementById('clientName').value || '—';
+  document.getElementById('tentClientPhone').textContent = document.getElementById('clientPhone').value || '—';
+  document.getElementById('tentOrderDate').textContent = document.getElementById('orderDate').value || '—';
 }
 
 // ═══ Save/Load ═══
@@ -770,6 +770,7 @@ function loadState() {
 loadState();
 onBrandChange();
 recalcTent();
+syncToTent();
 </script>
 </body>
 </html>

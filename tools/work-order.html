@@ -389,39 +389,52 @@ function toggleOp(idx) {
 }
 
 // ═══ Доп. работы ═══
+function escHtml(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function renderExtras() {
   const div = document.getElementById('extraOps');
-  let total = 0;
   let html = '';
   state.extras.forEach((e, i) => {
-    const sub = (e.price || 0) * (e.qty || 1);
-    total += sub;
-    html += `<div class="extra-item">
-      <input class="en" placeholder="Название" value="${e.name||''}" oninput="updateExtra(${i},'name',this.value)">
-      <select class="ep" onchange="updateExtra(${i},'worker',this.value)">
+    html += `<div class="extra-item" data-idx="${i}">
+      <input class="en" placeholder="Название" data-key="name" value="${escHtml(e.name||'')}">
+      <select class="ep" data-key="worker">
         <option ${e.worker==='Сварщик'?'selected':''}>Сварщик</option>
         <option ${e.worker==='Маляр'?'selected':''}>Маляр</option>
         <option ${e.worker==='Сборщик'?'selected':''}>Сборщик</option>
       </select>
-      <input class="ep" type="number" placeholder="Цена" value="${e.price||''}" oninput="updateExtra(${i},'price',parseInt(this.value)||0)">
-      <input class="eq" type="number" placeholder="Кол" value="${e.qty||1}" min="1" oninput="updateExtra(${i},'qty',parseInt(this.value)||1)">
-      <span class="esub">${sub} ₽</span>
+      <input class="ep" type="number" placeholder="Цена" data-key="price" value="${e.price||''}">
+      <input class="eq" type="number" placeholder="Кол" data-key="qty" value="${e.qty||1}" min="1">
+      <span class="esub">${((e.price||0)*(e.qty||1)).toLocaleString()} ₽</span>
+      <button class="btn green" onclick="saveExtraRow(this)" title="Сохранить строку">✓</button>
       <span class="edel" onclick="removeExtra(${i})">✕</span>
     </div>`;
   });
   div.innerHTML = html;
+  recalcExtraTotal();
+}
+
+function saveExtraRow(btn) {
+  const row = btn.closest('.extra-item');
+  const i = parseInt(row.dataset.idx);
+  row.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    if (el.type === 'number') state.extras[i][key] = parseInt(el.value) || (key==='qty'?1:0);
+    else state.extras[i][key] = el.value;
+  });
+  const e = state.extras[i];
+  const sub = (e.price||0) * (e.qty||1);
+  row.querySelector('.esub').textContent = sub.toLocaleString() + ' ₽';
+  recalcExtraTotal();
+  saveState();
+}
+
+function recalcExtraTotal() {
+  const total = state.extras.reduce((s, e) => s + (e.price||0)*(e.qty||1), 0);
   document.getElementById('extraTotal').textContent = total > 0 ? `Итого доп. работ: ${total.toLocaleString()} ₽` : '';
   updateSummary();
 }
 
 function addExtraOp() {
   state.extras.push({name:'', worker:'Сварщик', price:0, qty:1});
-  renderExtras();
-  saveState();
-}
-
-function updateExtra(i, key, val) {
-  state.extras[i][key] = val;
   renderExtras();
   saveState();
 }
@@ -503,10 +516,11 @@ function renderTentExtras() {
   let html = '';
   state.tentExtras.forEach((e, i) => {
     html += `<div class="extra-item" data-idx="${i}">
-      <input class="en" placeholder="Название" value="${escHtml(e.name||'')}" onblur="tentExtraBlur(this,${i},'name')" onkeydown="if(event.key==='Enter')this.blur()">
-      <input class="ep" type="number" placeholder="Цена" value="${e.price||''}" oninput="recalcTentExtraRow(this)">
-      <input class="eq" type="number" placeholder="Кол" value="${e.qty||1}" min="1" oninput="recalcTentExtraRow(this)">
+      <input class="en" placeholder="Название" data-key="name" value="${escHtml(e.name||'')}">
+      <input class="ep" type="number" placeholder="Цена" data-key="price" value="${e.price||''}">
+      <input class="eq" type="number" placeholder="Кол" data-key="qty" value="${e.qty||1}" min="1">
       <span class="esub">${((e.price||0)*(e.qty||1)).toLocaleString()} ₽</span>
+      <button class="btn green" onclick="saveTentExtraRow(this)" title="Сохранить строку">✓</button>
       <span class="edel" onclick="removeTentExtra(${i})">✕</span>
     </div>`;
   });
@@ -514,22 +528,18 @@ function renderTentExtras() {
   recalcTentExtraTotal();
 }
 
-function recalcTentExtraRow(el) {
-  const row = el.closest('.extra-item');
+function saveTentExtraRow(btn) {
+  const row = btn.closest('.extra-item');
   const i = parseInt(row.dataset.idx);
-  const priceInp = row.querySelectorAll('input.ep')[0];
-  const qtyInp = row.querySelector('input.eq');
-  const price = parseInt(priceInp.value) || 0;
-  const qty = parseInt(qtyInp.value) || 1;
-  state.tentExtras[i].price = price;
-  state.tentExtras[i].qty = qty;
-  row.querySelector('.esub').textContent = (price * qty).toLocaleString() + ' ₽';
+  row.querySelectorAll('[data-key]').forEach(el => {
+    const key = el.dataset.key;
+    if (el.type === 'number') state.tentExtras[i][key] = parseInt(el.value) || (key==='qty'?1:0);
+    else state.tentExtras[i][key] = el.value;
+  });
+  const e = state.tentExtras[i];
+  const sub = (e.price||0) * (e.qty||1);
+  row.querySelector('.esub').textContent = sub.toLocaleString() + ' ₽';
   recalcTentExtraTotal();
-  saveState();
-}
-
-function tentExtraBlur(el, i, key) {
-  state.tentExtras[i][key] = el.value;
   saveState();
 }
 

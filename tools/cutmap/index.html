@@ -216,7 +216,7 @@ const BRAND = {
     tentPVC:'ПВХ 500 г/м2', tentClr:'серый', espander:6, wheels:'R13',
     frontFlap:'наглухо', rearFlap:'ремни',
     rate:400, wheelsPrice:3650, springsPrice:1190, hubPrice:1250,
-    axleM_price:1605.8/6, tentPVC_price:120
+    axleM_price:1605.8/6, tentPVC_price:300
   },
   'Самбарс': {
     frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
@@ -225,7 +225,7 @@ const BRAND = {
     tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
     frontFlap:'поворотки', rearFlap:'поворотки',
     rate:500, wheelsPrice:3555, springsPrice:1302.56, hubPrice:1250,
-    axleM_price:2075.41/6, tentPVC_price:176.78
+    axleM_price:2075.41/6, tentPVC_price:442.5
   },
   'Бизон': {
     frameProfile:'60×60×2', extraMM:70, sideProfile:'25×25×2', sideThick:35,
@@ -234,7 +234,7 @@ const BRAND = {
     tentPVC:'ПВХ 650 г/м2', tentClr:'графитовый', espander:8, wheels:'R14',
     frontFlap:'поворотки', rearFlap:'поворотки',
     rate:500, wheelsPrice:3555, springsPrice:2395, hubPrice:1250,
-    axleM_price:2075.41/6, tentPVC_price:176.78
+    axleM_price:2075.41/6, tentPVC_price:442.5
   }
 };
 
@@ -795,9 +795,10 @@ function recalc() {
   const floorSheetsVis = state.kit >= 2 ? floorSheets : 0;
   const floorAreaVis = state.kit >= 2 ? floorArea : 0;
   renderPlywood(floorAreaVis, (state.kit >= 3 ? sideArea : 0), floorSheetsVis, sideSheetsVis, W, L, brand, hasFloorSeam, floorSeams, floorSheetType);
+  let tentTotalCost = 0;
   if (hasTent && state.kit >= 4) {
     document.getElementById('tentPlanBlock').style.display = 'block';
-    renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
+    tentTotalCost = renderTent(bp, state, frameW, frameL, tentMM, tentH, hasTent);
   } else {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
@@ -815,25 +816,6 @@ function recalc() {
   
   // Save summary for BATCH_MODE
   window.__summaryData = null; // will be set later after calc
-  
-  // Calculate tent total cost (fabric + hardware) - only for K4
-  let tentTotalCost = 0;
-  if (hasTent && state.kit >= 4) {
-    tentTotalCost = tentArea * bp.tentPVC_price;
-    const lowerP = 2*(frameW/1000 + frameL/1000) + 0.2;
-    const espP = bp.espander === 8 ? 33 : 27;
-    tentTotalCost += (lowerP + 0.5) * espP;
-    const tc = Math.ceil(tentArea / 3);
-    tentTotalCost += tc * 3.40 + tc * 3 * 1;
-    const flapW = (frameW + 2*tentMM) / 1000;
-    const fbc = Math.max(2, Math.round(flapW / 0.3) + 1);
-    if (brand !== 'Барсук') {
-      tentTotalCost += fbc * 2 * 4.50 + fbc * 2 * 4.30;
-    } else {
-      tentTotalCost += fbc * 11 + (tentMM/1000) * 2 * 24;
-    }
-    tentTotalCost = Math.round(tentTotalCost);
-  }
   
   // Calculate extra costs for summary (electrics, hitch, zinc, paint, bolts, consumables)
   const a = axles;
@@ -1168,8 +1150,8 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   try { pStrap = ALL_MAT_PRICES['Тент (фурнитура)']['Ремень ПВХ 14×3'].price; } catch(e) {}
   try { pStaple = ALL_MAT_PRICES['Тент (фурнитура)']['Скобы 17×17'].price; } catch(e) {}
   try { pPad = ALL_MAT_PRICES['Тент (фурнитура)']['Подкладки СП-15'].price; } catch(e) {}
-  var tentAreaM2 = ((fW + 2*tMM) / 1000) * (fL / 1000) * 1.15;
-  var fabricCost = tentAreaM2 * pFabric;
+  var fabricLinear = totalMM / 1000; // погонные метры (расход от рулона)
+  var fabricCost = fabricLinear * pFabric;
   var espCost = parseFloat(espanderM) * pEsp;
   var louvCost = louvers10 * pLouv + (louvers10 + 4) * pErix + valveLouvers * pPad;
   var valveCost = (!isBarsuk ? turnBuckles * pValve : 0) + (isBarsuk ? straps * pStaple + 2 * (tMM/1000) * pStrap : 0);
@@ -1178,7 +1160,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   html += `<tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
     <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
     <tr><td>Срок службы</td><td>~${isBarsuk ? 2 : 7} лет</td></tr>
-    <tr style="border-top:2px solid #e94560"><td><b>Ткань (${tentAreaM2.toFixed(1)} м² × ${pFabric} ₽)</b></td><td class="num"><b>${Math.round(fabricCost).toLocaleString()} ₽</b></td></tr>
+    <tr style="border-top:2px solid #e94560"><td><b>Ткань (${fabricLinear.toFixed(2)} м.п. × ${pFabric} ₽/м.п.)</b></td><td class="num"><b>${Math.round(fabricCost).toLocaleString()} ₽</b></td></tr>
     <tr><td>Эспандер ${bp.espander}мм (${espanderM} м × ${pEsp} ₽)</td><td class="num">${Math.round(espCost)} ₽</td></tr>
     <tr><td>Люверсы d10 (${louvers10} шт × ${pLouv} ₽)</td><td class="num">${Math.round(louvers10 * pLouv)} ₽</td></tr>
     <tr><td>Гайка эриксона М8 (${louvers10 + 4} шт × ${pErix} ₽)</td><td class="num">${Math.round((louvers10 + 4) * pErix)} ₽</td></tr>
@@ -1189,6 +1171,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО тент</b></td><td class="num"><b>${totalTent.toLocaleString()} ₽</b></td></tr>
   </table>`;
   document.getElementById('tentPlan').innerHTML = html;
+  return totalTent;
 }
 
 function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
@@ -1453,10 +1436,10 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   var hubsCost = st.axles * 2 * (bp.hubPrice||0);
 
   // Tent
-  var tentCost = tentTotalCost || (tentArea * (bp.tentPVC_price||0));
+  var tentCost = tentTotalCost; // Берем итого из блока тента, никаких пересчетов
   tentCost = Math.round(tentCost);
 
-  // Totals
+  // ИТОГО в сводке (берем из уже посчитанных блоков)
   var totalMat = Math.round(metalCost + plyCost + tentCost + wheelsCost + springsCost + hubsCost);
   var totalExtra = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + bracketEx + consumEx);
   var totalZP = zpData ? zpData.zpTotal : 0;
@@ -1497,8 +1480,8 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   if (fSheets > 0) {
     html += '<tr><td>Фанера</td><td class="num">' + (fSheets + sSheets) + ' листов</td><td class="num">' + plyCost.toLocaleString() + ' ₽</td></tr>';
   }
-  if (tentArea > 0) {
-    html += '<tr><td>Тент</td><td class="num">' + tentArea.toFixed(1) + ' м²</td><td class="num">' + tentCost.toLocaleString() + ' ₽</td></tr>';
+  if (tentCost > 0) {
+    html += '<tr><td>Тент</td><td></td><td class="num">' + tentCost.toLocaleString() + ' ₽</td></tr>';
   }
 
   html += '<tr><td>Колёса</td><td class="num">' + (st.axles*2) + ' шт</td><td class="num">' + wheelsCost.toLocaleString() + ' ₽</td></tr>' +
@@ -3009,8 +2992,8 @@ const ALL_MAT_PRICES = {
     '1500×3000 (9 мм)': {price:822, unit:'₽/м²'},
   },
   'Тент': {
-    'ПВХ 500 г/м² серый': {price:120, unit:'₽/м²'},
-    'ПВХ 650 г/м² графит': {price:177, unit:'₽/м²'},
+    'ПВХ 500 г/м² серый': {price:300, unit:'₽/м.п.'},
+    'ПВХ 650 г/м² графит': {price:442.5, unit:'₽/м.п.'},
     'Эспандер d-6мм': {price:27, unit:'₽/м'},
     'Эспандер d-8мм': {price:33, unit:'₽/м'},
   },

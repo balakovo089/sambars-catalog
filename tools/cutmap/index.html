@@ -1117,6 +1117,8 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     strapLen = 0;
   }
 
+  const louvCount = isBarsuk ? straps : turnBuckles; // 1 люверс на 1 скобу
+
   let html = `<table>
     <tr><td colspan="2"><b>Раскрой (рулон 2500 мм)</b></td></tr>
     <tr><td>Основное полотно ${(mainW/1000).toFixed(2)}×${(mainL/1000).toFixed(2)} м</td><td class="num"><b>${mainRMm}</b> пог.м</td></tr>
@@ -1135,14 +1137,15 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td>Эспандер ${bp.espander} мм</td><td class="num">${espanderM} м</td></tr>
     <tr><td>Люверсы d10 (отступ ${louvGap} мм)</td><td class="num">${louvers10} шт (шаг ~${louvStep} мм)</td></tr>
     <tr><td>Гайка эриксона + болт М8 потай</td><td class="num">${louvers10 + 4} шт (люверсы + 4)</td></tr>
-    <tr><td>${isBarsuk ? 'Подкладка d27' : 'Подкладка d32'}</td><td class="num">${valveLouvers} шт</td></tr>`;
+    <tr><td>${isBarsuk ? 'Подкладка d27' : 'Подкладка d32'}</td><td class="num">${valveLouvers} шт</td></tr>
+    <tr><td>Люверс ${isBarsuk ? 'd27' : 'd37'}</td><td class="num">${louvCount} шт (по 1 на скобу)</td></tr>`;
   if (!isBarsuk) html += `<tr><td>Поворотки d37</td><td class="num">${turnBuckles} шт (перед ${fValvesPerSide}×2 + зад ${rValvesPerSide}×2)</td></tr>`;
   if (isBarsuk) html += `<tr><td>Скобы</td><td class="num">${straps} шт (задний клапан, по ${rValvesPerSide} с каждой стороны)</td></tr>
     <tr><td>Ремень (2 ряда люверсов)</td><td class="num">2 шт × ${(tMM/1000).toFixed(2)} м (длина = высота каркаса)</td></tr>`;
   // Cost calculation
   var pFabric = bp.tentPVC_price;
   var pEsp = bp.espander === 8 ? 33 : 27;
-  var pLouv = 3.40, pRivet = 1, pErix = 5.60, pValve = 4.50, pStrap = 24, pStaple = 11, pPad = 4.30;
+  var pLouv = 3.40, pRivet = 1, pErix = 5.60, pValve = 4.50, pStrap = 24, pStaple = 11, pPad = 4.30, pLouvD = 0;
   try { pEsp = ALL_MAT_PRICES['Тент']['Эспандер d-' + bp.espander + 'мм'].price; } catch(e) {}
   try { pLouv = ALL_MAT_PRICES['Тент (фурнитура)']['Люверсы хром d10'].price; } catch(e) {}
   try { pErix = ALL_MAT_PRICES['Крепёж']['Гайка эриксона М8'].price; } catch(e) {}
@@ -1150,12 +1153,14 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
   try { pStrap = ALL_MAT_PRICES['Тент (фурнитура)']['Ремень ПВХ 14×3'].price; } catch(e) {}
   try { pStaple = ALL_MAT_PRICES['Тент (фурнитура)']['Скобы 17×17'].price; } catch(e) {}
   try { pPad = ALL_MAT_PRICES['Тент (фурнитура)']['Подкладки СП-15'].price; } catch(e) {}
+  try { pLouvD = ALL_MAT_PRICES['Тент (фурнитура)'][isBarsuk ? 'Люверс d27' : 'Люверс d37'].price; } catch(e) {}
   var fabricLinear = totalMM / 1000; // погонные метры (расход от рулона)
   var fabricCost = fabricLinear * pFabric;
   var espCost = parseFloat(espanderM) * pEsp;
   var louvCost = louvers10 * pLouv + (louvers10 + 4) * pErix + valveLouvers * pPad;
   var valveCost = (!isBarsuk ? turnBuckles * pValve : 0) + (isBarsuk ? straps * pStaple + 2 * (tMM/1000) * pStrap : 0);
-  var totalTent = Math.round(fabricCost + espCost + louvCost + valveCost);
+  var louvCostD = louvCount * pLouvD;
+  var totalTent = Math.round(fabricCost + espCost + louvCost + valveCost + louvCostD);
 
   html += `<tr><td>Передний клапан</td><td>${bp.frontFlap}</td></tr>
     <tr><td>Задний клапан</td><td>${bp.rearFlap}</td></tr>
@@ -1165,6 +1170,7 @@ function renderTent(bp, st, fW, fL, tMM, tH, hasTent) {
     <tr><td>Люверсы d10 (${louvers10} шт × ${pLouv} ₽)</td><td class="num">${Math.round(louvers10 * pLouv)} ₽</td></tr>
     <tr><td>Гайка эриксона М8 (${louvers10 + 4} шт × ${pErix} ₽)</td><td class="num">${Math.round((louvers10 + 4) * pErix)} ₽</td></tr>
     <tr><td>Подкладки (${valveLouvers} шт × ${pPad} ₽)</td><td class="num">${Math.round(valveLouvers * pPad)} ₽</td></tr>
+    <tr><td>Люверс ${isBarsuk ? 'd27' : 'd37'} (${louvCount} шт × ${pLouvD} ₽)</td><td class="num">${Math.round(louvCostD)} ₽</td></tr>
     ${!isBarsuk ? `<tr><td>Поворотки d37 (${turnBuckles} шт × ${pValve} ₽)</td><td class="num">${Math.round(turnBuckles * pValve)} ₽</td></tr>` : ''}
     ${isBarsuk ? `<tr><td>Скобы (${straps} шт × ${pStaple} ₽)</td><td class="num">${Math.round(straps * pStaple)} ₽</td></tr>` : ''}
     ${isBarsuk ? `<tr><td>Ремень ПВХ (2 шт × ${(tMM/1000).toFixed(2)} м × ${pStrap} ₽)</td><td class="num">${Math.round(2 * (tMM/1000) * pStrap)} ₽</td></tr>` : ''}
@@ -3064,6 +3070,8 @@ const ALL_MAT_PRICES = {
     'Люверсы хром d10': {price:3.40, unit:'₽/шт'},
     'Люверс Л-27 оцинк.': {price:4.50, unit:'₽/шт'},
     'Скобы 17×17': {price:11, unit:'₽/шт'},
+    'Люверс d27': {price:0, unit:'₽/шт'},
+    'Люверс d37': {price:0, unit:'₽/шт'},
     'Подкладки СП-15': {price:4.30, unit:'₽/шт'},
     'Ремень ПВХ 14×3': {price:24, unit:'₽/шт'},
   },

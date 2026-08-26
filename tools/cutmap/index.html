@@ -812,7 +812,7 @@ function recalc() {
   } else {
     document.getElementById('tentPlanBlock').style.display = 'none';
   }
-  renderBoltMap(bp, state, (state.kit >= 3 ? sBoltsCount : 0), (state.kit >= 2 ? floorBolts : 0), axleBolts,
+  var boltTotal = renderBoltMap(bp, state, (state.kit >= 3 ? sBoltsCount : 0), (state.kit >= 2 ? floorBolts : 0), axleBolts,
     (state.kit >= 4 ? tentBolts : 0), (state.kit >= 2 ? rivetsFloor : 0), rivetsSides);
   renderBrackets(bp, state);
   renderAxleSuspension(bp, state);
@@ -861,7 +861,7 @@ function recalc() {
   try{pFogBr=ALL_MAT_PRICES['Комплектующие (без цен)']['Кронштейн подфарника'].price}catch(e){}
   var kosCnt = brand === 'Барсук' ? 0 : 4;
   var bracketEx = Math.round(a*4*pKrRes + a*4*pKrAm + a*4*pKrKr + kosCnt*pKosB + 2*pPlateD + 2*pPlateR + pPlateNum + 2*pFogBr);
-  var boltEx = Math.round(2500 + a*500);
+  var boltEx = boltTotal;
   var consumEx = Math.round(consumables.cutDiscs*13 + consumables.grindDiscs*44 + parseFloat(consumables.wire)*250 + parseFloat(consumables.gas)*43 + consumables.gloves*25 + consumables.kragi*420);
   var extraCost = Math.round(electrCost + hitchExtra + zincEx + paintEx + boltEx + bracketEx + consumEx);
   
@@ -1220,7 +1220,15 @@ function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
   var hCost = hingeBolts * (pM8 + pNut);
   var lCost = lockBolts * (pM6 + pNut);
   var dCost = dumpLockBolts * (pM8 + pNut);
-  var totalBolt = Math.round(sCost + fCost + rivCost + aCost + tCost + hCost + lCost + dCost);
+  // Wheel bolts + M12x80 + front board costs (считаем ДО шаблона, иначе NaN)
+  var pWheelBolts = 0, pM12bolt = 0, pFrontM8 = 0;
+  try { pWheelBolts = ALL_MAT_PRICES['Комплектующие (без цен)']['Болты колёсные (компл)'].price; } catch(e) {}
+  try { pM12bolt = ALL_MAT_PRICES['Комплектующие (без цен)']['Болт М12×80 + гайки'].price; } catch(e) {}
+  try { pFrontM8 = ALL_MAT_PRICES['Комплектующие (без цен)']['Передний борт М8×80'].price; } catch(e) {}
+  var wbCost = (st.axles||1) * 2 * pWheelBolts;
+  var m12Cost = 2 * pM12bolt;
+  var fbCost = isBarsuk ? 4 * pFrontM8 : 0;
+  var totalBolt = Math.round(sCost + fCost + rivCost + aCost + tCost + hCost + lCost + dCost + wbCost + m12Cost + fbCost);
   let html = `<table style="width:100%">
     <tr><th>Узел</th><th>Тип</th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>
     <tr><td colspan="4" style="color:#e94560;padding-top:4px"><b>Крепёж</b></td></tr>
@@ -1240,19 +1248,11 @@ function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
   if (isBarsuk) {
     html += `<tr><td>Передний борт (крепление)</td><td>М8×80</td><td class="num">4 шт (вместо петель и замков)</td><td class="num">${Math.round(fbCost)} ₽</td></tr>`;
   }
-  // Wheel bolts + M12x80 + front board costs (defined BEFORE use)
-  var pWheelBolts = 0, pM12bolt = 0, pFrontM8 = 0;
-  try { pWheelBolts = ALL_MAT_PRICES['Комплектующие (без цен)']['Болты колёсные (компл)'].price; } catch(e) {}
-  try { pM12bolt = ALL_MAT_PRICES['Комплектующие (без цен)']['Болт М12×80 + гайки'].price; } catch(e) {}
-  try { pFrontM8 = ALL_MAT_PRICES['Комплектующие (без цен)']['Передний борт М8×80'].price; } catch(e) {}
-  var wbCost = (st.axles||1) * 2 * pWheelBolts;
-  var m12Cost = 2 * pM12bolt;
-  var fbCost = isBarsuk ? 4 * pFrontM8 : 0;
-  totalBolt += Math.round(wbCost + m12Cost + fbCost);
   html += `<tr><td>Самосвал (кронштейны)</td><td>М12×80 + 2 гайки + 3 шайбы</td><td class="num">2 компл</td><td class="num">${Math.round(m12Cost)} ₽</td></tr>
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО крепёж</b></td><td></td><td></td><td class="num"><b>${totalBolt.toLocaleString()} ₽</b></td></tr>
   </table>`;
   document.getElementById('boltMap').innerHTML = html;
+  return totalBolt;
 }
 
 function renderAxleSuspension(bp, st) {

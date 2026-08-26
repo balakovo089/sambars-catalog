@@ -131,6 +131,14 @@ canvas{display:block;cursor:grab}
   <h3>🔩 БОЛТОВАЯ КАРТА</h3>
   <div class="section" id="boltMap"></div>
 
+  <h3>🛞 ОСЬ И ПОДВЕСКА</h3>
+  <div class="section" id="axleSuspension"></div>
+
+  <div id="boardHardwareBlock" style="display:none">
+    <h3>🔩 ФУРНИТУРА БОРТОВ</h3>
+    <div class="section" id="boardHardware"></div>
+  </div>
+
   <h3>🔧 КРОНШТЕЙНЫ</h3>
   <div class="section" id="bracketSpec"></div>
 
@@ -807,6 +815,13 @@ function recalc() {
   renderBoltMap(bp, state, (state.kit >= 3 ? sBoltsCount : 0), (state.kit >= 2 ? floorBolts : 0), axleBolts,
     (state.kit >= 4 ? tentBolts : 0), (state.kit >= 2 ? rivetsFloor : 0), rivetsSides);
   renderBrackets(bp, state);
+  renderAxleSuspension(bp, state);
+  if (state.kit >= 3) {
+    document.getElementById('boardHardwareBlock').style.display = 'block';
+    renderBoardHardware(state);
+  } else {
+    document.getElementById('boardHardwareBlock').style.display = 'none';
+  }
   renderElectrics(bp, state, frameL);
   renderAttachments(state);
   
@@ -1238,6 +1253,49 @@ function renderBoltMap(bp, st, sBolts, fBolts, aBolts, tBolts, rivF, rivS) {
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО крепёж</b></td><td></td><td></td><td class="num"><b>${totalBolt.toLocaleString()} ₽</b></td></tr>
   </table>`;
   document.getElementById('boltMap').innerHTML = html;
+}
+
+function renderAxleSuspension(bp, st) {
+  const a = st.axles;
+  const springName = bp.springs === 3 ? 'Рессора 3L' : (bp.springs === 5 ? 'Рессора 5L' : 'Рессора 7L');
+  const wheelName = bp.wheels === 'R13' ? 'Колесо R13 в сборе' : 'Колесо R14 в сборе';
+  var pSpring = bp.springsPrice || 1190, pHub = bp.hubPrice || 1250, pWheel = bp.wheelsPrice || 3650;
+  var pAmort = 420, pWing = 292, pStrem = 50, pPlast = 175;
+  try { pAmort = ALL_MAT_PRICES['Колёса / подвеска']['Амортизатор ВАЗ 2121'].price; } catch(e) {}
+  try { pWing = ALL_MAT_PRICES['Колёса / подвеска']['Крыло R13/R14'].price; } catch(e) {}
+  try { pStrem = ALL_MAT_PRICES['Колёса / подвеска']['Стремянка'].price; } catch(e) {}
+  try { pPlast = ALL_MAT_PRICES['Колёса / подвеска']['Пластина стремянки'].price; } catch(e) {}
+
+  var total = Math.round(a*2*pSpring + a*2*pAmort + a*4*pStrem + a*2*pPlast + a*2*pHub + a*2*pWing + a*2*pWheel);
+  const html = `<table style="width:100%">
+    <tr><th>Компонент</th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>
+    <tr><td>${springName}</td><td class="num">${a*2} шт</td><td class="num">${Math.round(a*2*pSpring)} ₽</td></tr>
+    <tr><td>Амортизатор ВАЗ 2121</td><td class="num">${a*2} шт</td><td class="num">${Math.round(a*2*pAmort)} ₽</td></tr>
+    <tr><td>Стремянка рессор</td><td class="num">${a*4} шт</td><td class="num">${Math.round(a*4*pStrem)} ₽</td></tr>
+    <tr><td>Пластина стремянки</td><td class="num">${a*2} шт</td><td class="num">${Math.round(a*2*pPlast)} ₽</td></tr>
+    <tr><td>Ступица СТ-133</td><td class="num">${a*2} шт</td><td class="num">${Math.round(a*2*pHub)} ₽</td></tr>
+    <tr><td>Крыло ${bp.wheels}</td><td class="num">${a*2} шт</td><td class="num">${Math.round(a*2*pWing)} ₽</td></tr>
+    <tr><td>${wheelName}</td><td class="num">${a*2} шт</td><td class="num">${Math.round(a*2*pWheel)} ₽</td></tr>
+    <tr style="border-top:2px solid #e94560"><td><b>ИТОГО ось и подвеска</b></td><td></td><td class="num"><b>${total.toLocaleString()} ₽</b></td></tr>
+  </table>`;
+  const el = document.getElementById('axleSuspension');
+  if (el) el.innerHTML = html;
+}
+
+function renderBoardHardware(st) {
+  const cnt = st.brand === 'Барсук' ? 2 : 4;
+  var pHinge = 187, pLock = 170;
+  try { pHinge = ALL_MAT_PRICES['Борта / петли / замки']['Петля борта'].price; } catch(e) {}
+  try { pLock = ALL_MAT_PRICES['Борта / петли / замки']['Замок борта (компл)'].price; } catch(e) {}
+  var total = Math.round(cnt*pHinge + cnt*pLock);
+  const html = `<table style="width:100%">
+    <tr><th>Компонент</th><th class="num">Кол-во</th><th class="num">Стоимость</th></tr>
+    <tr><td>Петля борта</td><td class="num">${cnt} шт</td><td class="num">${Math.round(cnt*pHinge)} ₽</td></tr>
+    <tr><td>Замок борта (комплект)</td><td class="num">${cnt} шт</td><td class="num">${Math.round(cnt*pLock)} ₽</td></tr>
+    <tr style="border-top:2px solid #e94560"><td><b>ИТОГО фурнитура бортов</b></td><td></td><td class="num"><b>${total.toLocaleString()} ₽</b></td></tr>
+  </table>`;
+  const el = document.getElementById('boardHardware');
+  if (el) el.innerHTML = html;
 }
 
 function renderBrackets(bp, st) {
@@ -2861,6 +2919,8 @@ function buildSpecsHTML() {
   const tent = document.getElementById('tentPlan');
   const consum = document.getElementById('consumables');
   const bolts = document.getElementById('boltMap');
+  const axleSusp = document.getElementById('axleSuspension');
+  const boardHard = document.getElementById('boardHardware');
   const brackets = document.getElementById('bracketSpec');
   const electrics = document.getElementById('electrics');
   const attachments = document.getElementById('attachments');
@@ -2885,6 +2945,8 @@ function buildSpecsHTML() {
       + '<div class="col-right">'
         + h('📦 РАСХОДНИКИ', consum)
         + h('🔩 БОЛТОВАЯ КАРТА', bolts)
+        + h('🛞 ОСЬ И ПОДВЕСКА', axleSusp)
+        + h('🔩 ФУРНИТУРА БОРТОВ', boardHard)
         + h('🔧 КРОНШТЕЙНЫ', brackets)
         + h('⚡ ЭЛЕКТРИКА', electrics)
         + h('🔗 НАВЕСНОЕ', attachments)

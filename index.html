@@ -287,7 +287,8 @@ function checkDealerPassword() {
     localStorage.setItem('dealer_mode', 'true');
     document.getElementById('dealerModal').classList.remove('show');
     updateDealerUI();
-    renderAll();
+    refresh();
+    updateCartIcon();
   } else {
     alert('Неверный пароль');
   }
@@ -297,7 +298,8 @@ function logoutDealer() {
   isDealer = false;
   localStorage.removeItem('dealer_mode');
   updateDealerUI();
-  renderAll();
+  refresh();
+  updateCartIcon();
 }
 
 function updateDealerUI() {

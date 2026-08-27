@@ -1851,7 +1851,7 @@ function redrawCanvas() {
     ctx.font = 'bold 8px DejaVu Sans';
     for (let i = 0; i < pts.length - 1; i++) {
       const mx = rX + ((pts[i] + pts[i+1]) / 2 / frameL) * rW;
-      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH - 18);
+      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH - 28);
     }
   }
 
@@ -1942,7 +1942,7 @@ function redrawCanvas() {
       // подпись расстояния от зада (правее и выше, чтобы не перекрывалась перемычкой)
       ctx.fillStyle = '#00bcd4'; ctx.font = 'bold 8px DejaVu Sans';
       ctx.textAlign = 'center';
-      ctx.fillText(`${seamFromRear}`, sx + 6, rY + rH - 14);
+      ctx.fillText(`${seamFromRear}`, sx + 12, rY + rH - 22);
       ctx.textAlign = 'start';
     }
     ctx.setLineDash([]);

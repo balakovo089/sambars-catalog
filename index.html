@@ -144,6 +144,19 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
   .container { padding:12px; }
   .photo-slide img { height:200px; }
 }
+.brands-info { max-width:1400px; margin:0 auto; padding:0 24px 32px; }
+.brands-info h2 { color:#f39c12; font-size:22px; margin-bottom:6px; }
+.brands-info .lead { color:#888; font-size:14px; margin-bottom:24px; }
+.brand-block { background:#22252b; border:1px solid #333; border-radius:12px; padding:20px 24px; margin-bottom:16px; }
+.brand-block h3 { font-size:18px; margin-bottom:10px; display:flex; align-items:center; }
+.brand-block h3 .bicon { display:inline-flex; align-items:center; margin-right:8px; }
+.brand-block p { font-size:14px; line-height:1.65; color:#ccc; }
+.brands-common { background:#22252b; border:1px solid #2ecc71; border-radius:12px; padding:20px 24px; }
+.brands-common h3 { color:#2ecc71; font-size:16px; margin-bottom:12px; }
+.brands-common ul { list-style:none; }
+.brands-common li { padding:3px 0; color:#ccc; font-size:14px; }
+.brands-common li::before { content:"✓ "; color:#2ecc71; font-weight:700; }
+.brands-cta { text-align:center; padding:20px 0 0; color:#f39c12; font-size:16px; font-weight:600; }
 </style>
 </head>
 <body>
@@ -203,6 +216,42 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
   <div class="counter" id="counter">Показано: 18 моделей</div>
   <div class="cards-grid" id="cardsGrid"></div>
   <div class="table-view" id="tableView"></div>
+</div>
+
+<div class="brands-info">
+  <h2>Три зверя — три задачи</h2>
+  <p class="lead">Каждая серия названа по своему зверю — по размеру и характеру.</p>
+
+  <div class="brand-block">
+    <h3><span class="bicon">🦡</span><span style="color:#f39c12">Барсук — доступный прицеп</span></h3>
+    <p>Маленький и цепкий. Вырос из Самбарса: снаружи тот же, а для удешевления убрали то, чего не видно. «Не видно разницы — зачем платить больше». Трубы потоньше, тент попроще, ось слабее — но костяк крепкий: цельносварная рама, борта с влагостойкой фанерой, пол с нескользящей сеткой, горячее цинкование. По крепости всё равно лучше большинства аналогов за те же деньги. Для дачника на Ниве или Ладе — мелкий прицеп под мелкие задачи. До 500–1 000 кг.</p>
+  </div>
+
+  <div class="brand-block">
+    <h3><span class="bicon"><img src="photos/brand_icons/sambars.png" style="height:18px;vertical-align:middle"></span><span style="color:#e74c3c">Самбарс — настоящий прицеп для полной жизни</span></h3>
+    <p>Самарский барс — выносливый, грациозный, свободный. Вечный прицеп, который не подведёт: дышло, рама, ось, борта и тент — из толстых труб ГОСТ, плотность тента как у грузовиков. При этом лёгкий и послушный — и за машиной, и руками на парковке. Кладёшь что хочешь и как хочешь, хоть лодку с разгона. Для стройки, мототехники и тех, кто любит хорошие вещи, а не ширпотреб. До 1 000–1 500 кг, размеры до 2.0×4.5 м.</p>
+  </div>
+
+  <div class="brand-block">
+    <h3><span class="bicon"><img src="photos/brand_icons/bizon.png" style="height:18px;vertical-align:middle"></span><span style="color:#2ecc71">Бизон — большой и тяжёлый, для больших и тяжёлых вещей</span></h3>
+    <p>Как и зверь, многое на себя взвалит. Двойная рама с автовозными продольными фермами — для багги, мини-тракторов и техники (авто возить нельзя — категория B). Колёса спрятаны под раму: прицеп 2 м остаётся 2 м по колёсам и не раздаётся в ширину. Крупные заводы таких не делают — аналогов на рынке мало. Для бизнеса, стройки, пчеловодства и под аэролодки. До 1 500–2 500 кг, только две оси.</p>
+  </div>
+
+  <div class="brands-common">
+    <h3>Общее у всех прицепов</h3>
+    <ul>
+      <li>документы для постановки на учёт в ГАИ</li>
+      <li>горячее цинкование рамы, дышла и бортов</li>
+      <li>светодиодные фонари</li>
+      <li>цельносварные рамы</li>
+      <li>борта с влагостойкой фанерой, пол с нескользящей сеткой</li>
+      <li>смещённая назад ось (управляемость)</li>
+      <li>спаянные герметичные тенты</li>
+      <li>гарантия 1 год</li>
+    </ul>
+  </div>
+
+  <p class="brands-cta">Выберите свою серию и комплектацию выше</p>
 </div>
 
 <script>

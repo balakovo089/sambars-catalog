@@ -429,8 +429,16 @@ function renderTable() {
     for (const bt of BODY_ORDER) {
       const p1 = getPrice(m, bt, 1);
       const p2 = getPrice(m, bt, 2);
-      rows += '<td'+(m.axle_options.includes(1)&&p1?' class="price"':'')+'>'+(m.axle_options.includes(1)&&p1?fmtPrice(p1)+' ₽':(m.axle_options.includes(1)?'—':'<span style="color:#444">—</span>'))+'</td>';
-      rows += '<td'+(m.axle_options.includes(2)&&p2?' class="price"':'')+'>'+(m.axle_options.includes(2)&&p2?fmtPrice(p2)+' ₽':(m.axle_options.includes(2)?'—':'<span style="color:#444">—</span>'))+'</td>';
+      let d1 = null, d2 = null;
+      if (isDealer) { d1 = p1 ? getDealerPrice(m, 1, p1, bt) : null; d2 = p2 ? getDealerPrice(m, 2, p2, bt) : null; }
+      const v1 = isDealer && d1 ? d1 : p1;
+      const v2 = isDealer && d2 ? d2 : p2;
+      const has1 = m.axle_options.includes(1);
+      const has2 = m.axle_options.includes(2);
+      const dcls1 = isDealer && d1 ? ' style="color:#2ecc71"' : '';
+      const dcls2 = isDealer && d2 ? ' style="color:#2ecc71"' : '';
+      rows += '<td'+(has1&&v1?' class="price"':'')+dcls1+'>'+(has1&&v1?fmtPrice(v1)+' ₽':(has1?'—':'<span style="color:#444">—</span>'))+'</td>';
+      rows += '<td'+(has2&&v2?' class="price"':'')+dcls2+'>'+(has2&&v2?fmtPrice(v2)+' ₽':(has2?'—':'<span style="color:#444">—</span>'))+'</td>';
     }
     rows += '</tr>';
   }

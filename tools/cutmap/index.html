@@ -1851,7 +1851,7 @@ function redrawCanvas() {
     ctx.font = 'bold 8px DejaVu Sans';
     for (let i = 0; i < pts.length - 1; i++) {
       const mx = rX + ((pts[i] + pts[i+1]) / 2 / frameL) * rW;
-      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH/2 + 3);
+      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH - 8);
     }
   }
 

@@ -1931,16 +1931,23 @@ function redrawCanvas() {
   // ── ПЕРЕМЫЧКИ ПОД ШВЫ ФАНЕРЫ ПОЛА ──
   if (state.hasFloorSeam && state.floorSeams > 0) {
     const seamStep = W <= 1500 ? (W <= 1250 ? 2500 : 3000) : 1250;
+    const seamDists = [];
     ctx.strokeStyle = '#00bcd4'; ctx.lineWidth = Math.max(3, 4);
     ctx.setLineDash([6, 4]);
     for (let s = 1; s <= state.floorSeams; s++) {
       const seamFromRear = s * seamStep;
+      seamDists.push(seamFromRear);
       const sx = rX + (seamFromRear / frameL) * rW;
       ctx.beginPath(); ctx.moveTo(sx, rY); ctx.lineTo(sx, rY + rH); ctx.stroke();
+      // подпись расстояния от зада
+      ctx.fillStyle = '#00bcd4'; ctx.font = 'bold 8px DejaVu Sans';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${seamFromRear}`, sx, rY + rH - 6);
+      ctx.textAlign = 'start';
     }
     ctx.setLineDash([]);
     ctx.fillStyle = '#00bcd4'; ctx.font = '8px DejaVu Sans';
-    ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт)`, rX, rY + rH + 48);
+    ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт) — ${seamDists.join(', ')} мм от зада`, rX, rY + rH + 48);
   }
 
   // ── БОЛТЫ ПОЛА М6 ──

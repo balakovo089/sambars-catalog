@@ -1843,6 +1843,18 @@ function redrawCanvas() {
     }
   });
 
+  // ── Разметка шага: расстояния между соседними балками (перемычки + аморт) ──
+  {
+    const rear = [...crossPositions, ...specialBeams].map(p => frameL - p).sort((a,b) => a - b);
+    const pts = [0, ...rear, frameL];
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 8px DejaVu Sans';
+    for (let i = 0; i < pts.length - 1; i++) {
+      const mx = rX + ((pts[i] + pts[i+1]) / 2 / frameL) * rW;
+      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH/2 + 3);
+    }
+  }
+
   // Corner gussets
   if (brand !== 'Барсук') {
     ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 1;
@@ -2093,6 +2105,17 @@ function redrawCanvas() {
     ctx.beginPath(); ctx.moveTo(vx, bY); ctx.lineTo(vx, bY+bH); ctx.stroke();
   }
 
+  // ── Разметка шага перемычек ──
+  {
+    const stepMM = frameL / (jLong + 1);
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 8px DejaVu Sans';
+    for (let i = 0; i <= jLong; i++) {
+      const mx = bX + ((i + 0.5) / (jLong + 1)) * bW;
+      ctx.fillText(`${Math.round(stepMM)}`, mx, bY + bH/2 + 3);
+    }
+  }
+
   drawDimArrow(bX, bY-8, bX+bW, bY-8, `${frameL} мм`, 'top');
   drawDimArrow(bX-15, bY, bX-15, bY+bH, `${boardH} мм`, 'left');
 
@@ -2137,6 +2160,17 @@ function redrawCanvas() {
   for (let i = 1; i <= jShort; i++) {
     const vx = sbX + (sbW * i) / (jShort + 1);
     ctx.beginPath(); ctx.moveTo(vx, sbY); ctx.lineTo(vx, sbY+sbH); ctx.stroke();
+  }
+
+  // ── Разметка шага перемычек ──
+  {
+    const stepMM = frameW / (jShort + 1);
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 8px DejaVu Sans';
+    for (let i = 0; i <= jShort; i++) {
+      const mx = sbX + ((i + 0.5) / (jShort + 1)) * sbW;
+      ctx.fillText(`${Math.round(stepMM)}`, mx, sbY + sbH/2 + 3);
+    }
   }
 
   drawDimArrow(sbX, sbY-8, sbX+sbW, sbY-8, `${frameW} мм`, 'top');
@@ -2261,6 +2295,16 @@ function redrawCanvas() {
       ctx.strokeRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
       ctx.setLineDash([]);
     });
+
+    // ── Разметка шага дуг ──
+    {
+      ctx.fillStyle = '#f39c12';
+      ctx.font = 'bold 8px DejaVu Sans';
+      for (let i = 0; i < archPositions.length - 1; i++) {
+        const mx = tX + ((archPositions[i] + archPositions[i+1]) / 2) * sc;
+        ctx.fillText(`${Math.round(archPositions[i+1] - archPositions[i])}`, mx, tY + tH/2 + 3);
+      }
+    }
 
     // Аэро скос - наклонная верхняя труба рамки на первых 800 мм
     if (hasAeroSkos) {

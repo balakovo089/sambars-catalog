@@ -156,7 +156,8 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
 .brands-common ul { list-style:none; }
 .brands-common li { padding:3px 0; color:#ccc; font-size:14px; }
 .brands-common li::before { content:"✓ "; color:#2ecc71; font-weight:700; }
-.brands-cta { text-align:center; padding:20px 0 0; color:#f39c12; font-size:16px; font-weight:600; }
+.brands-cta { display:block; margin:0 auto; padding:20px 24px 0; text-align:center; color:#f39c12; font-size:16px; font-weight:600; background:transparent; border:none; cursor:pointer; transition:color .2s; }
+.brands-cta:hover { color:#e67e22; }
 </style>
 </head>
 <body>
@@ -240,6 +241,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
   <div class="brands-common">
     <h3>Общее у всех прицепов</h3>
     <ul>
+      <li>габариты в названии — чистый полезный размер внутри прицепа</li>
       <li>документы для постановки на учёт в ГАИ</li>
       <li>горячее цинкование рамы, дышла и бортов</li>
       <li>светодиодные фонари</li>
@@ -251,7 +253,7 @@ body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif
     </ul>
   </div>
 
-  <p class="brands-cta">Выберите свою серию и комплектацию выше</p>
+  <button class="brands-cta" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑ Выберите свою серию и комплектацию выше</button>
 </div>
 
 <script>

@@ -579,6 +579,8 @@ function recalc() {
     const n = Math.max(0, Math.round(segLen / 600) - 1);
     if (n > 0) totalCross += n;
   });
+  // Барсук 125×200: цех варит 1 перемычку в центре пролёта (а не 2 по шагу 600)
+  if (brand === 'Барсук' && W === 1250 && L === 2000) totalCross = 1;
   const crossM = totalCross * frameW / 1000;
   const centerM = (brand !== 'Барсук' && brand !== 'Бизон') ? frameL/1000 : 0;
 
@@ -1822,6 +1824,12 @@ function redrawCanvas() {
     for (let i = 1; i <= n; i++) crossPositions.push(seg.start + step * i);
     totalCross += n;
   });
+  // Барсук 125×200: 1 перемычка в центре переднего пролёта
+  if (brand === 'Барсук' && W === 1250 && L === 2000) {
+    crossPositions.length = 0;
+    crossPositions.push(specialBeams[0] / 2);
+    totalCross = 1;
+  }
 
   ctx.strokeStyle = '#7f8c8d';
   ctx.lineWidth = Math.max(2, 3);

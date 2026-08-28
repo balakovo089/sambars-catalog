@@ -2304,7 +2304,10 @@ function drawSection4(ctx) {
   ctx.beginPath(); ctx.moveTo(bRight, frameY - 3); ctx.lineTo(bRight + 5, frameY - 3); ctx.stroke();
   ctx.fillStyle = 'rgba(52,152,219,0.15)';
   ctx.fillRect(bLeft, boardTopY + 3, bRight - bLeft, frameY - boardTopY - 6);
-  figDim(ctx, bLeft - 30, (boardTopY + frameY)/2, String(boardH) + ' мм', '#3498db');
+  ctx.save();
+  ctx.textAlign = 'right';
+  figDim(ctx, bLeft - 12, (boardTopY + frameY)/2, String(boardH) + ' мм', '#3498db');
+  ctx.restore();
   if (!hasTent) figDimArrow(ctx, bLeft - 18, frameY, bLeft - 18, boardTopY, String(boardH) + ' мм', 'left');
 
   ctx.strokeStyle = '#2980b9';
@@ -2329,7 +2332,14 @@ function drawSection4(ctx) {
   ctx.strokeStyle = '#d35400';
   ctx.strokeRect(secX, crossBarY, secW, crossBarH);
 
-  figDimArrow(ctx, secX + secW + 8, rearY, secX + secW + 8, rearY + postVisH, '180 мм', 'left');
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3,2]);
+  ctx.beginPath(); ctx.moveTo(secX + secW + 8, rearY); ctx.lineTo(secX + secW + 8, rearY + postVisH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f39c12';
+  ctx.font = '54px DejaVu Sans';
+  ctx.fillText('180 мм', secX + secW + 16, rearY + postVisH/2 + 3);
 
   const plateW = 400 * sc;
   const plateH = 180 * sc;
@@ -2427,7 +2437,14 @@ function drawSection5(ctx) {
     const inRoof = shovFromTop > (220 + tentMM) && shovFromTop < (220 + tentMM + frameW);
     ctx.fillStyle = '#ff4444';
     ctx.font = 'bold 46px DejaVu Sans';
-    ctx.fillText('ШОВ ' + Math.round(shovFromTop) + (inRoof ? ' (крыша)' : ''), tLayoutX + mainW + 6, shovY + 4);
+    ctx.save();
+    ctx.textAlign = 'right';
+    ctx.save();
+    ctx.textBaseline = 'top';
+    ctx.textAlign = 'right';
+    ctx.fillText('ШОВ ' + Math.round(shovFromTop) + (inRoof ? ' (крыша)' : ''), tLayoutX + mainW - 8, shovY + 10);
+    ctx.restore();
+    ctx.restore();
   }
 
   ctx.setLineDash([3,5]);
@@ -2449,8 +2466,10 @@ function drawSection5(ctx) {
   ctx.setLineDash([]);
   ctx.fillStyle = '#555';
   ctx.font = '42px DejaVu Sans';
-  ctx.fillText('260', tLayoutX + 2, mainH/2 + 55);
-  ctx.fillText('120', frameRightX + 2, mainH/2 + 55);
+  ctx.textAlign = 'right';
+  ctx.fillText('260', frameLeftX - 6, mainH/2 + 55);
+  ctx.textAlign = 'left';
+  ctx.fillText('120', frameRightX + 6, mainH/2 + 55);
 
   ctx.setLineDash([5, 5]);
   ctx.strokeStyle = '#e74c3c';
@@ -2506,12 +2525,13 @@ function drawSection5(ctx) {
   ctx.strokeStyle = '#f39c12';
   ctx.lineWidth = 0.8;
   ctx.setLineDash([3,2]);
-  ctx.beginPath(); ctx.moveTo(tLayoutX + mainW + 4, tLayoutY); ctx.lineTo(tLayoutX + mainW + 4, tLayoutY + mainH); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(tLayoutX, tLayoutY + mainH + 4); ctx.lineTo(tLayoutX + mainW, tLayoutY + mainH + 4); ctx.stroke();
   ctx.setLineDash([]);
   ctx.fillStyle = '#f39c12';
   ctx.font = '54px DejaVu Sans';
-  ctx.fillText(String(frameW+2*tentMM) + ' мм', tLayoutX + mainW - 56, mainH/2 - 52);
-  figDimArrow(ctx, tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, String(frameL+380) + ' мм (рамка ' + frameL + '+260+120)', 'top');
+  ctx.textAlign = 'center';
+  ctx.fillText(String(frameL+380) + ' мм (рамка ' + frameL + '+260+120)', tLayoutX + mainW/2, tLayoutY + mainH + 42);
+  ctx.textAlign = 'left';
 
   const flapGap = 5;
   const frontAdd = brand === 'Барсук' ? 50 : 260;
@@ -2537,7 +2557,16 @@ function drawSection5(ctx) {
   ctx.fillStyle = '#f39c12';
   ctx.font = 'bold 48px DejaVu Sans';
   ctx.fillText('ПЕРЕД' + (aero?' -30':''), fFlapX + 4, fFlapY + fFlapH/2 - 41);
-  figDimArrow(ctx, fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, String(frameW+frontAdd*2) + ' мм', 'left');
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3,2]);
+  ctx.beginPath(); ctx.moveTo(fFlapX + fFlapW + 4, fFlapY); ctx.lineTo(fFlapX + fFlapW + 4, fFlapY + fFlapH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f39c12';
+  ctx.font = '54px DejaVu Sans';
+  ctx.textAlign = 'right';
+  ctx.fillText(String(frameW+frontAdd*2) + ' мм', fFlapX + fFlapW - 6, fFlapY + fFlapH/2 + 3);
+  ctx.textAlign = 'left';
 
   const rFlapW = (tentMM + 220 + 240) * tScale;
   const rFlapH = (frameW + 240) * tScale;
@@ -2561,8 +2590,26 @@ function drawSection5(ctx) {
   ctx.fillStyle = '#f39c12';
   ctx.font = 'bold 48px DejaVu Sans';
   ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 - 41);
-  figDimArrow(ctx, rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, String(frameW+240) + ' мм', 'left');
-  figDimArrow(ctx, rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, String(tentMM+460) + ' мм', 'top');
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3,2]);
+  ctx.beginPath(); ctx.moveTo(rFlapX - 18, rFlapY); ctx.lineTo(rFlapX - 18, rFlapY + rFlapH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f39c12';
+  ctx.font = '54px DejaVu Sans';
+  ctx.textAlign = 'right';
+  ctx.fillText(String(frameW+240) + ' мм', rFlapX - 24, rFlapY + rFlapH/2 + 3);
+  ctx.textAlign = 'left';
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3,2]);
+  ctx.beginPath(); ctx.moveTo(rFlapX, rFlapY + rFlapH + 6); ctx.lineTo(rFlapX + rFlapW, rFlapY + rFlapH + 6); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f39c12';
+  ctx.font = '54px DejaVu Sans';
+  ctx.textAlign = 'center';
+  ctx.fillText(String(tentMM+460) + ' мм', rFlapX + rFlapW/2, rFlapY + rFlapH + 42);
+  ctx.textAlign = 'left';
 
   const louvOffsetMM = 50;
   const louvStepMM = 300;
@@ -2645,11 +2692,8 @@ function drawSection5(ctx) {
     ctx.font = '42px DejaVu Sans';
     ctx.fillText('ремень 2 шт × ' + (tentMM/1000).toFixed(2) + ' м', rInnerX, rY1 - 5);
   }
-  ctx.fillStyle = '#f1c40f';
-  ctx.font = '42px DejaVu Sans';
-  ctx.fillText('люверсы d10 (50/300 мм)', tLayoutX + 6, tLayoutY + mainH + 30);
 
-  desc.push('Тент ' + bp.tentPVC + ', раскрой: ширина полотна ' + tentFullW + ' мм → ' + Nstrips + ' полос(ы) по ' + Math.round(stripW) + ' мм из рулона 2500 мм');
+  desc.push('Тент ' + bp.tentPVC + ', раскрой: ширина полотна ' + tentFullW + ' мм (высота ' + (frameW+2*tentMM) + ' мм + 2×220 подгиб) → ' + Nstrips + ' полос(ы) по ' + Math.round(stripW) + ' мм из рулона 2500 мм');
   desc.push(aero ? 'Аэро скос: передний клапан ниже на 300 мм' : 'Клапаны прямые');
   desc.push('Люверсы d10 (шаг 300, отступ 50) | усилители на сгибах 200 мм');
 

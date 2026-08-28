@@ -39,6 +39,9 @@ select:focus{outline:none;border-color:#e94560}
 .main{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;background:#23233a}
 #sheets{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px 24px 90px;min-height:100%}
 .sheet{width:100%;max-width:1060px;background:#fff;box-shadow:0 3px 18px rgba(0,0,0,0.55);border-radius:2px;overflow:hidden}
+.sheet-title{font-size:18px;font-weight:bold;color:#1a1a2e;padding:14px 20px 4px}
+.sheet-desc{font-size:12px;color:#444;line-height:1.5;padding:2px 20px 12px}
+.sheet-desc div{margin-bottom:1px}
 .sheet img{width:100%;display:block}
 canvas{display:block;cursor:grab}
 .toolbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#16213e;padding:6px 12px;border-radius:8px;border:1px solid #0f3460;display:flex;gap:6px;align-items:center;font-size:11px;z-index:10}
@@ -90,7 +93,12 @@ canvas{display:block;cursor:grab}
 <body>
 <div style="position:absolute;top:0;left:0;z-index:1000;background:#16213e;padding:5px 14px;border-bottom:1px solid #2a3a5c;width:100%;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#e0e0e0">
   <a href="../../portal.html" style="color:#f39c12;text-decoration:none;font-weight:600">← Меню</a>
-  <span id="authBadge" style="color:#888"></span>
+  <div style="display:flex;gap:6px;align-items:center">
+    <button onclick="printSheets()" class="hbtn" title="Печать чертежа (что видим — то печатаем)">🖨️ Печать</button>
+    <button onclick="printSpecs()" class="hbtn" title="Только спецификации (текст)">📋 Спецификации</button>
+    <button onclick="openPricePanel()" class="hbtn" title="Управление ценами">💰 Цены</button>
+    <span id="authBadge" style="color:#888"></span>
+  </div>
 </div>
 
 <div class="sidebar">
@@ -164,11 +172,6 @@ canvas{display:block;cursor:grab}
   <canvas id="c" style="display:none"></canvas>
   <div id="sheets"></div>
   <div class="toolbar">
-    <button onclick="printSheets()" title="Печать чертежа (что видим — то печатаем)">🖨️ Печать</button>
-    <div class="sep"></div>
-    <button onclick="printSpecs()" title="Только спецификации (текст)">📋 Спецификации</button>
-    <div class="sep"></div>
-    <button onclick="openPricePanel()" title="Управление ценами">💰 Цены</button>
   </div>
 </div>
 
@@ -1683,82 +1686,57 @@ window.onresize = resizeCanvas;
 let baseScale = 0.30;  // крупнее чтобы было видно детали
 // Zoom removed - all elements in single scale. Pan via offX/offY.
 
-function redrawCanvas() {
+// ══════════════════════════════════════════════════════════
+// РИСОВАНИЕ СЕКЦИЙ — каждая в свой лист (фикс-масштаб FIG_SC)
+// ══════════════════════════════════════════════════════════
+const FIG_SC = 0.60;
+const FIG_W = 2000, FIG_H = 1260;
+const FIG_MARGIN = 70;
+const FIG_X = 70;  // левый отступ внутри листа (px при FIG_SC)
+
+// Утилиты размерных стрелок и подписей (масштаб — как при печати)
+function figLabel(ctx, x, y, text, color) {
+  ctx.fillStyle = color || '#e94560';
+  ctx.font = 'bold 78px DejaVu Sans';
+  ctx.fillText(text, x, y + 14);
+}
+function figDim(ctx, x, y, text, color) {
+  ctx.fillStyle = color || '#f39c12';
+  ctx.font = '60px DejaVu Sans';
+  ctx.fillText(text, x, y);
+}
+function figDimArrow(ctx, x1, y1, x2, y2, text, pos) {
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash([3,2]);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f39c12';
+  ctx.font = '54px DejaVu Sans';
+  const mx = (x1+x2)/2, my = (y1+y2)/2;
+  if (pos === 'top') ctx.fillText(text, mx-15, my-4);
+  else if (pos === 'left') ctx.fillText(text, mx-60, my+3);
+  else ctx.fillText(text, mx+5, my+10);
+}
+
+// 1. РАМА + ДЫШЛО (вид сверху)
+function drawSection1(ctx) {
   const {brand, W, L, tentH, axles} = state;
   const bp = BRAND[brand];
   const frameW = W + bp.extraMM;
   const frameL = L + bp.extraMM;
-  const hasTent = tentH > 0;
-  const tentMM = tentH * 10;
-  const boardH = bp.boardH; // mm - высота борта всегда 30 см
+  const sc = FIG_SC;
+  const desc = [];
+  let y = 40;
+  const rX = FIG_X;
+  const rY = y;
+  const rW = frameL * sc;
+  const rH = frameW * sc;
 
-  canvas.width = canvas.width;
-  // Ensure canvas is tall enough for all sections
-  if (canvas.height < 4000) canvas.height = 4000;
-  const sc = baseScale;  // fixed scale, no zoom
-
-  // Белый фон (печатный заготовок)
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Grid
-  ctx.strokeStyle = '#ececec';
-  ctx.lineWidth = 0.3;
-  for (let x = 0; x < canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
-  for (let y = 0; y < canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
-
-  // ═══════════════════════════════════════════════
-  // LAYOUT: 4 views arranged vertically
-  // ═══════════════════════════════════════════════
-  const margin = 30;
-  const labelH = 90;
-  let curY = 10 + offY;
-
-  const drawLabel = (x, y, text, color) => {
-    ctx.fillStyle = color || '#e94560';
-    ctx.font = `bold 78px DejaVu Sans`;
-    ctx.fillText(text, x, y + 14);
-  };
-
-  const drawDim = (x, y, text, color) => {
-    ctx.fillStyle = color || '#f39c12';
-    ctx.font = '60px DejaVu Sans';
-    ctx.fillText(text, x, y);
-  };
-
-  const drawDimArrow = (x1, y1, x2, y2, text, pos) => {
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 0.8;
-    ctx.setLineDash([3,2]);
-    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#f39c12';
-    ctx.font = '54px DejaVu Sans';
-    const mx = (x1+x2)/2, my = (y1+y2)/2;
-    if (pos === 'top') ctx.fillText(text, mx-15, my-4);
-    else if (pos === 'left') ctx.fillText(text, mx-60, my+3);
-    else ctx.fillText(text, mx+5, my+10);
-  };
-
-  // ─────────────────────────────────────────────
-  // 1. TOP VIEW: РАМА + ДЫШЛО (горизонтально: зад←→перед)
-  // ─────────────────────────────────────────────
-  drawLabel(margin, curY, '1. РАМА (вид сверху)  ЗАД ← | → ПЕРЕД', '#e94560');
-  curY += labelH + 10;
-  sectionRects = []; let secY = curY;
-
-  // Горизонтальная ориентация: frameL по X (←зад →перед), frameW по Y
-  const rX = margin + 40 + offX;
-  const rY = curY + 40;
-  const rW = frameL * sc;  // длина рамы → горизонталь
-  const rH = frameW * sc;  // ширина рамы → вертикаль
-
-  // Frame rectangle
   ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = Math.max(5, 6*scale);
   ctx.strokeRect(rX, rY, rW, rH);
 
-  // Center beam (Sambars only) — горизонтальная пунктирная линия посередине
   if (brand !== 'Барсук' && brand !== 'Бизон') {
     ctx.strokeStyle = '#2980b9';
     ctx.lineWidth = Math.max(2, 3*scale);
@@ -1766,8 +1744,6 @@ function redrawCanvas() {
     ctx.beginPath(); ctx.moveTo(rX, rY+rH/2); ctx.lineTo(rX+rW, rY+rH/2); ctx.stroke();
     ctx.setLineDash([]);
   }
-
-  // Бизон: 2 продольные балки ровно над нижней рамой (отступ 300мм с каждой стороны)
   if (brand === 'Бизон') {
     const beamOffset = 300 * sc;
     ctx.strokeStyle = '#3498db';
@@ -1777,17 +1753,15 @@ function redrawCanvas() {
     ctx.beginPath(); ctx.moveTo(rX, rY + rH - beamOffset); ctx.lineTo(rX + rW, rY + rH - beamOffset); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = '#3498db';
-    ctx.font = `bold ${Math.max(42, 48)}px DejaVu Sans`;
+    ctx.font = 'bold 48px DejaVu Sans';
     ctx.fillText('продольные балки x2', rX + 10, rY + beamOffset - 4);
   }
 
-  // Cross members + shock beams
   const specialBeams = [];
   if (axles === 1) { specialBeams.push(frameL/2 + 550); }
   else { specialBeams.push(frameL/2 + 100); specialBeams.push(frameL/2 + 1000); }
   specialBeams.sort((a,b) => a-b);
 
-  // Shock beams (vertical lines, позиция от переднего края = правого)
   ctx.strokeStyle = '#e67e22';
   ctx.lineWidth = Math.max(4, 5);
   specialBeams.forEach(pos => {
@@ -1800,7 +1774,6 @@ function redrawCanvas() {
     }
   });
 
-  // Regular cross members in segments between special beams
   const segments = [];
   let prev = 0;
   for (const sp of specialBeams) { segments.push({start: prev, end: sp}); prev = sp; }
@@ -1817,7 +1790,6 @@ function redrawCanvas() {
     for (let i = 1; i <= n; i++) crossPositions.push(seg.start + step * i);
     totalCross += n;
   });
-  // Барсук 125×200: 1 перемычка в центре переднего пролёта
   if (brand === 'Барсук' && W === 1250 && L === 2000) {
     crossPositions.length = 0;
     crossPositions.push(specialBeams[0] / 2);
@@ -1836,7 +1808,6 @@ function redrawCanvas() {
     }
   });
 
-  // ── Разметка шага: расстояния между соседними балками (перемычки + аморт) ──
   {
     const rear = [...crossPositions, ...specialBeams].map(p => frameL - p).sort((a,b) => a - b);
     const pts = [0, ...rear, frameL];
@@ -1844,11 +1815,10 @@ function redrawCanvas() {
     ctx.font = 'bold 48px DejaVu Sans';
     for (let i = 0; i < pts.length - 1; i++) {
       const mx = rX + ((pts[i] + pts[i+1]) / 2 / frameL) * rW;
-      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH/2 + 40);
+      ctx.fillText(String(Math.round(pts[i+1] - pts[i])), mx, rY + rH/2 + 40);
     }
   }
 
-  // Corner gussets
   if (brand !== 'Барсук') {
     ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 1;
     const gs = 25;
@@ -1857,24 +1827,19 @@ function redrawCanvas() {
     });
   }
 
-  // ── НИЖНЯЯ РАМА (Бизон) ──
   if (brand === 'Бизон') {
-    const lowerH = (frameW - 600) * sc;  // ширина нижней рамы (по Y на canvas)
-    const lowerW = frameL * sc;           // длина нижней рамы (по X на canvas, такая же как верхняя)
-    const lowerX = rX;                    // та же позиция по X
-    const lowerY = rY + (rH - lowerH) / 2; // центрирована по Y (300мм с каждой стороны)
-    
+    const lowerH = (frameW - 600) * sc;
+    const lowerW = frameL * sc;
+    const lowerX = rX;
+    const lowerY = rY + (rH - lowerH) / 2;
     ctx.strokeStyle = '#c0392b';
     ctx.lineWidth = Math.max(3, 4*scale);
     ctx.setLineDash([10, 5]);
     ctx.strokeRect(lowerX, lowerY, lowerW, lowerH);
     ctx.setLineDash([]);
-    
     ctx.fillStyle = '#c0392b';
-    ctx.font = `bold ${Math.max(48, 54)}px DejaVu Sans`;
+    ctx.font = 'bold 54px DejaVu Sans';
     ctx.fillText('нижняя рама 2070-600=1470', lowerX + 10, lowerY - 5);
-    
-    // Проставки между рамами: кружки по центральным балкам
     ctx.fillStyle = '#e74c3c';
     const spacerStep = lowerW / Math.round(frameL / 575);
     for (let sx = lowerX; sx <= lowerX + lowerW; sx += spacerStep) {
@@ -1883,7 +1848,6 @@ function redrawCanvas() {
     }
   }
 
-  // ── ОСЬ И ПОДВЕСКА ──
   const trueCenter = rX + rW/2;
   ctx.setLineDash([3,5]);
   ctx.strokeStyle = '#555'; ctx.lineWidth = 0.8;
@@ -1921,29 +1885,21 @@ function redrawCanvas() {
   }
   ctx.setLineDash([]);
 
-  // ── ПЕРЕМЫЧКИ ПОД ШВЫ ФАНЕРЫ ПОЛА ──
+  let totalFloorBolts = 0;
   if (state.hasFloorSeam && state.floorSeams > 0) {
     const seamStep = W <= 1500 ? (W <= 1250 ? 2500 : 3000) : 1250;
-    const seamDists = [];
     ctx.strokeStyle = '#00bcd4'; ctx.lineWidth = Math.max(3, 4);
     ctx.setLineDash([6, 4]);
-    for (let s = 1; s <= state.floorSeams; s++) {
-      const seamFromRear = s * seamStep;
-      seamDists.push(seamFromRear);
+    for (let sI = 1; sI <= state.floorSeams; sI++) {
+      const seamFromRear = sI * seamStep;
       const sx = rX + (seamFromRear / frameL) * rW;
       ctx.beginPath(); ctx.moveTo(sx, rY); ctx.lineTo(sx, rY + rH); ctx.stroke();
-      // подпись расстояния от зада (правее и выше, чтобы не перекрывалась перемычкой)
       ctx.fillStyle = '#00bcd4'; ctx.font = 'bold 48px DejaVu Sans';
-      ctx.textAlign = 'center';
-      ctx.fillText(`${seamFromRear}`, sx + 12, rY + rH/2 + 70);
-      ctx.textAlign = 'start';
+      ctx.fillText(String(seamFromRear), sx + 12, rY + rH/2 + 70);
     }
     ctx.setLineDash([]);
-    ctx.fillStyle = '#00bcd4'; ctx.font = '48px DejaVu Sans';
-    ctx.fillText(`⏤ перемычки под швы пола (${state.floorSeams} шт) — ${seamDists.join(', ')} мм от зада`, rX, rY + rH + 48);
   }
 
-  // ── БОЛТЫ ПОЛА М6 ──
   const floorBoltStepMM = 350;
   const boltsPerCross = Math.max(2, Math.round(frameW / floorBoltStepMM));
   crossPositions.forEach(pos => {
@@ -1954,7 +1910,7 @@ function redrawCanvas() {
       ctx.beginPath(); ctx.arc(cx, by, 2, 0, Math.PI*2); ctx.fill();
     }
   });
-  let totalFloorBolts = boltsPerCross * crossPositions.length;
+  totalFloorBolts = boltsPerCross * crossPositions.length;
   specialBeams.forEach(pos => {
     const cx = rX + rW - (pos / frameL) * rW;
     totalFloorBolts += boltsPerCross;
@@ -1964,19 +1920,14 @@ function redrawCanvas() {
       ctx.beginPath(); ctx.arc(cx, by, 2, 0, Math.PI*2); ctx.fill();
     }
   });
-  ctx.fillStyle = '#f39c12'; ctx.font = '48px DejaVu Sans';
-  ctx.fillText(`• М6 пол→перемычки: ${totalFloorBolts} шт (шаг ~350 мм)`, rX, rY + rH + 113);
-  const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
-  ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rH + 178);
 
-  // ── Labels: ЗАД слева, ПЕРЕД справа ──
   ctx.fillStyle = '#555';
   ctx.font = 'bold 72px DejaVu Sans';
   ctx.fillText('◄ ЗАД', rX - 190, rY + rH - 30);
   ctx.fillStyle = '#1a1a2e';
   ctx.fillText('ПЕРЕД (дышло) ►', rX + rW + 8, rY + rH/2 + 4);
 
-  // ── ДЫШЛО (горизонтально, справа от рамы) ──
+  // ДЫШЛО
   const dbSideLen = (L <= 2500) ? 1.80 : 2.00;
   const dbLen = dbSideLen * 1000;
   const ATTACH_INSET = bp.frameProfile.includes('60×60') ? 30 : 25;
@@ -1988,39 +1939,21 @@ function redrawCanvas() {
   const JOINT_X = HITCH_X - 150*sc;
   const ATTACH_X = FRONT_X - 220*sc;
 
-  // Центральный луч (пунктир)
   ctx.setLineDash([4,3]);
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(2, 3*scale);
-  ctx.beginPath();
-  ctx.moveTo(HITCH_X, MID_Y);
-  ctx.lineTo(JOINT_X, MID_Y);
-  ctx.lineTo(FRONT_X, MID_Y);
-  ctx.stroke();
-
-  // Боковые лучи
+  ctx.beginPath(); ctx.moveTo(HITCH_X, MID_Y); ctx.lineTo(JOINT_X, MID_Y); ctx.lineTo(FRONT_X, MID_Y); ctx.stroke();
   ctx.lineWidth = Math.max(4, 5*scale);
-  ctx.beginPath();
-  ctx.moveTo(JOINT_X, MID_Y);
-  ctx.lineTo(ATTACH_X, ATTACH_T);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(JOINT_X, MID_Y);
-  ctx.lineTo(ATTACH_X, ATTACH_B);
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(JOINT_X, MID_Y); ctx.lineTo(ATTACH_X, ATTACH_T); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(JOINT_X, MID_Y); ctx.lineTo(ATTACH_X, ATTACH_B); ctx.stroke();
   ctx.setLineDash([]);
 
-  // Перемычка (вертикальная на переднем крае)
   const topY = MID_Y + (FRONT_X - JOINT_X) * (ATTACH_T - MID_Y) / (ATTACH_X - JOINT_X);
   const botY = MID_Y + (FRONT_X - JOINT_X) * (ATTACH_B - MID_Y) / (ATTACH_X - JOINT_X);
   ctx.strokeStyle = '#e74c3c';
   ctx.lineWidth = Math.max(4, 5*scale);
-  ctx.beginPath();
-  ctx.moveTo(FRONT_X, topY);
-  ctx.lineTo(FRONT_X, botY);
-  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(FRONT_X, topY); ctx.lineTo(FRONT_X, botY); ctx.stroke();
 
-  // Маркеры: hitch, joint
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath(); ctx.arc(HITCH_X, MID_Y, 7, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#1a1a2e';
@@ -2030,7 +1963,6 @@ function redrawCanvas() {
   ctx.fillStyle = '#1a1a2e'; ctx.font = 'bold 48px DejaVu Sans';
   ctx.fillText('15см', JOINT_X-8, MID_Y-10);
 
-  // Кронштейны самосвала
   const brL = 120*sc, brW = 60*sc;
   [ATTACH_T, ATTACH_B].forEach(sy => {
     ctx.fillStyle = 'rgba(231, 76, 60, 0.25)';
@@ -2046,83 +1978,73 @@ function redrawCanvas() {
     ctx.fillText('M12×80', ATTACH_X + 4, sy + brW/2 + 70);
   });
 
-  // Подписи дышла
   ctx.fillStyle = '#555'; ctx.font = '54px DejaVu Sans';
   ctx.fillText('Hitch ►', HITCH_X-30, MID_Y-70);
   ctx.fillText('120 см', (HITCH_X+FRONT_X)/2-30, MID_Y-70);
   ctx.fillText('15 см', (HITCH_X+JOINT_X)/2-30, MID_Y+70);
-  ctx.fillText(`${dbSideLen*100} см`, (JOINT_X+ATTACH_X)/2-30, ATTACH_T+40);
+  ctx.fillText(String(dbSideLen*100) + ' см', (JOINT_X+ATTACH_X)/2-30, ATTACH_T+40);
   ctx.fillText('~22 см', ATTACH_X-180, rY+rH/2-30);
 
-  // Размеры рамы
-  drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameL} мм`, 'top');
-  drawDimArrow(rX-15, rY, rX-15, rY+rH, `${frameW} мм`, 'left');
+  figDimArrow(ctx, rX, rY-8, rX+rW, rY-8, String(frameL) + ' мм', 'top');
+  figDimArrow(ctx, rX-15, rY, rX-15, rY+rH, String(frameW) + ' мм', 'left');
 
-  // Annotations
-  ctx.fillStyle = '#555'; ctx.font = '54px DejaVu Sans';
-  let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ` + ${state.floorSeams} под швы пола` : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
-  if (axles === 1) annoText += ` | аморт. балка: +55 см`;
-  if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
-  ctx.fillText(annoText, rX, rY+rH+243);
-  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rH+308);
-  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rH+373);
+  // описание
+  let anno = 'поперечин 40×20: ' + totalCross + ' шт' + (state.hasFloorSeam ? ' + ' + state.floorSeams + ' под швы пола' : '') + ' | кронштейны рессор: ' + (axles*4) + ' шт | аморт: ' + (axles*2) + ' шт | крылья: ' + (axles*2) + ' шт';
+  if (axles === 1) anno += ' | аморт. балка: +55 см';
+  if (axles === 2) anno += ' | аморт. балки: +10 и +100 см';
+  desc.push(anno);
+  desc.push('профиль: ' + bp.frameProfile + ' | ось: ' + bp.axleProfile + ' | рессоры: ' + bp.springs + '-лист. ×' + (axles*2));
+  if (brand !== 'Барсук') desc.push('центр. балка + косынки (4 шт)');
+  desc.push('М6 пол→перемычки: ' + totalFloorBolts + ' шт (шаг ~350 мм)');
+  desc.push('Дышло ' + bp.drawbarProfile + ': центр.луч 120 см, боковые 200 см → 1 м от рамы');
 
-  curY = rY + rH + 460;
-  sectionRects.push({id:1, y:secY, h:curY - secY}); secY = curY;
+  return desc;
+}
 
-  // ─────────────────────────────────────────────
-  // 2. SIDE VIEW: БОРТА (длинный + короткий)
-  // ─────────────────────────────────────────────
-  drawLabel(margin, curY, '2. БОРТА (длинный и короткий)', '#3498db');
-  curY += labelH + 5;
-
-  const bX = rX;
-  const bY = curY;
-  const bW = frameL * sc;  // length = frame length for side view
-  const bH = boardH * sc;  // высота борта
-
-  // ── ДЛИННЫЙ БОРТ ──
-  ctx.strokeStyle = '#3498db';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(bX, bY, bW, bH);
-  ctx.fillStyle = 'rgba(52,152,219,0.08)';
-  ctx.fillRect(bX+2, bY+2, bW-4, bH-4);
-
-  ctx.strokeStyle = '#2980b9';
-  ctx.lineWidth = 2.5;
-  ctx.beginPath(); ctx.moveTo(bX, bY+1); ctx.lineTo(bX+bW, bY+1); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(bX, bY+bH-1); ctx.lineTo(bX+bW, bY+bH-1); ctx.stroke();
-
-  // Vertical posts (перемычки)
+// 2. БОРТА
+function drawSection2(ctx) {
+  const {brand, W, L} = state;
+  const bp = BRAND[brand];
+  const frameL = L + bp.extraMM;
+  const frameW = W + bp.extraMM;
+  const boardH = bp.boardH;
+  const sc = FIG_SC;
+  const desc = [];
+  let y = 40;
+  const rX = FIG_X;
   const jLong = L <= 3000 ? 2 : L <= 3500 ? 3 : 4;
   const jShort = W < 1930 ? 1 : 2;
   const totalJumpers = jLong * 2 + jShort * 2;
 
+  // ДЛИННЫЙ борт
+  const bX = rX, bY = y;
+  const bW = frameL * sc, bH = boardH * sc;
+  ctx.strokeStyle = '#3498db';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(bX, bY, bW, bH);
+  ctx.fillStyle = 'rgba(52,152,219,0.15)';
+  ctx.fillRect(bX+2, bY+2, bW-4, bH-4);
   ctx.strokeStyle = '#2980b9';
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.moveTo(bX, bY+1); ctx.lineTo(bX+bW, bY+1); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(bX, bY+bH-1); ctx.lineTo(bX+bW, bY+bH-1); ctx.stroke();
   ctx.lineWidth = 1.5;
   for (let i = 1; i <= jLong; i++) {
     const vx = bX + (bW * i) / (jLong + 1);
     ctx.beginPath(); ctx.moveTo(vx, bY); ctx.lineTo(vx, bY+bH); ctx.stroke();
   }
-
-  // ── Разметка шага перемычек ──
   {
     const stepMM = frameL / (jLong + 1);
     ctx.fillStyle = '#f39c12';
     ctx.font = 'bold 48px DejaVu Sans';
     for (let i = 0; i <= jLong; i++) {
       const mx = bX + ((i + 0.5) / (jLong + 1)) * bW;
-      ctx.fillText(`${Math.round(stepMM)}`, mx, bY + bH/2 + 3);
+      ctx.fillText(String(Math.round(stepMM)), mx, bY + bH/2 + 3);
     }
   }
+  figDimArrow(ctx, bX, bY-8, bX+bW, bY-8, String(frameL) + ' мм', 'top');
+  figDimArrow(ctx, bX-15, bY, bX-15, bY+bH, String(boardH) + ' мм', 'left');
 
-  drawDimArrow(bX, bY-8, bX+bW, bY-8, `${frameL} мм`, 'top');
-  drawDimArrow(bX-15, bY, bX-15, bY+bH, `${boardH} мм`, 'left');
-
-  ctx.fillStyle = '#3498db';
-  ctx.font = 'bold 60px DejaVu Sans';
-  ctx.fillText(`ДЛИННЫЙ борт (×2): ${jLong} перемычек, шаг ~${Math.round(frameL/(jLong+1))} мм`, bX, bY+bH+70);
-  // Болты М8 на нижней части борта (отступ 250 мм от краёв, шаг ~800 мм)
   const sMidLen = frameL - 2*250;
   const sBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
   for (let i = 0; i < sBoltN; i++) {
@@ -2132,245 +2054,203 @@ function redrawCanvas() {
     ctx.fillStyle = '#1a1a2e';
     ctx.beginPath(); ctx.arc(bx, bY + bH - 5, 1.5, 0, Math.PI*2); ctx.fill();
   }
-  ctx.fillStyle = '#e74c3c';
-  ctx.font = '48px DejaVu Sans';
-  ctx.fillText(`• М8 борт→рама: ${sBoltN*2} шт (шаг ~800, отступ 250)`, bX, bY+bH+140);
 
-  curY = bY + bH + 185;
+  y = bY + bH + 120;
 
-  // ── КОРОТКИЙ БОРТ ──
-  const sbX = bX;
-  const sbY = curY;
-  const sbW = frameW * sc;
-  const sbH = boardH * sc;
-
+  // КОРОТКИЙ борт
+  const sbX = bX, sbY = y;
+  const sbW = frameW * sc, sbH = boardH * sc;
   ctx.strokeStyle = '#3498db';
   ctx.lineWidth = 3;
   ctx.strokeRect(sbX, sbY, sbW, sbH);
-  ctx.fillStyle = 'rgba(52,152,219,0.08)';
+  ctx.fillStyle = 'rgba(52,152,219,0.15)';
   ctx.fillRect(sbX+2, sbY+2, sbW-4, sbH-4);
-
   ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(sbX, sbY+1); ctx.lineTo(sbX+sbW, sbY+1); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(sbX, sbY+sbH-1); ctx.lineTo(sbX+sbW, sbY+sbH-1); ctx.stroke();
-
-  ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 1.5;
   for (let i = 1; i <= jShort; i++) {
     const vx = sbX + (sbW * i) / (jShort + 1);
     ctx.beginPath(); ctx.moveTo(vx, sbY); ctx.lineTo(vx, sbY+sbH); ctx.stroke();
   }
-
-  // ── Разметка шага перемычек ──
   {
     const stepMM = frameW / (jShort + 1);
     ctx.fillStyle = '#f39c12';
     ctx.font = 'bold 48px DejaVu Sans';
     for (let i = 0; i <= jShort; i++) {
       const mx = sbX + ((i + 0.5) / (jShort + 1)) * sbW;
-      ctx.fillText(`${Math.round(stepMM)}`, mx, sbY + sbH/2 + 3);
+      ctx.fillText(String(Math.round(stepMM)), mx, sbY + sbH/2 + 3);
     }
   }
+  figDimArrow(ctx, sbX, sbY-8, sbX+sbW, sbY-8, String(frameW) + ' мм', 'top');
+  figDimArrow(ctx, sbX-15, sbY, sbX-15, sbY+sbH, String(boardH) + ' мм', 'left');
 
-  drawDimArrow(sbX, sbY-8, sbX+sbW, sbY-8, `${frameW} мм`, 'top');
-  drawDimArrow(sbX-15, sbY, sbX-15, sbY+sbH, `${boardH} мм`, 'left');
+  desc.push('Длинный борт (×2): ' + jLong + ' перемычек, шаг ~' + Math.round(frameL/(jLong+1)) + ' мм');
+  desc.push('Короткий борт (×2): ' + jShort + ' перемычек, шаг ~' + Math.round(frameW/(jShort+1)) + ' мм');
+  desc.push('Всего перемычек: ' + totalJumpers + ' шт | профиль ' + bp.sideProfile + ' | метраж ' + (totalJumpers * bp.boardH / 1000).toFixed(1) + ' м');
+  desc.push('М8 борт→рама: ' + (sBoltN*2) + ' шт (шаг ~800, отступ 250)');
 
-  ctx.fillStyle = '#3498db';
-  ctx.font = 'bold 60px DejaVu Sans';
-  ctx.fillText(`КОРОТКИЙ борт (×2): ${jShort} перемычек, шаг ~${Math.round(frameW/(jShort+1))} мм`, sbX, sbY+sbH+70);
-  ctx.fillStyle = '#555';
-  ctx.font = '54px DejaVu Sans';
-  ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.boardH / 1000).toFixed(1)} м`, sbX, sbY+sbH+140);
+  return desc;
+}
 
-  curY = sbY + sbH + 240;
-  sectionRects.push({id:2, y:secY, h:curY - secY}); secY = curY;
+// 3. КАРКАС ТЕНТА (вид сбоку)
+function drawSection3(ctx) {
+  const {brand, W, L, tentH} = state;
+  const bp = BRAND[brand];
+  const frameL = L + bp.extraMM;
+  const boardH = bp.boardH;
+  const tentMM = tentH * 10;
+  const sc = FIG_SC;
+  const desc = [];
+  let y = 40;
+  const tX = FIG_X, tY = y;
+  const tW = frameL * sc;
+  const totalFrameH = boardH + tentMM;
+  const tH = totalFrameH * sc;
+  const hasAeroSkos = tentH >= 120;
 
-  // ─────────────────────────────────────────────
-  // 3. TENT FRAME (каркас тента - вид сбоку)
-  // ─────────────────────────────────────────────
-  if (hasTent) {
-    drawLabel(margin, curY, '3. КАРКАС ТЕНТА (вид сбоку)', '#27ae60');
-    curY += labelH + 5;
+  ctx.fillStyle = 'rgba(39, 174, 96, 0.18)';
+  ctx.beginPath();
+  if (hasAeroSkos) {
+    ctx.moveTo(tX, tY + tH);
+    ctx.lineTo(tX + tW, tY + tH);
+    ctx.lineTo(tX + tW, tY);
+    ctx.lineTo(tX + 800*sc, tY);
+    ctx.lineTo(tX, tY + 300*sc);
+    ctx.closePath();
+  } else {
+    ctx.rect(tX, tY, tW, tH);
+  }
+  ctx.fill();
+  ctx.strokeStyle = '#27ae60';
+  ctx.lineWidth = 3;
+  ctx.stroke();
 
-    const tX = bX;
-    const tY = curY;
-    const tW = frameL * sc;
-    const totalFrameH = boardH + tentMM;  // полная высота рамки: борт + тент
-    const tH = totalFrameH * sc;
-    const hasAeroSkos = tentH >= 120;    // аэро скос только ≥120 см
+  ctx.strokeStyle = '#27ae60';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(tX, tY + tH); ctx.lineTo(tX + tW, tY + tH); ctx.stroke();
+  ctx.beginPath();
+  if (hasAeroSkos) {
+    ctx.moveTo(tX, tY + 300*sc);
+    ctx.lineTo(tX + 800*sc, tY);
+    ctx.lineTo(tX + tW, tY);
+  } else {
+    ctx.moveTo(tX, tY);
+    ctx.lineTo(tX + tW, tY);
+  }
+  ctx.stroke();
 
-    // ── Боковая рамка: рисуем контур без лишнего металла над скосом ──
-    ctx.fillStyle = 'rgba(39, 174, 96, 0.1)';
+  let archPositions = [];
+  if (hasAeroSkos) {
+    const remainingArch = frameL - 800;
+    const rs = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
+    archPositions.push(0);
+    archPositions.push(800);
+    for (let i = 1; i <= rs.n; i++) archPositions.push(800 + i * rs.step);
+  } else {
+    const s2 = calcStep(frameL, 700);
+    const step = frameL / (s2.n + 1);
+    archPositions.push(0);
+    for (let i = 1; i <= s2.n; i++) archPositions.push(i * step);
+    archPositions.push(frameL);
+  }
+  const archCount = archPositions.length;
+
+  ctx.strokeStyle = '#1e8449';
+  ctx.lineWidth = 1.5;
+  archPositions.forEach((pos, i) => {
+    const ax = tX + pos * sc;
+    const postTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
     ctx.beginPath();
-    if (hasAeroSkos) {
-      // Полигон: низ горизонтально, верх с наклоном 0-800 мм
-      ctx.moveTo(tX, tY + tH);                    // низ-лево
-      ctx.lineTo(tX + tW, tY + tH);               // низ-право
-      ctx.lineTo(tX + tW, tY);                    // верх-право
-      ctx.lineTo(tX + 800*sc, tY);                // верх после скоса
-      ctx.lineTo(tX, tY + 300*sc);                // верх скоса (передняя стойка)
-      ctx.closePath();
-    } else {
-      ctx.rect(tX, tY, tW, tH);
-    }
-    ctx.fill();
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
+    ctx.moveTo(ax, tY + tH);
+    ctx.lineTo(ax, postTopY);
     ctx.stroke();
+  });
 
-    // Нижняя труба (жирная)
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(tX, tY + tH); ctx.lineTo(tX + tW, tY + tH); ctx.stroke();
-    // Верхняя труба (жирная)
-    ctx.beginPath();
-    if (hasAeroSkos) {
-      ctx.moveTo(tX, tY + 300*sc);
-      ctx.lineTo(tX + 800*sc, tY);
-      ctx.lineTo(tX + tW, tY);
-    } else {
-      ctx.moveTo(tX, tY);
-      ctx.lineTo(tX + tW, tY);
-    }
-    ctx.stroke();
-
-    // Вертикальные стойки рамки - столько же сколько дуг, на тех же позициях
-    let archPositions = [];
-    if (hasAeroSkos) {
-      // Со скосом: передняя дуга (0), вторая на 800 мм, остальные через ~700 мм
-      const remainingArch = frameL - 800;
-      const rs = remainingArch > 0 ? calcStep(remainingArch, 700) : {n:0, step:0};
-      archPositions.push(0);          // передний край (укороченная)
-      archPositions.push(800);        // первая после скоса
-      for (let i = 1; i <= rs.n; i++) archPositions.push(800 + i * rs.step);
-      // последняя уже = frameL, не добавляем
-    } else {
-      // Без скоса: все дуги равномерно, включая края
-      const s = calcStep(frameL, 700);
-      const step = frameL / (s.n + 1);
-      archPositions.push(0);  // передний край
-      for (let i = 1; i <= s.n; i++) archPositions.push(i * step);
-      archPositions.push(frameL);  // задний край
-    }
-    const archCount = archPositions.length;
-
-    ctx.strokeStyle = '#1e8449';
-    ctx.lineWidth = 1.5;
-    archPositions.forEach((pos, i) => {
-      const ax = tX + pos * sc;
-      const postTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
-      ctx.beginPath();
-      ctx.moveTo(ax, tY + tH);
-      ctx.lineTo(ax, postTopY);
-      ctx.stroke();
-    });
-
-    // Подписи для аэро скоса
-    if (hasAeroSkos) {
-      ctx.fillStyle = '#f39c12';
-      ctx.font = '48px DejaVu Sans';
-      ctx.fillText('-300', tX - 34, tY + 200*sc);
-      ctx.fillText('аэро скос', tX + 340*sc, tY + 200*sc);
-    }
-
-    // Дуги (Π-образные перемычки) - на тех же позициях что и стойки
-    archPositions.forEach((pos, i) => {
-      const ax = tX + pos * sc;
-      const archTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
-      ctx.strokeStyle = '#27ae60';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(ax, archTopY);
-      ctx.lineTo(ax, archTopY + 100*sc);
-      ctx.stroke();
-
-      // Метка проставки (внутри рамки, у верхнего края)
-      ctx.fillStyle = '#f39c12';
-      ctx.fillRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
-      ctx.strokeStyle = '#d35400';
-      ctx.lineWidth = 0.8;
-      ctx.setLineDash([1, 2]);
-      ctx.strokeRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
-      ctx.setLineDash([]);
-    });
-
-    // ── Разметка шага дуг ──
-    {
-      ctx.fillStyle = '#f39c12';
-      ctx.font = 'bold 48px DejaVu Sans';
-      for (let i = 0; i < archPositions.length - 1; i++) {
-        const mx = tX + ((archPositions[i] + archPositions[i+1]) / 2) * sc;
-        ctx.fillText(`${Math.round(archPositions[i+1] - archPositions[i])}`, mx, tY + tH/2 + 3);
-      }
-    }
-
-    // Аэро скос - наклонная верхняя труба рамки на первых 800 мм
-    if (hasAeroSkos) {
-      ctx.setLineDash([2,3]);
-      ctx.strokeStyle = '#f39c12';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([]);
-    }
-
-    // Размеры
-    drawDimArrow(tX, tY-8, tX+tW, tY-8, `${frameL} мм`, 'top');
-    drawDimArrow(tX-15, tY, tX-15, tY+tH, `1500 мм`, 'left');
-
-    // Аннотации
-    ctx.fillStyle = '#555';
-    ctx.font = '54px DejaVu Sans';
-    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт, высота ${boardH}+${tentMM}=${totalFrameH} мм | стоек = дуг: ${archCount} шт`, tX, tY+tH+70);
-    ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+140);
-    ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка -300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+210);
-    // Болты тента: М6, такой же шаг как борта→рама
-    const tentBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
-    for (let i = 0; i < tentBoltN; i++) {
-      const bx = tX + ((i + 0.5) / tentBoltN) * tW;
-      ctx.fillStyle = '#27ae60';
-      ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 3, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#1a1a2e';
-      ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 1.5, 0, Math.PI*2); ctx.fill();
-    }
-    ctx.fillStyle = '#27ae60';
+  if (hasAeroSkos) {
+    ctx.fillStyle = '#f39c12';
     ctx.font = '48px DejaVu Sans';
-    ctx.fillText(`• М6 каркас→борта: ${tentBoltN*2} шт (шаг ~800 мм)`, tX, tY+tH+280);
-
-    curY = tY + tH + 350;
-    sectionRects.push({id:3, y:secY, h:curY - secY}); secY = curY;
+    ctx.fillText('-300', tX - 34, tY + 200*sc);
+    ctx.fillText('аэро скос', tX + 340*sc, tY + 200*sc);
   }
 
-  // ─────────────────────────────────────────────
-  // Cross-section: спереди/сзади (одинаковый вид)
-  // ─────────────────────────────────────────────
-  const xsLabelNum = hasTent ? '4' : '3';
-  drawLabel(margin, curY, `${xsLabelNum}. ВИД СЗАДИ (тент + борт + рама + задняя рамка)`, '#9b59b6');
-  curY += labelH + 5;
+  archPositions.forEach((pos, i) => {
+    const ax = tX + pos * sc;
+    const archTopY = (i === 0 && hasAeroSkos) ? tY + 300*sc : tY;
+    ctx.strokeStyle = '#27ae60';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(ax, archTopY);
+    ctx.lineTo(ax, archTopY + 100*sc);
+    ctx.stroke();
+    ctx.fillStyle = '#f39c12';
+    ctx.fillRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
+    ctx.strokeStyle = '#d35400';
+    ctx.lineWidth = 0.8;
+    ctx.setLineDash([1, 2]);
+    ctx.strokeRect(ax - 12*sc, archTopY, 24*sc, 100*sc);
+    ctx.setLineDash([]);
+  });
 
-  const secX = rX + 60;
+  {
+    ctx.fillStyle = '#f39c12';
+    ctx.font = 'bold 48px DejaVu Sans';
+    for (let i = 0; i < archPositions.length - 1; i++) {
+      const mx = tX + ((archPositions[i] + archPositions[i+1]) / 2) * sc;
+      ctx.fillText(String(Math.round(archPositions[i+1] - archPositions[i])), mx, tY + tH/2 + 3);
+    }
+  }
+
+  figDimArrow(ctx, tX, tY-8, tX+tW, tY-8, String(frameL) + ' мм', 'top');
+  figDimArrow(ctx, tX-15, tY, tX-15, tY+tH, '1500 мм', 'left');
+
+  const tentBoltN = Math.max(2, Math.round((frameL - 2*250) / 800) + 1);
+  for (let i = 0; i < tentBoltN; i++) {
+    const bx = tX + ((i + 0.5) / tentBoltN) * tW;
+    ctx.fillStyle = '#27ae60';
+    ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 3, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#1a1a2e';
+    ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 1.5, 0, Math.PI*2); ctx.fill();
+  }
+
+  desc.push('Бок. рамки (×2): 20×20×1.5, высота ' + boardH + '+' + tentMM + '=' + totalFrameH + ' мм | стоек = дуг: ' + archCount + ' шт');
+  desc.push('Дуги (Π-обр.): ' + archCount + ' шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100');
+  desc.push('Аэро скос: ' + (hasAeroSkos ? 'передняя стойка -300 мм, верхняя труба наклонная 800 мм' : 'нет (тент ≤70 см)'));
+  desc.push('М6 каркас→борта: ' + (tentBoltN*2) + ' шт (шаг ~800 мм)');
+
+  return desc;
+}
+
+// 4. ВИД СЗАДИ
+function drawSection4(ctx) {
+  const {brand, W, L, tentH, axles} = state;
+  const bp = BRAND[brand];
+  const frameW = W + bp.extraMM;
+  const boardH = bp.boardH;
+  const tentMM = tentH * 10;
+  const hasTent = tentH > 0;
+  const sc = FIG_SC;
+  const desc = [];
+  let y = 40;
+  const secX = FIG_X + 60;
   const secW = frameW * sc;
-  const boardVisH = boardH * sc;       // высота борта 300 мм
+  const boardVisH = boardH * sc;
 
-  // ── ВЕРТИКАЛЬНАЯ КОМПОНОВКА ──
-  // Рамка тента = борт (300 мм) + тент (tentMM) - начинается от рамы ВВЕРХ
-  // Тент над бортом = tentMM, борт внутри нижней части
-  let tentTopY = curY;                  // верх рамки тента (и дуги)
-  let frameY;                            // уровень рамы
+  let tentTopY = y;
+  let frameY;
   if (hasTent) {
-    const totalFrameH = (boardH + tentMM);  // полная высота рамки: борт + тент
+    const totalFrameH = (boardH + tentMM);
     frameY = tentTopY + totalFrameH * sc;
   } else {
     frameY = tentTopY + boardVisH;
   }
-  const boardTopY = frameY - boardVisH;  // верх бортов
+  const boardTopY = frameY - boardVisH;
 
-  // ── КАРКАС ТЕНТА ──
   if (hasTent) {
     const tbLeft = secX + 10;
     const tbRight = secX + secW - 10;
     const totalFrameH = boardH + tentMM;
-
-    // Боковые рамки тента 20×20×1.5 (вертикальные, от верха до рамы)
     const fw = Math.max(6, 20*sc);
     ctx.fillStyle = 'rgba(39, 174, 96, 0.25)';
     ctx.fillRect(tbLeft - fw, tentTopY, fw, totalFrameH * sc);
@@ -2385,7 +2265,6 @@ function redrawCanvas() {
     ctx.fillText('тента', tbLeft - fw - 60, tentTopY + totalFrameH*sc/2);
     ctx.fillText('20×20', tbLeft - fw - 60, tentTopY + totalFrameH*sc/2 + 60);
 
-    // Дуга Π-образная на верху рамок
     ctx.strokeStyle = '#27ae60';
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -2397,7 +2276,6 @@ function redrawCanvas() {
     ctx.lineTo(tbRight, tentTopY + 100*sc);
     ctx.stroke();
 
-    // Проставки внутри рамок (пунктир)
     ctx.setLineDash([1, 2]);
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 1;
@@ -2406,13 +2284,11 @@ function redrawCanvas() {
     ctx.strokeRect(tbRight - spW/2, tentTopY, spW, 100*sc);
     ctx.setLineDash([]);
 
-    drawDimArrow(tbLeft, tentTopY - 10, tbRight, tentTopY - 10, `${frameW+40} мм`, 'top');
-    drawDim(secX + secW/2 - 50, tentTopY + 70, `Дуга Π-обр. 20×20×1.5`, '#27ae60');
-    // Высота тента - от верха борта до верха рамки
-    drawDimArrow(tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, `тент ${tentH} см`, 'left');
+    figDimArrow(ctx, tbLeft, tentTopY - 10, tbRight, tentTopY - 10, String(frameW+40) + ' мм', 'top');
+    figDim(ctx, secX + secW/2 - 50, tentTopY + 70, 'Дуга Π-обр. 20×20×1.5', '#27ae60');
+    figDimArrow(ctx, tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, 'тент ' + tentH + ' см', 'left');
   }
 
-  // ── БОРТА ──
   const bLeft = secX + 10;
   const bRight = secX + secW - 10;
   ctx.strokeStyle = '#3498db';
@@ -2424,26 +2300,21 @@ function redrawCanvas() {
   ctx.beginPath(); ctx.moveTo(bRight, boardTopY + 3); ctx.lineTo(bRight + 5, boardTopY + 3); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(bLeft - 5, frameY - 3); ctx.lineTo(bLeft, frameY - 3); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(bRight, frameY - 3); ctx.lineTo(bRight + 5, frameY - 3); ctx.stroke();
-  ctx.fillStyle = 'rgba(52,152,219,0.1)';
+  ctx.fillStyle = 'rgba(52,152,219,0.15)';
   ctx.fillRect(bLeft, boardTopY + 3, bRight - bLeft, frameY - boardTopY - 6);
-  drawDim(bLeft - 30, (boardTopY + frameY)/2, `${boardH} мм`, '#3498db');
-  // Размерная стрелка высоты борта
-  if (!hasTent) drawDimArrow(bLeft - 18, frameY, bLeft - 18, boardTopY, `${boardH} мм`, 'left');
+  figDim(ctx, bLeft - 30, (boardTopY + frameY)/2, String(boardH) + ' мм', '#3498db');
+  if (!hasTent) figDimArrow(ctx, bLeft - 18, frameY, bLeft - 18, boardTopY, String(boardH) + ' мм', 'left');
 
-  // ── РАМА ──
   ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 6;
   ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
   ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
-  ctx.fillText(`${bp.frameProfile}`, secX + secW/2 - 20, frameY + 12);
+  ctx.fillText(bp.frameProfile, secX + secW/2 - 20, frameY + 12);
 
-  // ── ЗАДНЯЯ РАМКА (под рамой) ──
   const rearY = frameY;
   const postW = 20 * sc;
   const postVisH = 180 * sc;
-
-  // Стойки
   ctx.fillStyle = '#e67e22';
   ctx.fillRect(secX, rearY, postW, postVisH);
   ctx.fillRect(secX + secW - postW, rearY, postW, postVisH);
@@ -2452,7 +2323,6 @@ function redrawCanvas() {
   ctx.strokeRect(secX, rearY, postW, postVisH);
   ctx.strokeRect(secX + secW - postW, rearY, postW, postVisH);
 
-  // Перемычка (горизонтальная внизу, 40 мм высота профиля)
   const crossBarH = 40 * sc;
   const crossBarY = rearY + postVisH - crossBarH;
   ctx.fillStyle = '#e67e22';
@@ -2460,11 +2330,9 @@ function redrawCanvas() {
   ctx.strokeStyle = '#d35400';
   ctx.strokeRect(secX, crossBarY, secW, crossBarH);
 
-  // Размеры задней рамки
-  drawDimArrow(secX + secW + 8, rearY, secX + secW + 8, rearY + postVisH, '180 мм', 'left');
-  drawDim(secX + secW/2 - 40, crossBarY + crossBarH + 10, `40×20×2`, '#e67e22');
+  figDimArrow(ctx, secX + secW + 8, rearY, secX + secW + 8, rearY + postVisH, '180 мм', 'left');
+  figDim(ctx, secX + secW/2 - 40, crossBarY + crossBarH + 10, '40×20×2', '#e67e22');
 
-  // ── ПЛАСТИНА ГОС. НОМЕРА (по центру) ──
   const plateW = 400 * sc;
   const plateH = 180 * sc;
   const plateX = secX + (secW - plateW) / 2;
@@ -2481,27 +2349,19 @@ function redrawCanvas() {
   ctx.fillText('400×180×1', plateX + plateW/2 - 28, plateY + plateH/2 + 3);
   ctx.fillText('гос. номер', plateX + plateW/2 - 26, plateY + plateH/2 - 6);
 
-  // ── КРОНШТЕЙНЫ ПОДФАРНИКОВ (П-образные, вплотную к стойкам) ──
   const ltW = 200 * sc;
   const ltH = 180 * sc;
   const ltCenterY = rearY + postVisH/2;
-
-  // Левый: вплотную к левой стойке
   const ltLCenterX = secX + postW + ltW/2;
-  // Правый: вплотную к правой стойке
   const ltRCenterX = secX + secW - postW - ltW/2;
-
   function drawPBracket(cx, cy, w, h) {
     const left = cx - w/2;
     const top = cy - h/2;
-    ctx.fillStyle = 'rgba(155, 89, 182, 0.15)';
+    ctx.fillStyle = 'rgba(155, 89, 182, 0.22)';
     ctx.fillRect(left, top, w, h);
     ctx.strokeStyle = '#9b59b6';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(left, top, w, h);
-    ctx.fillStyle = 'rgba(155, 89, 182, 0.1)';
-    ctx.fillRect(left + 3, top + 3, w - 6, h - 6);
-    ctx.strokeStyle = '#9b59b6';
     ctx.setLineDash([2, 2]);
     ctx.strokeRect(left + 3, top + 3, w - 6, h - 6);
     ctx.setLineDash([]);
@@ -2509,459 +2369,368 @@ function redrawCanvas() {
     ctx.font = '42px DejaVu Sans';
     ctx.fillText('180×200×140', left + 2, top - 3);
   }
-
   drawPBracket(ltLCenterX, ltCenterY, ltW, ltH);
   drawPBracket(ltRCenterX, ltCenterY, ltW, ltH);
 
-  // ── ПОДПИСИ ──
   ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
-  ctx.fillText(`Ось: ${bp.axleProfile} | Рессоры: ${bp.springs}-лист. ×${axles*2}`, secX, frameY - 70);
+  ctx.fillText('Ось: ' + bp.axleProfile + ' | Рессоры: ' + bp.springs + '-лист. ×' + (axles*2), secX, frameY - 70);
   ctx.fillStyle = '#e67e22';
   ctx.font = 'bold 48px DejaVu Sans';
   ctx.fillText('40×20×2', secX - 42, rearY + postVisH/2 + 3);
   ctx.fillText('40×20×2', secX + secW + 5, rearY + postVisH/2 + 3);
-  const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
-  ctx.fillStyle = '#555';
-  ctx.font = '54px DejaVu Sans';
-  ctx.fillText(`Задняя рамка: 2 стойки 180 мм + перемычка ${frameW} мм = ${rearMetalM} м (40×20×2)`, secX, rearY + postVisH + 80);
-  ctx.fillText(`пластина номера 400×180×1 | подфарники 2×П-обр. 180×200×140×1`, secX, rearY + postVisH + 150);
-
-  // Ширина
   ctx.fillStyle = '#f39c12';
   ctx.font = '60px DejaVu Sans';
-  ctx.fillText(`${W} мм (заявл.) | ${frameW} мм (рама)`, secX + secW/2 - 70, boardTopY - 40);
+  ctx.fillText(W + ' мм (заявл.) | ' + frameW + ' мм (рама)', secX + secW/2 - 70, boardTopY - 40);
 
-  curY = rearY + postVisH + 210;
-  sectionRects.push({id:4, y:secY, h:curY - secY}); secY = curY;
+  const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
+  desc.push('Задняя рамка: 2 стойки 180 мм + перемычка ' + frameW + ' мм = ' + rearMetalM + ' м (40×20×2)');
+  desc.push('Пластина номера 400×180×1 | подфарники 2×П-обр. 180×200×140×1');
+  desc.push('Ось ' + bp.axleProfile + ' | Рессоры ' + bp.springs + '-лист. ×' + (axles*2));
 
-  // ─────────────────────────────────────────────
-  // ТЕНТ (раскрой: основное полотно + клапаны)
-  // ─────────────────────────────────────────────
-  if (hasTent) {
-    drawLabel(margin, curY, '5. ТЕНТ (раскрой)', '#e74c3c');
-    curY += labelH + 5;
+  return desc;
+}
 
-    const tLayoutX = rX + 380;  // отступ чтобы клапаны влезли (rFlapW до ~350px)
-    const tLayoutY = curY;
-    const aero = tentH >= 120;
-    const tScale = sc * 0.7;
+// 5. ТЕНТ (раскрой)
+function drawSection5(ctx) {
+  const {brand, W, L, tentH} = state;
+  const bp = BRAND[brand];
+  const frameW = W + bp.extraMM;
+  const frameL = L + bp.extraMM;
+  const tentMM = tentH * 10;
+  const aero = tentH >= 120;
+  const sc = FIG_SC;
+  const desc = [];
+  let y = 40;
+  const tLayoutX = FIG_X + 380;
+  const tLayoutY = y;
+  const tScale = sc * 0.7;
 
-    // Основное полотно (единый кусок: задний бок + крыша + передний бок)
-    // Расположение: сверху задний бок → крыша (со скосом спереди) → передний бок
-    const mainW = (frameL + 260 + 120) * tScale;  // +260 слева (зад) +120 справа (перед)
-    const mainLeftAdd = 260 * tScale;
-    const mainRightAdd = 120 * tScale;
-    const sideH = tentMM * tScale;
-    const hemH = 220 * tScale;            // подворот 220 мм
-    const roofH = frameW * tScale;
-    const mainH = (sideH + hemH) + roofH + (sideH + hemH);
-    const fold1Y = tLayoutY + sideH + hemH;       // сгиб: задний бок / крыша
-    const fold2Y = fold1Y + roofH;                 // сгиб: крыша / передний бок
-    const hem1Y = tLayoutY + sideH;                // граница подворота верхнего бока
-    const hem2Y = fold2Y + sideH + hemH;           // низ основного полотна
+  const mainW = (frameL + 260 + 120) * tScale;
+  const mainLeftAdd = 260 * tScale;
+  const mainRightAdd = 120 * tScale;
+  const sideH = tentMM * tScale;
+  const hemH = 220 * tScale;
+  const roofH = frameW * tScale;
+  const mainH = (sideH + hemH) + roofH + (sideH + hemH);
+  const fold1Y = tLayoutY + sideH + hemH;
+  const fold2Y = fold1Y + roofH;
 
-    // Основное полотно — полный прямоугольник
-    ctx.fillStyle = 'rgba(231, 76, 60, 0.12)';
-    ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
-    ctx.strokeStyle = '#e74c3c';
+  ctx.fillStyle = 'rgba(231, 76, 60, 0.16)';
+  ctx.fillRect(tLayoutX, tLayoutY, mainW, mainH);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
+
+  const tentFullW = frameW + 2*tentMM + 2*220;
+  const Nstrips = Math.ceil(tentFullW / 2500);
+  const stripW = tentFullW / Nstrips;
+  for (let i = 1; i < Nstrips; i++) {
+    const shovFromTop = i * stripW;
+    const shovY = tLayoutY + shovFromTop * tScale;
+    ctx.setLineDash([10, 6]);
+    ctx.strokeStyle = '#ff4444';
     ctx.lineWidth = 2.5;
-    ctx.strokeRect(tLayoutX, tLayoutY, mainW, mainH);
-
-    // ═══ ШВЫ РАСКРОЯ (границы рулона 2500 мм) ═══
-    const tentFullW = frameW + 2*tentMM + 2*220;  // полная ширина развёртки с hem
-    const Nstrips = Math.ceil(tentFullW / 2500);
-    const stripW = tentFullW / Nstrips;  // равномерная ширина полосы (центровка швов на крыше)
-    for (let i = 1; i < Nstrips; i++) {
-      const shovFromTop = i * stripW;  // мм от верхнего края развёртки
-      const shovY = tLayoutY + shovFromTop * tScale;
-      ctx.setLineDash([10, 6]);
-      ctx.strokeStyle = '#ff4444';
-      ctx.lineWidth = 2.5;
-      ctx.beginPath();
-      ctx.moveTo(tLayoutX, shovY);
-      ctx.lineTo(tLayoutX + mainW, shovY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      // Плашка шва
-      const inRoof = shovFromTop > (220 + tentMM) && shovFromTop < (220 + tentMM + frameW);
-      ctx.fillStyle = '#ff4444';
-      ctx.font = 'bold 54px DejaVu Sans';
-      ctx.fillText(`← ШОВ ${Math.round(shovFromTop)} мм ${inRoof ? '(на крыше)' : '(на боковине)'}`, tLayoutX + mainW + 4, shovY + 4);
-      // Короткая стрелка
-      ctx.beginPath();
-      ctx.moveTo(tLayoutX + mainW, shovY);
-      ctx.lineTo(tLayoutX + mainW + 8, shovY - 3);
-      ctx.moveTo(tLayoutX + mainW, shovY);
-      ctx.lineTo(tLayoutX + mainW + 8, shovY + 3);
-      ctx.stroke();
-    }
-
-    // Линии сгиба КРЫША/БОК
-    ctx.setLineDash([3,5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW, fold1Y); ctx.stroke();
-    ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(tLayoutX, shovY); ctx.lineTo(tLayoutX + mainW, shovY); ctx.stroke();
     ctx.setLineDash([]);
-
-    // Припуски слева/справа (пунктир)
-    const frameLeftX = tLayoutX + mainLeftAdd;      // граница: левый припуск / основная часть
-    const frameRightX = tLayoutX + mainW - mainRightAdd; // граница: основная часть / правый припуск
-    ctx.setLineDash([4,4]);
-    ctx.strokeStyle = '#777';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(frameLeftX, tLayoutY); ctx.lineTo(frameLeftX, tLayoutY + mainH); ctx.stroke();
-    ctx.moveTo(frameRightX, tLayoutY); ctx.lineTo(frameRightX, tLayoutY + mainH); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#555';
-    ctx.font = '42px DejaVu Sans';
-    ctx.fillText('260', tLayoutX + 2, tLayoutY + mainH/2 + 3);
-    ctx.fillText('120', frameRightX + 2, tLayoutY + mainH/2 + 3);
-
-    // Линии подворота (220 мм — красные пунктиры по схеме)
-    ctx.setLineDash([5, 5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    // Верхний край (верх боковины)
-    ctx.moveTo(tLayoutX, tLayoutY + hemH); ctx.lineTo(tLayoutX + mainW, tLayoutY + hemH);
-    // Нижний к��ай (низ боковины)
-    ctx.moveTo(tLayoutX, tLayoutY + mainH - hemH); ctx.lineTo(tLayoutX + mainW, tLayoutY + mainH - hemH);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Линии скоса на боковинах (крыша не режется - полная ширина mainW)
-    if (aero) {
-      ctx.setLineDash([2,2]);
-      ctx.strokeStyle = '#f39c12';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      // Верхний бок: от переднего края (-300) к сгибу на 800 мм
-      ctx.moveTo(tLayoutX + mainW, fold1Y - 300*tScale);
-      ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y);
-      // Нижний бок: от сгиба на 800 мм к переднему краю (+300)
-      ctx.moveTo(tLayoutX + mainW - 800*tScale, fold2Y);
-      ctx.lineTo(tLayoutX + mainW, fold2Y + 300*tScale);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = '#f39c12';
-      ctx.font = '42px DejaVu Sans';
-      ctx.fillText('скос -30', tLayoutX + mainW - 600*tScale, fold1Y - 150*tScale);
-    }
-
-    // ═══ Усилители на сгибах (200 мм, из обрезков) ═══
-    const reinfMM = 200;  // ширина усилителя
-    const reinfPx = reinfMM * tScale;
-    // Верхний сгиб (fold1Y): усилитель уходит вниз на задний бок
-    ctx.fillStyle = 'rgba(46, 204, 113, 0.22)';
-    ctx.fillRect(tLayoutX, fold1Y, mainW, reinfPx);
-    ctx.strokeStyle = '#27ae60';
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([3,3]);
-    ctx.strokeRect(tLayoutX, fold1Y, mainW, reinfPx);
-    ctx.setLineDash([]);
-    // Нижний сгиб (fold2Y): усилитель уходит вверх на передний бок
-    ctx.fillStyle = 'rgba(46, 204, 113, 0.22)';
-    ctx.fillRect(tLayoutX, fold2Y - reinfPx, mainW, reinfPx);
-    ctx.setLineDash([3,3]);
-    ctx.strokeStyle = '#27ae60';
-    ctx.strokeRect(tLayoutX, fold2Y - reinfPx, mainW, reinfPx);
-    ctx.setLineDash([]);
-    // Подписи усилителей
-    ctx.fillStyle = '#27ae60';
-    ctx.font = '42px DejaVu Sans';
-    ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold1Y + reinfPx/2 + 3);
-    ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold2Y - reinfPx/2 + 3);
-
-    // Подписи секций
-    ctx.fillStyle = '#e74c3c';
+    const inRoof = shovFromTop > (220 + tentMM) && shovFromTop < (220 + tentMM + frameW);
+    ctx.fillStyle = '#ff4444';
     ctx.font = 'bold 54px DejaVu Sans';
-    ctx.fillText('БОК', tLayoutX + 6, tLayoutY + sideH/2 + 4);
-    ctx.fillText('КРЫША', tLayoutX + mainW/2 - 24, fold1Y + roofH/2 + 4);
-    ctx.fillText('БОК', tLayoutX + 6, fold2Y + sideH/2 + 4);
-    ctx.fillStyle = '#1a1a2e';
-    ctx.font = '48px DejaVu Sans';
-    ctx.fillText('ОСНОВНОЕ ПОЛОТНО', tLayoutX + mainW/2 - 55, (fold1Y + fold2Y)/2 + 4);
-
-    // Размеры
-    drawDimArrow(tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, `${frameW+2*tentMM} мм`, 'left');
-    drawDimArrow(tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, `${frameL+380} мм (рамка ${frameL}+260+120)`, 'top');
-
-    // Передний клапан (развёрнут, Барсук +50 / Самбарс +260 с каждой стороны)
-    const flapGap = 5;
-    const frontAdd = brand === 'Барсук' ? 50 : 260;
-    const fFlapH = (frameW + frontAdd*2) * tScale;
-    const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale + hemH;
-    const fFlapX = tLayoutX + mainW + flapGap;
-    const fFlapY = fold1Y - frontAdd * tScale;
-    const fFlapHemX = fFlapX + fFlapW - hemH;  // подворот 220 мм от дальнего края
-    ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
-    ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
-    // Подвороты переднего клапана
-    ctx.setLineDash([5,5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    // Вертикальная — подворот 220 мм
-    ctx.moveTo(fFlapHemX, fFlapY); ctx.lineTo(fFlapHemX, fFlapY + fFlapH);
-    // Горизонтальные — на frontAdd от верха/низа
-    ctx.moveTo(fFlapX, fFlapY + frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + frontAdd*tScale);
-    ctx.moveTo(fFlapX, fFlapY + fFlapH - frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + fFlapH - frontAdd*tScale);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.setLineDash([2,2]);
-    ctx.beginPath(); ctx.moveTo(tLayoutX + mainW, fFlapY); ctx.lineTo(tLayoutX + mainW, fFlapY + fFlapH); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#f39c12';
-    ctx.font = 'bold 48px DejaVu Sans';
-    ctx.fillText(`ПЕРЕД${aero?' -30':''}`, fFlapX + 4, fFlapY + fFlapH/2 + 4);
-    drawDimArrow(fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, `${frameW+frontAdd*2} мм`, 'left');
-
-    // Задний клапан (развёрнут, +120 верх +120 низ → высота frameW+240)
-    const rFlapW = (tentMM + 220 + 240) * tScale;
-    const rFlapH = (frameW + 240) * tScale;  // +120 верх +120 низ
-    const rFlapX = tLayoutX - rFlapW - flapGap;
-    const rFlapY = fold1Y - 120*tScale;  // верх на 120 мм выше крыши
-    const rFlapHemX = rFlapX + hemH;  // подворот 220 мм от левого края
-    ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
-    ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
-    ctx.strokeStyle = '#f39c12';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
-    // Подвороты заднего клапана
-    ctx.setLineDash([5,5]);
-    ctx.strokeStyle = '#e74c3c';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    // Вертикальная — подворот 220 мм
-    ctx.moveTo(rFlapHemX, rFlapY); ctx.lineTo(rFlapHemX, rFlapY + rFlapH);
-    // Горизонтальные на 120 мм от верха/низа → совпадают с fold1Y/fold2Y
-    ctx.moveTo(rFlapX, rFlapY + 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + 120*tScale);
-    ctx.moveTo(rFlapX, rFlapY + rFlapH - 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + rFlapH - 120*tScale);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // Линия припайки
-    ctx.setLineDash([2,2]);
-    ctx.beginPath(); ctx.moveTo(tLayoutX, rFlapY); ctx.lineTo(tLayoutX, rFlapY + rFlapH); ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#f39c12';
-    ctx.font = 'bold 48px DejaVu Sans';
-    ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 + 4);
-    drawDimArrow(rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, `${frameW+240} мм`, 'left');
-    drawDimArrow(rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, `${tentMM+460} мм`, 'top');
-
-    ctx.fillStyle = '#555';
-    ctx.font = '48px DejaVu Sans';
-    ctx.fillText('клапаны припаиваются к крыше', tLayoutX + mainW/2 - 70, tLayoutY + mainH + 90);
-
-    // ═══ Люверсы d10 ═══
-    const louvOffsetMM = 50;
-    const louvStepMM = 300;
-    const louvR = 2.5;
-    ctx.fillStyle = '#f1c40f';
-
-    // 1. Основное полотно: только сверху/снизу (на линиях подворота), отступ 50мм от боковых пунктиров
-    const sideMarginX = (frameRightX - frameLeftX) - 2 * louvOffsetMM * tScale;
-    const louvCountPerEdge = Math.ceil(sideMarginX / (louvStepMM * tScale)) + 1;
-    const stepPx = louvCountPerEdge > 1 ? sideMarginX / (louvCountPerEdge - 1) : 0;
-    
-    for (let e = 0; e < 2; e++) {
-      const edgeY = e === 0 ? tLayoutY + hemH : tLayoutY + mainH - hemH;
-      for (let i = 0; i < louvCountPerEdge; i++) {
-        const lx = frameLeftX + (louvOffsetMM * tScale) + i * stepPx;
-        ctx.beginPath();
-        ctx.arc(lx, edgeY, louvR, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    // 2. Клапаны: вертикально, отступ 50мм от краёв (включая подворот)
-    const flapHem = 220;
-    const flapOffset = flapHem + louvOffsetMM;
-    const startOffset_Px = flapOffset * tScale;
-
-    // Передний клапан (справа): люверсы у правого края
-    const fFlapL = frameW + (brand === 'Барсук' ? 50 : 260)*2;
-    const fFlapCnt = Math.ceil((fFlapL - 2*flapOffset) / louvStepMM) + 1;
-    const fFlapStep = (fFlapCnt > 1) ? ((fFlapL - 2*flapOffset) / (fFlapCnt - 1)) * tScale : 0;
-    for (let i = 0; i < fFlapCnt; i++) {
-      const ly = fFlapY + startOffset_Px + i * fFlapStep;
-      const lx = fFlapX + fFlapW - startOffset_Px;
-      ctx.beginPath();
-      ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // Задний клапан (слева): люверсы у левого края
-    const rFlapL = frameW + 240;
-    const rFlapCnt = Math.ceil((rFlapL - 2*flapOffset) / louvStepMM) + 1;
-    const rFlapStep = (rFlapCnt > 1) ? ((rFlapL - 2*flapOffset) / (rFlapCnt - 1)) * tScale : 0;
-    for (let i = 0; i < rFlapCnt; i++) {
-      const ly = rFlapY + startOffset_Px + i * rFlapStep;
-      const lx = rFlapX + startOffset_Px;
-      ctx.beginPath();
-      ctx.arc(lx, ly, louvR, 0, Math.PI * 2);
-      ctx.fill();
-    }
-
-    // ═══ Поворотки / Скобы на клапанах (горизонтально: верх и низ) ═══
-    const drawValvesOnFlap = (x, y, w, h, w_mm, color, shape) => {
-      const hemMM = 220;
-      const gapX = 150 * tScale;
-      const gapY = 150 * tScale;
-      const stepPx = 300 * tScale;
-
-      const innerY1 = y + hemMM * tScale + gapY;
-      const innerY2 = y + h - (hemMM * tScale + gapY);
-      const innerX = x + hemMM * tScale;
-      const usableW = w - 2 * hemMM * tScale;
-      
-      const cnt = Math.ceil((w_mm - 2*220 - 2*150) / 300) + 1;
-      const actualStep = cnt > 1 ? (usableW - 2*gapX) / (cnt - 1) : 0;
-
-      ctx.fillStyle = color;
-      for (let side = 0; side < 2; side++) {
-        const ly = side === 0 ? innerY1 : innerY2;
-        for (let i = 0; i < cnt; i++) {
-          const lx = innerX + gapX + i * actualStep;
-          if (shape === 'square') {
-            const s = 4;
-            ctx.fillRect(lx - s/2, ly - s/2, s, s);
-          } else {
-            ctx.beginPath();
-            ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-      }
-    };
-
-    if (brand === 'Барсук') {
-      // Только задний клапан — скобы (синие квадраты)
-      drawValvesOnFlap(rFlapX, rFlapY, rFlapW, rFlapH, rFlapW / tScale, '#3498db', 'square');
-    } else {
-      // Оба клапана — поворотки (оранжевые круги)
-      drawValvesOnFlap(fFlapX, fFlapY, fFlapW, fFlapH, fFlapW / tScale, '#e67e22', 'circle');
-      drawValvesOnFlap(rFlapX, rFlapY, rFlapW, rFlapH, rFlapW / tScale, '#e67e22', 'circle');
-    }
-
-    // ═══ Ремни (Барсук) — горизонтально через верхний и нижний ряды скоб ═══
-    if (brand === 'Барсук') {
-      const valveGapPx = 150 * tScale;
-      const rInnerX = rFlapX + (220 + 150) * tScale;
-      const rInnerW = rFlapW - 2 * (220 + 150) * tScale;
-      const rY1 = rFlapY + (220 + 150) * tScale;
-      const rY2 = rFlapY + rFlapH - (220 + 150) * tScale;
-
-      ctx.setLineDash([6, 3]);
-      ctx.strokeStyle = '#2ecc71';
-      ctx.lineWidth = 2;
-      // Верхний ремень
-      ctx.beginPath();
-      ctx.moveTo(rInnerX, rY1);
-      ctx.lineTo(rInnerX + rInnerW, rY1);
-      ctx.stroke();
-      // Нижний ремень
-      ctx.beginPath();
-      ctx.moveTo(rInnerX, rY2);
-      ctx.lineTo(rInnerX + rInnerW, rY2);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      
-      ctx.fillStyle = '#2ecc71';
-      ctx.font = '42px DejaVu Sans';
-      ctx.fillText(`ремень 2 шт × ${(tentMM/1000).toFixed(2)} м`, rInnerX, rY1 - 5);
-    }
-
-    ctx.fillStyle = '#f1c40f';
-    ctx.font = '42px DejaVu Sans';
-    ctx.fillText('люверсы d10 (50/300 мм)', tLayoutX + 6, tLayoutY + mainH + 30);
-
-    curY = Math.max(tLayoutY + mainH, rFlapY + rFlapH) + 34;
-    sectionRects.push({id:5, y:secY, h:curY - secY});
+    ctx.fillText('← ШОВ ' + Math.round(shovFromTop) + ' мм ' + (inRoof ? '(на крыше)' : '(на боковине)'), tLayoutX + mainW + 4, shovY + 4);
   }
 
-  // Total
-  const totalY = 40;  // шапка вверху листа, не на чертеже
-  ctx.fillStyle = '#333';
-  ctx.font = `bold ${Math.max(72, 84)}px DejaVu Sans`;
-  ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY);
+  ctx.setLineDash([3,5]);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(tLayoutX, fold1Y); ctx.lineTo(tLayoutX + mainW, fold1Y); ctx.stroke();
+  ctx.moveTo(tLayoutX, fold2Y); ctx.lineTo(tLayoutX + mainW, fold2Y); ctx.stroke();
+  ctx.setLineDash([]);
+
+  const frameLeftX = tLayoutX + mainLeftAdd;
+  const frameRightX = tLayoutX + mainW - mainRightAdd;
+  ctx.setLineDash([4,4]);
+  ctx.strokeStyle = '#777';
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(frameLeftX, tLayoutY); ctx.lineTo(frameLeftX, tLayoutY + mainH); ctx.stroke();
+  ctx.moveTo(frameRightX, tLayoutY); ctx.lineTo(frameRightX, tLayoutY + mainH); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#555';
+  ctx.font = '42px DejaVu Sans';
+  ctx.fillText('260', tLayoutX + 2, tLayoutY + mainH/2 + 3);
+  ctx.fillText('120', frameRightX + 2, tLayoutY + mainH/2 + 3);
+
+  ctx.setLineDash([5, 5]);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(tLayoutX, tLayoutY + hemH); ctx.lineTo(tLayoutX + mainW, tLayoutY + hemH);
+  ctx.moveTo(tLayoutX, tLayoutY + mainH - hemH); ctx.lineTo(tLayoutX + mainW, tLayoutY + mainH - hemH);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  if (aero) {
+    ctx.setLineDash([2,2]);
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(tLayoutX + mainW, fold1Y - 300*tScale);
+    ctx.lineTo(tLayoutX + mainW - 800*tScale, fold1Y);
+    ctx.moveTo(tLayoutX + mainW - 800*tScale, fold2Y);
+    ctx.lineTo(tLayoutX + mainW, fold2Y + 300*tScale);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#f39c12';
+    ctx.font = '42px DejaVu Sans';
+    ctx.fillText('скос -30', tLayoutX + mainW - 600*tScale, fold1Y - 150*tScale);
+  }
+
+  const reinfMM = 200;
+  const reinfPx = reinfMM * tScale;
+  ctx.fillStyle = 'rgba(46, 204, 113, 0.22)';
+  ctx.fillRect(tLayoutX, fold1Y, mainW, reinfPx);
+  ctx.strokeStyle = '#27ae60';
+  ctx.lineWidth = 1.2;
+  ctx.setLineDash([3,3]);
+  ctx.strokeRect(tLayoutX, fold1Y, mainW, reinfPx);
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(46, 204, 113, 0.22)';
+  ctx.fillRect(tLayoutX, fold2Y - reinfPx, mainW, reinfPx);
+  ctx.setLineDash([3,3]);
+  ctx.strokeStyle = '#27ae60';
+  ctx.strokeRect(tLayoutX, fold2Y - reinfPx, mainW, reinfPx);
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#27ae60';
+  ctx.font = '42px DejaVu Sans';
+  ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold1Y + reinfPx/2 + 3);
+  ctx.fillText('усилитель 200 мм', tLayoutX + mainW + 3, fold2Y - reinfPx/2 + 3);
+
+  ctx.fillStyle = '#e74c3c';
+  ctx.font = 'bold 54px DejaVu Sans';
+  ctx.fillText('БОК', tLayoutX + 6, tLayoutY + sideH/2 + 4);
+  ctx.fillText('КРЫША', tLayoutX + mainW/2 - 24, fold1Y + roofH/2 + 4);
+  ctx.fillText('БОК', tLayoutX + 6, fold2Y + sideH/2 + 4);
+  ctx.fillStyle = '#1a1a2e';
+  ctx.font = '48px DejaVu Sans';
+  ctx.fillText('ОСНОВНОЕ ПОЛОТНО', tLayoutX + mainW/2 - 55, (fold1Y + fold2Y)/2 + 4);
+
+  figDimArrow(ctx, tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, String(frameW+2*tentMM) + ' мм', 'left');
+  figDimArrow(ctx, tLayoutX, tLayoutY + mainH + 4, tLayoutX + mainW, tLayoutY + mainH + 4, String(frameL+380) + ' мм (рамка ' + frameL + '+260+120)', 'top');
+
+  const flapGap = 5;
+  const frontAdd = brand === 'Барсук' ? 50 : 260;
+  const fFlapH = (frameW + frontAdd*2) * tScale;
+  const fFlapW = (aero ? tentMM - 300 : tentMM) * tScale + hemH;
+  const fFlapX = tLayoutX + mainW + flapGap;
+  const fFlapY = fold1Y - frontAdd * tScale;
+  const fFlapHemX = fFlapX + fFlapW - hemH;
+  ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
+  ctx.fillRect(fFlapX, fFlapY, fFlapW, fFlapH);
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(fFlapX, fFlapY, fFlapW, fFlapH);
+  ctx.setLineDash([5,5]);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(fFlapHemX, fFlapY); ctx.lineTo(fFlapHemX, fFlapY + fFlapH);
+  ctx.moveTo(fFlapX, fFlapY + frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + frontAdd*tScale);
+  ctx.moveTo(fFlapX, fFlapY + fFlapH - frontAdd*tScale); ctx.lineTo(fFlapX + fFlapW, fFlapY + fFlapH - frontAdd*tScale);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f39c12';
+  ctx.font = 'bold 48px DejaVu Sans';
+  ctx.fillText('ПЕРЕД' + (aero?' -30':''), fFlapX + 4, fFlapY + fFlapH/2 + 4);
+  figDimArrow(ctx, fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, String(frameW+frontAdd*2) + ' мм', 'left');
+
+  const rFlapW = (tentMM + 220 + 240) * tScale;
+  const rFlapH = (frameW + 240) * tScale;
+  const rFlapX = tLayoutX - rFlapW - flapGap;
+  const rFlapY = fold1Y - 120*tScale;
+  const rFlapHemX = rFlapX + hemH;
+  ctx.fillStyle = 'rgba(241, 196, 15, 0.25)';
+  ctx.fillRect(rFlapX, rFlapY, rFlapW, rFlapH);
+  ctx.strokeStyle = '#f39c12';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(rFlapX, rFlapY, rFlapW, rFlapH);
+  ctx.setLineDash([5,5]);
+  ctx.strokeStyle = '#e74c3c';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(rFlapHemX, rFlapY); ctx.lineTo(rFlapHemX, rFlapY + rFlapH);
+  ctx.moveTo(rFlapX, rFlapY + 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + 120*tScale);
+  ctx.moveTo(rFlapX, rFlapY + rFlapH - 120*tScale); ctx.lineTo(rFlapX + rFlapW, rFlapY + rFlapH - 120*tScale);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = '#f39c12';
+  ctx.font = 'bold 48px DejaVu Sans';
+  ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 + 4);
+  figDimArrow(ctx, rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, String(frameW+240) + ' мм', 'left');
+  figDimArrow(ctx, rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, String(tentMM+460) + ' мм', 'top');
+
+  const louvOffsetMM = 50;
+  const louvStepMM = 300;
+  const louvR = 2.5;
+  ctx.fillStyle = '#f1c40f';
+  const sideMarginX = (frameRightX - frameLeftX) - 2 * louvOffsetMM * tScale;
+  const louvCountPerEdge = Math.ceil(sideMarginX / (louvStepMM * tScale)) + 1;
+  const stepPx = louvCountPerEdge > 1 ? sideMarginX / (louvCountPerEdge - 1) : 0;
+  for (let e = 0; e < 2; e++) {
+    const edgeY = e === 0 ? tLayoutY + hemH : tLayoutY + mainH - hemH;
+    for (let i = 0; i < louvCountPerEdge; i++) {
+      const lx = frameLeftX + (louvOffsetMM * tScale) + i * stepPx;
+      ctx.beginPath(); ctx.arc(lx, edgeY, louvR, 0, Math.PI * 2); ctx.fill();
+    }
+  }
+  const flapHem = 220;
+  const flapOffset = flapHem + louvOffsetMM;
+  const startOffset_Px = flapOffset * tScale;
+  const fFlapL = frameW + (brand === 'Барсук' ? 50 : 260)*2;
+  const fFlapCnt = Math.ceil((fFlapL - 2*flapOffset) / louvStepMM) + 1;
+  const fFlapStep = (fFlapCnt > 1) ? ((fFlapL - 2*flapOffset) / (fFlapCnt - 1)) * tScale : 0;
+  for (let i = 0; i < fFlapCnt; i++) {
+    const ly = fFlapY + startOffset_Px + i * fFlapStep;
+    const lx = fFlapX + fFlapW - startOffset_Px;
+    ctx.beginPath(); ctx.arc(lx, ly, louvR, 0, Math.PI * 2); ctx.fill();
+  }
+  const rFlapL = frameW + 240;
+  const rFlapCnt = Math.ceil((rFlapL - 2*flapOffset) / louvStepMM) + 1;
+  const rFlapStep = (rFlapCnt > 1) ? ((rFlapL - 2*flapOffset) / (rFlapCnt - 1)) * tScale : 0;
+  for (let i = 0; i < rFlapCnt; i++) {
+    const ly = rFlapY + startOffset_Px + i * rFlapStep;
+    const lx = rFlapX + startOffset_Px;
+    ctx.beginPath(); ctx.arc(lx, ly, louvR, 0, Math.PI * 2); ctx.fill();
+  }
+
+  const drawValvesOnFlap = (x, y, w, h, w_mm, color, shape) => {
+    const hemMM = 220;
+    const gapX = 150 * tScale;
+    const gapY = 150 * tScale;
+    const stepPx2 = 300 * tScale;
+    const innerY1 = y + hemMM * tScale + gapY;
+    const innerY2 = y + h - (hemMM * tScale + gapY);
+    const innerX = x + hemMM * tScale;
+    const usableW = w - 2 * hemMM * tScale;
+    const cnt = Math.ceil((w_mm - 2*220 - 2*150) / 300) + 1;
+    const actualStep = cnt > 1 ? (usableW - 2*gapX) / (cnt - 1) : 0;
+    ctx.fillStyle = color;
+    for (let side = 0; side < 2; side++) {
+      const ly = side === 0 ? innerY1 : innerY2;
+      for (let i = 0; i < cnt; i++) {
+        const lx = innerX + gapX + i * actualStep;
+        if (shape === 'square') {
+          const sq = 4;
+          ctx.fillRect(lx - sq/2, ly - sq/2, sq, sq);
+        } else {
+          ctx.beginPath(); ctx.arc(lx, ly, 3.5, 0, Math.PI * 2); ctx.fill();
+        }
+      }
+    }
+  };
+  if (brand === 'Барсук') {
+    drawValvesOnFlap(rFlapX, rFlapY, rFlapW, rFlapH, rFlapW / tScale, '#3498db', 'square');
+  } else {
+    drawValvesOnFlap(fFlapX, fFlapY, fFlapW, fFlapH, fFlapW / tScale, '#e67e22', 'circle');
+    drawValvesOnFlap(rFlapX, rFlapY, rFlapW, rFlapH, rFlapW / tScale, '#e67e22', 'circle');
+  }
+  if (brand === 'Барсук') {
+    const valveGapPx = 150 * tScale;
+    const rInnerX = rFlapX + (220 + 150) * tScale;
+    const rInnerW = rFlapW - 2 * (220 + 150) * tScale;
+    const rY1 = rFlapY + (220 + 150) * tScale;
+    const rY2 = rFlapY + rFlapH - (220 + 150) * tScale;
+    ctx.setLineDash([6, 3]);
+    ctx.strokeStyle = '#2ecc71';
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(rInnerX, rY1); ctx.lineTo(rInnerX + rInnerW, rY1); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(rInnerX, rY2); ctx.lineTo(rInnerX + rInnerW, rY2); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#2ecc71';
+    ctx.font = '42px DejaVu Sans';
+    ctx.fillText('ремень 2 шт × ' + (tentMM/1000).toFixed(2) + ' м', rInnerX, rY1 - 5);
+  }
+  ctx.fillStyle = '#f1c40f';
+  ctx.font = '42px DejaVu Sans';
+  ctx.fillText('люверсы d10 (50/300 мм)', tLayoutX + 6, tLayoutY + mainH + 30);
+
+  desc.push('Тент ' + bp.tentPVC + ', раскрой: ширина полотна ' + tentFullW + ' мм → ' + Nstrips + ' полос(ы) по ' + Math.round(stripW) + ' мм из рулона 2500 мм');
+  desc.push(aero ? 'Аэро скос: передний клапан ниже на 300 мм' : 'Клапаны прямые');
+  desc.push('Люверсы d10 (шаг 300, отступ 50) | усилители на сгибах 200 мм');
+
+  return desc;
 }
 
 // ══════════════════════════════════════════════════════════
-// ОТОБРАЖЕНИЕ ЛИСТОВ (блоки A4, что видим — то печатаем)
+// ОТОБРАЖЕНИЕ ЛИСТОВ
 // ══════════════════════════════════════════════════════════
+function measureBBox(drawFn) {
+  const PW = 7000, PH = 3200;
+  const probe = document.createElement('canvas');
+  probe.width = PW; probe.height = PH;
+  const pc = probe.getContext('2d');
+  pc.fillStyle = '#ffffff'; pc.fillRect(0,0,PW,PH);
+  pc.save();
+  pc.scale(FIG_SC, FIG_SC);
+  drawFn(pc);
+  pc.restore();
+  const data = pc.getImageData(0,0,PW,PH).data;
+  let minX=PW, minY=PH, maxX=0, maxY=0;
+  for (let yy=0; yy<PH; yy+=2) {
+    for (let xx=0; xx<PW; xx+=2) {
+      const i=(yy*PW+xx)*4;
+      if (data[i]<245 || data[i+1]<245 || data[i+2]<245) {
+        if (xx<minX)minX=xx; if(xx>maxX)maxX=xx;
+        if (yy<minY)minY=yy; if(yy>maxY)maxY=yy;
+      }
+    }
+  }
+  if (maxX<=minX) return {w:PW, h:PH};
+  return {x:minX, y:minY, w:maxX-minX+1, h:maxY-minY+1};
+}
+
+function renderFigure(drawFn) {
+  const bb = measureBBox(drawFn);
+  const availW = FIG_W - FIG_MARGIN*2;
+  const availH = FIG_H - FIG_MARGIN*2;
+  const k = Math.min(availW/bb.w, availH/bb.h, 3.0);
+  const cv = document.createElement('canvas');
+  cv.width = FIG_W; cv.height = FIG_H;
+  const c2 = cv.getContext('2d');
+  c2.fillStyle = '#ffffff'; c2.fillRect(0,0,FIG_W,FIG_H);
+  c2.save();
+  const dx = (FIG_W - bb.w*k)/2 - (bb.x||0)*k;
+  const dy = (FIG_H - bb.h*k)/2 - (bb.y||0)*k;
+  c2.translate(dx, dy);
+  c2.scale(FIG_SC*k, FIG_SC*k);
+  drawFn(c2);
+  c2.restore();
+  return cv.toDataURL('image/png');
+}
+
 function renderSheets() {
-  const imgs = captureSections(0.60);
-  const sheets = document.getElementById('sheets');
-  sheets.innerHTML = imgs.map(s => '<div class="sheet"><img src="' + s.data + '" alt="Лист ' + s.id + '"/></div>').join('');
-}
+  const hasTent = state.tentH > 0;
+  const sheets = [];
+  sheets.push({title: '1. РАМА (вид сверху) — ЗАД ← | → ПЕРЕД', draw: drawSection1});
+  sheets.push({title: '2. БОРТА (длинный и короткий)', draw: drawSection2});
+  if (hasTent) sheets.push({title: '3. КАРКАС ТЕНТА (вид сбоку)', draw: drawSection3});
+  sheets.push({title: (hasTent ? '4' : '3') + '. ВИД СЗАДИ (тент + борт + рама + задняя рамка)', draw: drawSection4});
+  if (hasTent) sheets.push({title: '5. ТЕНТ (раскрой)', draw: drawSection5});
 
-// ══════════════════════════════════════════════════════════
-// ПЕЧАТНЫЙ МАКЕТ
-// ══════════════════════════════════════════════════════════
-
-// Захват секций чертежа в увеличенном масштабе → dataURL
-function captureSections(printScale) {
-  const savedScale = baseScale;
-  const savedW = canvas.width, savedH = canvas.height;
-  const savedOffX = offX, savedOffY = offY;
-
-  baseScale = printScale;
-  canvas.width = 3000;
-  canvas.height = 10000;
-  offX = 0; offY = 0;
-  redrawCanvas();
-
-  const imgs = [];
-  // ПЕЧАТНЫЙ ЗАГОТОВОК: каждый блок кладём на белый лист A4-альбом (297×210мм)
-  // с полями, чтобы печать снимала его 1:1 как готовый печатный макет.
-  // DPI: 300 → 1мм ≈ 11.81px. Лист: 3508×2480.
-  const A4W = 3508, A4H = 2480;
-  const MARGIN = Math.round(A4W * 0.06);   // поля ~6% (≈18мм)
-  sectionRects.forEach((sr, idx) => {
-    if (sr.h < 15) return;
-    // Источник (обычный canvas, тёмный фон). Считаем bbox по выбранной секции.
-    const srcW = canvas.width;
-    const srcH = Math.ceil(sr.h) + ((idx === sectionRects.length - 1) ? 400 : 50);
-    const srcY = sr.y;
-    // Вписываем секцию в лист с сохранением пропорций, с полями
-    const drawW = A4W - MARGIN*2;
-    const drawH = A4H - MARGIN*2;
-    const scale = Math.min(drawW / srcW, drawH / srcH);
-    const dw = srcW * scale, dh = srcH * scale;
-    const dxo = (A4W - dw) / 2, dyo = (A4H - dh) / 2;
-    // БЕЛЫЙ лист
-    const sc = document.createElement('canvas');
-    sc.width = A4W; sc.height = A4H;
-    const sctx = sc.getContext('2d');
-    sctx.fillStyle = '#ffffff';
-    sctx.fillRect(0, 0, A4W, A4H);
-    // Рисуем секцию (с инверсией тёмной темы в светлую, как в CSS)
-    sctx.save();
-    sctx.translate(dxo, dyo);
-    sctx.scale(scale, scale);
-    // Канвас уже белый — инверсия больше не нужна
-    sctx.drawImage(canvas, 0, srcY, srcW, srcH, 0, 0, srcW, srcH);
-    sctx.restore();
-    imgs.push({id: sr.id, data: sc.toDataURL('image/png')});
+  const container = document.getElementById('sheets');
+  let html = '';
+  sheets.forEach(s => {
+    const desc = s.draw(document.createElement('canvas').getContext('2d'));  // получить описание
+    const img = renderFigure(s.draw);
+    html += '<div class="sheet">'
+      + '<div class="sheet-title">' + s.title + '</div>'
+      + '<div class="sheet-desc">' + desc.map(d => '<div>' + d + '</div>').join('') + '</div>'
+      + '<img src="' + img + '" alt="' + s.title + '"/>'
+      + '</div>';
   });
-
-  baseScale = savedScale;
-  canvas.width = savedW; canvas.height = savedH;
-  offX = savedOffX; offY = savedOffY;
-  redrawCanvas();
-
-  return imgs;
+  container.innerHTML = html;
 }
 
-// Сбор HTML спецификаций
 function buildSpecsHTML() {
   const metalSpec = document.getElementById('metalSpec');
   const cutPlan = document.getElementById('cutPlan');

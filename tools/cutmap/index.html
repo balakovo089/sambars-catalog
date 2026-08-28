@@ -2282,8 +2282,15 @@ function drawSection4(ctx) {
     ctx.setLineDash([]);
 
     figDimArrow(ctx, tbLeft, tentTopY - 10, tbRight, tentTopY - 10, String(frameW+40) + ' мм', 'top');
-    figDim(ctx, secX + secW/2 - 40, tentTopY + 150, 'Дуга Π-обр. 20×20×1.5', '#27ae60');
-    figDimArrow(ctx, tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, 'тент ' + tentH + ' см', 'left');
+    figDim(ctx, secX + secW/2 - 40, tentTopY + 60, 'Дуга Π-обр. 20×20×1.5', '#27ae60');
+    ctx.strokeStyle = '#f39c12';
+    ctx.lineWidth = 0.8;
+    ctx.setLineDash([3,2]);
+    ctx.beginPath(); ctx.moveTo(tbLeft - 18, boardTopY); ctx.lineTo(tbLeft - 18, tentTopY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#f39c12';
+    ctx.font = '54px DejaVu Sans';
+    ctx.fillText('тент ' + tentH + ' см', secX + secW/2 - 40, tentTopY + tentMM*sc*0.55);
   }
 
   const bLeft = secX + 10;
@@ -2307,7 +2314,9 @@ function drawSection4(ctx) {
   ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
   ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
-  ctx.fillText(bp.frameProfile, secX + 8, frameY + 30);
+  ctx.textAlign = 'center';
+  ctx.fillText(bp.frameProfile, secX + secW/2, frameY + 180*sc + 42);
+  ctx.textAlign = 'start';
 
   const rearY = frameY;
   const postW = 20 * sc;
@@ -2328,7 +2337,6 @@ function drawSection4(ctx) {
   ctx.strokeRect(secX, crossBarY, secW, crossBarH);
 
   figDimArrow(ctx, secX + secW + 8, rearY, secX + secW + 8, rearY + postVisH, '180 мм', 'left');
-  figDim(ctx, secX + secW/2 - 40, crossBarY + crossBarH + 10, '40×20×2', '#e67e22');
 
   const plateW = 400 * sc;
   const plateH = 180 * sc;
@@ -2377,7 +2385,9 @@ function drawSection4(ctx) {
   ctx.fillText(bp.frameProfile, secX + 10, frameY + 38);
   ctx.fillStyle = '#f39c12';
   ctx.font = '60px DejaVu Sans';
-  ctx.fillText(W + ' мм (заявл.) | ' + frameW + ' мм (рама)', secX + secW/2 - 130, boardTopY - 40);
+  ctx.textAlign = 'center';
+  ctx.fillText(W + ' мм (заявл.) | ' + frameW + ' мм (рама)', secX + secW/2, boardTopY - 40);
+  ctx.textAlign = 'start';
 
   const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
   desc.push('Задняя рамка: 2 стойки 180 мм + перемычка ' + frameW + ' мм = ' + rearMetalM + ' м (40×20×2)');

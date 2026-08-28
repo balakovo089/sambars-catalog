@@ -36,7 +36,10 @@ select:focus{outline:none;border-color:#e94560}
 .summary .val{text-align:right;font-weight:bold;color:#e94560}
 
 /* ── Правая панель (схема) ── */
-.main{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;background:#1a1a2e}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;position:relative;background:#23233a}
+#sheets{display:flex;flex-direction:column;align-items:center;gap:20px;padding:24px 24px 90px;min-height:100%}
+.sheet{width:100%;max-width:1060px;background:#fff;box-shadow:0 3px 18px rgba(0,0,0,0.55);border-radius:2px;overflow:hidden}
+.sheet img{width:100%;display:block}
 canvas{display:block;cursor:grab}
 .toolbar{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);background:#16213e;padding:6px 12px;border-radius:8px;border:1px solid #0f3460;display:flex;gap:6px;align-items:center;font-size:11px;z-index:10}
 .toolbar button{padding:5px 12px;border-radius:4px;border:1px solid #0f3460;background:#1a1a2e;color:#e0e0e0;cursor:pointer;font-size:11px}
@@ -52,35 +55,35 @@ canvas{display:block;cursor:grab}
 /* ── Печать ── */
 .print-only { display: none; }
 @media print {
-  @page { size: A4 landscape; margin: 8mm; }
+  @page { size: A4 landscape; margin: 0; }
   body { display: block !important; background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
-  .sidebar, .main, .toolbar, .legend { display: none !important; }
-  #printLayout { 
+  .sidebar, .toolbar, .legend, #c { display: none !important; }
+
+  /* ЧЕРТЁЖ (листы) — по умолчанию, что видим то и печатаем */
+  .main { overflow: visible !important; background: #fff !important; padding: 0 !important; }
+  #sheets { display: block !important; background: #fff !important; padding: 0 !important; gap: 0 !important; }
+  .sheet { box-shadow: none !important; border-radius: 0 !important; width: 100% !important; max-width: none !important; margin: 0 !important; page-break-after: always; break-after: page; }
+  .sheet:last-child { page-break-after: auto; break-after: auto; }
+  .sheet img { width: 100% !important; height: auto !important; }
+
+  /* СПЕЦИФИКАЦИИ (текст) — включается body.print-specs */
+  #printLayout { display: none !important; }
+  body.print-specs .main, body.print-specs #sheets { display: none !important; }
+  body.print-specs #printLayout { 
     display: block !important; 
     font-family: 'DejaVu Sans', Arial, sans-serif;
     font-size: 7.5pt;
     color: #000;
+    padding: 10mm;
   }
-  #printLayout h1 { font-size: 13pt; margin: 0 0 4pt; }
-  #printLayout h2 { font-size: 10pt; margin: 6pt 0 3pt; border-bottom: 1px solid #000; }
-  #printLayout .section-block { break-inside: avoid; margin-bottom: 6pt; }
-  #printLayout table { width: 100%; border-collapse: collapse; margin: 2pt 0; font-size: 7pt; }
-  #printLayout th, #printLayout td { padding: 1pt 2pt; text-align: left; border: 0.4pt solid #ccc; }
-  #printLayout th { background: #eee; font-weight: bold; }
-  #printLayout .specs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  #printLayout .drawing-full { 
-    page-break-after: always; 
-    width: 100%;
-    height: auto;
-  }
-  #printLayout .print-drawing-img { 
-    width: 100%; 
-    height: auto; 
-    display: block;
-    filter: invert(0.92) hue-rotate(180deg);
-    background: #fff;
-  }
-  #printLayout .num { text-align: right; }
+  body.print-specs #printLayout h1 { font-size: 13pt; margin: 0 0 4pt; }
+  body.print-specs #printLayout h2 { font-size: 10pt; margin: 6pt 0 3pt; border-bottom: 1px solid #000; }
+  body.print-specs #printLayout .section-block { break-inside: avoid; margin-bottom: 6pt; }
+  body.print-specs #printLayout table { width: 100%; border-collapse: collapse; margin: 2pt 0; font-size: 7pt; }
+  body.print-specs #printLayout th, body.print-specs #printLayout td { padding: 1pt 2pt; text-align: left; border: 0.4pt solid #ccc; }
+  body.print-specs #printLayout th { background: #eee; font-weight: bold; }
+  body.print-specs #printLayout .specs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  body.print-specs #printLayout .num { text-align: right; }
 }
 </style>
 </head>
@@ -158,26 +161,14 @@ canvas{display:block;cursor:grab}
 </div>
 
 <div class="main">
-  <canvas id="c"></canvas>
+  <canvas id="c" style="display:none"></canvas>
+  <div id="sheets"></div>
   <div class="toolbar">
-    <span style="color:#888">🖱 Перетаскивайте | ⚙ Колёсико - вверх/вниз</span>
-    <button onclick="resetView()">Сброс</button>
+    <button onclick="printSheets()" title="Печать чертежа (что видим — то печатаем)">🖨️ Печать</button>
     <div class="sep"></div>
-    <button onclick="printSpecs()" title="Только спецификации (текст)">🖨️ Спецификации</button>
-    <button onclick="printDrawings()" title="Только чертежи на весь лист">📐 Чертежи</button>
+    <button onclick="printSpecs()" title="Только спецификации (текст)">📋 Спецификации</button>
     <div class="sep"></div>
     <button onclick="openPricePanel()" title="Управление ценами">💰 Цены</button>
-  </div>
-  <div class="legend">
-    <span style="color:#5dade2">▬▬</span> Рама<br>
-    <span style="color:#7f8c8d">▬▬</span> Поперечины<br>
-    <span style="color:#00bcd4">- -</span> Перемычки под пол<br>
-    <span style="color:#e67e22">▬▬</span> Аморт. балки / Задняя рамка<br>
-    <span style="color:#e74c3c">▬▬</span> Дышло / Кронштейны<br>
-    <span style="color:#f39c12">⬜</span> Рессоры / Гос.номер<br>
-    <span style="color:#3498db">▬▬</span> Борта<br>
-    <span style="color:#27ae60">- -</span> Тент<br>
-    <span style="color:#9b59b6">▬▬</span> Подфарники
   </div>
 </div>
 
@@ -893,7 +884,7 @@ function recalc() {
   renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);
   
   updateMeta();
-  redrawCanvas();
+  renderSheets();
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1706,8 +1697,12 @@ function redrawCanvas() {
   if (canvas.height < 4000) canvas.height = 4000;
   const sc = baseScale;  // fixed scale, no zoom
 
+  // Белый фон (печатный заготовок)
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
   // Grid
-  ctx.strokeStyle = '#1e1e30';
+  ctx.strokeStyle = '#ececec';
   ctx.lineWidth = 0.3;
   for (let x = 0; x < canvas.width; x += 50) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke(); }
   for (let y = 0; y < canvas.height; y += 50) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke(); }
@@ -1759,13 +1754,13 @@ function redrawCanvas() {
   const rH = frameW * sc;  // ширина рамы → вертикаль
 
   // Frame rectangle
-  ctx.strokeStyle = '#5dade2';
+  ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = Math.max(5, 6*scale);
   ctx.strokeRect(rX, rY, rW, rH);
 
   // Center beam (Sambars only) — горизонтальная пунктирная линия посередине
   if (brand !== 'Барсук' && brand !== 'Бизон') {
-    ctx.strokeStyle = '#5dade2';
+    ctx.strokeStyle = '#2980b9';
     ctx.lineWidth = Math.max(2, 3*scale);
     ctx.setLineDash([8,4]);
     ctx.beginPath(); ctx.moveTo(rX, rY+rH/2); ctx.lineTo(rX+rW, rY+rH/2); ctx.stroke();
@@ -1891,9 +1886,9 @@ function redrawCanvas() {
   // ── ОСЬ И ПОДВЕСКА ──
   const trueCenter = rX + rW/2;
   ctx.setLineDash([3,5]);
-  ctx.strokeStyle = '#666'; ctx.lineWidth = 0.8;
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 0.8;
   ctx.beginPath(); ctx.moveTo(trueCenter, rY-12); ctx.lineTo(trueCenter, rY+rH+12); ctx.stroke();
-  ctx.fillStyle = '#666'; ctx.font = '48px DejaVu Sans';
+  ctx.fillStyle = '#444'; ctx.font = '48px DejaVu Sans';
   ctx.fillText('центр рамы', trueCenter-18, rY+rH+20);
 
   function drawAxleSet(shockX, label, color) {
@@ -1975,10 +1970,10 @@ function redrawCanvas() {
   ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rH + 178);
 
   // ── Labels: ЗАД слева, ПЕРЕД справа ──
-  ctx.fillStyle = '#888';
+  ctx.fillStyle = '#555';
   ctx.font = 'bold 72px DejaVu Sans';
   ctx.fillText('◄ ЗАД', rX - 190, rY + rH - 30);
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = '#1a1a2e';
   ctx.fillText('ПЕРЕД (дышло) ►', rX + rW + 8, rY + rH/2 + 4);
 
   // ── ДЫШЛО (горизонтально, справа от рамы) ──
@@ -2028,11 +2023,11 @@ function redrawCanvas() {
   // Маркеры: hitch, joint
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath(); ctx.arc(HITCH_X, MID_Y, 7, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = '#1a1a2e';
   ctx.beginPath(); ctx.arc(JOINT_X, MID_Y, 7, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = '#e74c3c';
   ctx.beginPath(); ctx.arc(JOINT_X, MID_Y, 5, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 48px DejaVu Sans';
+  ctx.fillStyle = '#1a1a2e'; ctx.font = 'bold 48px DejaVu Sans';
   ctx.fillText('15см', JOINT_X-8, MID_Y-10);
 
   // Кронштейны самосвала
@@ -2044,7 +2039,7 @@ function redrawCanvas() {
     ctx.strokeRect(ATTACH_X - brL/2, sy - brW/2, brL, brW);
     ctx.fillStyle = '#f1c40f';
     ctx.beginPath(); ctx.arc(ATTACH_X, sy, 5, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#1a1a2e';
     ctx.beginPath(); ctx.arc(ATTACH_X, sy, 2.5, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 48px DejaVu Sans';
     ctx.fillText('пл. 120×60×5', ATTACH_X + 4, sy - brW/2 - 70);
@@ -2052,7 +2047,7 @@ function redrawCanvas() {
   });
 
   // Подписи дышла
-  ctx.fillStyle = '#888'; ctx.font = '54px DejaVu Sans';
+  ctx.fillStyle = '#555'; ctx.font = '54px DejaVu Sans';
   ctx.fillText('Hitch ►', HITCH_X-30, MID_Y-70);
   ctx.fillText('120 см', (HITCH_X+FRONT_X)/2-30, MID_Y-70);
   ctx.fillText('15 см', (HITCH_X+JOINT_X)/2-30, MID_Y+70);
@@ -2064,7 +2059,7 @@ function redrawCanvas() {
   drawDimArrow(rX-15, rY, rX-15, rY+rH, `${frameW} мм`, 'left');
 
   // Annotations
-  ctx.fillStyle = '#888'; ctx.font = '54px DejaVu Sans';
+  ctx.fillStyle = '#555'; ctx.font = '54px DejaVu Sans';
   let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ` + ${state.floorSeams} под швы пола` : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
@@ -2093,7 +2088,7 @@ function redrawCanvas() {
   ctx.fillStyle = 'rgba(52,152,219,0.08)';
   ctx.fillRect(bX+2, bY+2, bW-4, bH-4);
 
-  ctx.strokeStyle = '#5dade2';
+  ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(bX, bY+1); ctx.lineTo(bX+bW, bY+1); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(bX, bY+bH-1); ctx.lineTo(bX+bW, bY+bH-1); ctx.stroke();
@@ -2134,7 +2129,7 @@ function redrawCanvas() {
     const bx = bX + ((i + 0.5) / sBoltN) * bW;
     ctx.fillStyle = '#e74c3c';
     ctx.beginPath(); ctx.arc(bx, bY + bH - 5, 3, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#1a1a2e';
     ctx.beginPath(); ctx.arc(bx, bY + bH - 5, 1.5, 0, Math.PI*2); ctx.fill();
   }
   ctx.fillStyle = '#e74c3c';
@@ -2155,7 +2150,7 @@ function redrawCanvas() {
   ctx.fillStyle = 'rgba(52,152,219,0.08)';
   ctx.fillRect(sbX+2, sbY+2, sbW-4, sbH-4);
 
-  ctx.strokeStyle = '#5dade2';
+  ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(sbX, sbY+1); ctx.lineTo(sbX+sbW, sbY+1); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(sbX, sbY+sbH-1); ctx.lineTo(sbX+sbW, sbY+sbH-1); ctx.stroke();
@@ -2184,7 +2179,7 @@ function redrawCanvas() {
   ctx.fillStyle = '#3498db';
   ctx.font = 'bold 60px DejaVu Sans';
   ctx.fillText(`КОРОТКИЙ борт (×2): ${jShort} перемычек, шаг ~${Math.round(frameW/(jShort+1))} мм`, sbX, sbY+sbH+70);
-  ctx.fillStyle = '#888';
+  ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
   ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.boardH / 1000).toFixed(1)} м`, sbX, sbY+sbH+140);
 
@@ -2323,7 +2318,7 @@ function redrawCanvas() {
     drawDimArrow(tX-15, tY, tX-15, tY+tH, `1500 мм`, 'left');
 
     // Аннотации
-    ctx.fillStyle = '#888';
+    ctx.fillStyle = '#555';
     ctx.font = '54px DejaVu Sans';
     ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт, высота ${boardH}+${tentMM}=${totalFrameH} мм | стоек = дуг: ${archCount} шт`, tX, tY+tH+70);
     ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+140);
@@ -2334,7 +2329,7 @@ function redrawCanvas() {
       const bx = tX + ((i + 0.5) / tentBoltN) * tW;
       ctx.fillStyle = '#27ae60';
       ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 3, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#fff';
+      ctx.fillStyle = '#1a1a2e';
       ctx.beginPath(); ctx.arc(bx, tY + tH - 5, 1.5, 0, Math.PI*2); ctx.fill();
     }
     ctx.fillStyle = '#27ae60';
@@ -2436,10 +2431,10 @@ function redrawCanvas() {
   if (!hasTent) drawDimArrow(bLeft - 18, frameY, bLeft - 18, boardTopY, `${boardH} мм`, 'left');
 
   // ── РАМА ──
-  ctx.strokeStyle = '#5dade2';
+  ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 6;
   ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
-  ctx.fillStyle = '#888';
+  ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
   ctx.fillText(`${bp.frameProfile}`, secX + secW/2 - 20, frameY + 12);
 
@@ -2519,7 +2514,7 @@ function redrawCanvas() {
   drawPBracket(ltRCenterX, ltCenterY, ltW, ltH);
 
   // ── ПОДПИСИ ──
-  ctx.fillStyle = '#888';
+  ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
   ctx.fillText(`Ось: ${bp.axleProfile} | Рессоры: ${bp.springs}-лист. ×${axles*2}`, secX, frameY - 70);
   ctx.fillStyle = '#e67e22';
@@ -2527,7 +2522,7 @@ function redrawCanvas() {
   ctx.fillText('40×20×2', secX - 42, rearY + postVisH/2 + 3);
   ctx.fillText('40×20×2', secX + secW + 5, rearY + postVisH/2 + 3);
   const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
-  ctx.fillStyle = '#888';
+  ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
   ctx.fillText(`Задняя рамка: 2 стойки 180 мм + перемычка ${frameW} мм = ${rearMetalM} м (40×20×2)`, secX, rearY + postVisH + 80);
   ctx.fillText(`пластина номера 400×180×1 | подфарники 2×П-обр. 180×200×140×1`, secX, rearY + postVisH + 150);
@@ -2615,13 +2610,13 @@ function redrawCanvas() {
     const frameLeftX = tLayoutX + mainLeftAdd;      // граница: левый припуск / основная часть
     const frameRightX = tLayoutX + mainW - mainRightAdd; // граница: основная часть / правый припуск
     ctx.setLineDash([4,4]);
-    ctx.strokeStyle = '#888';
+    ctx.strokeStyle = '#777';
     ctx.lineWidth = 1.2;
     ctx.beginPath();
     ctx.moveTo(frameLeftX, tLayoutY); ctx.lineTo(frameLeftX, tLayoutY + mainH); ctx.stroke();
     ctx.moveTo(frameRightX, tLayoutY); ctx.lineTo(frameRightX, tLayoutY + mainH); ctx.stroke();
     ctx.setLineDash([]);
-    ctx.fillStyle = '#888';
+    ctx.fillStyle = '#555';
     ctx.font = '42px DejaVu Sans';
     ctx.fillText('260', tLayoutX + 2, tLayoutY + mainH/2 + 3);
     ctx.fillText('120', frameRightX + 2, tLayoutY + mainH/2 + 3);
@@ -2687,7 +2682,7 @@ function redrawCanvas() {
     ctx.fillText('БОК', tLayoutX + 6, tLayoutY + sideH/2 + 4);
     ctx.fillText('КРЫША', tLayoutX + mainW/2 - 24, fold1Y + roofH/2 + 4);
     ctx.fillText('БОК', tLayoutX + 6, fold2Y + sideH/2 + 4);
-    ctx.fillStyle = '#fff';
+    ctx.fillStyle = '#1a1a2e';
     ctx.font = '48px DejaVu Sans';
     ctx.fillText('ОСНОВНОЕ ПОЛОТНО', tLayoutX + mainW/2 - 55, (fold1Y + fold2Y)/2 + 4);
 
@@ -2761,7 +2756,7 @@ function redrawCanvas() {
     drawDimArrow(rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, `${frameW+240} мм`, 'left');
     drawDimArrow(rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, `${tentMM+460} мм`, 'top');
 
-    ctx.fillStyle = '#888';
+    ctx.fillStyle = '#555';
     ctx.font = '48px DejaVu Sans';
     ctx.fillText('клапаны припаиваются к крыше', tLayoutX + mainW/2 - 70, tLayoutY + mainH + 90);
 
@@ -2894,37 +2889,18 @@ function redrawCanvas() {
 
   // Total
   const totalY = 40;  // шапка вверху листа, не на чертеже
-  ctx.fillStyle = '#e0e0e0';
+  ctx.fillStyle = '#333';
   ctx.font = `bold ${Math.max(72, 84)}px DejaVu Sans`;
   ctx.fillText(`${brand} ${(W/1000).toFixed(2)}×${(L/1000).toFixed(1)} м | Рама ${frameW}×${frameL} мм | Борт ${boardH} мм | Тент ${tentH} см | Осей ${axles}`, margin+60, totalY);
 }
 
 // ══════════════════════════════════════════════════════════
-// CANVAS INTERACTION
+// ОТОБРАЖЕНИЕ ЛИСТОВ (блоки A4, что видим — то печатаем)
 // ══════════════════════════════════════════════════════════
-canvas.addEventListener('wheel', e => {
-  e.preventDefault();
-  offY -= e.deltaY;
-  redrawCanvas();
-});
-
-canvas.addEventListener('mousedown', e => {
-  dragging = true;
-  dragSX = e.clientX; dragSY = e.clientY;
-  dragOX = offX; dragOY = offY;
-});
-canvas.addEventListener('mousemove', e => {
-  if (dragging) {
-    offX = dragOX + (e.clientX - dragSX);
-    offY = dragOY + (e.clientY - dragSY);
-    redrawCanvas();
-  }
-});
-window.addEventListener('mouseup', () => { dragging = false; });
-
-function resetView() {
-  offX = 0; offY = 0;
-  redrawCanvas();
+function renderSheets() {
+  const imgs = captureSections(0.60);
+  const sheets = document.getElementById('sheets');
+  sheets.innerHTML = imgs.map(s => '<div class="sheet"><img src="' + s.data + '" alt="Лист ' + s.id + '"/></div>').join('');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -2971,7 +2947,7 @@ function captureSections(printScale) {
     sctx.save();
     sctx.translate(dxo, dyo);
     sctx.scale(scale, scale);
-    sctx.filter = 'invert(0.92) hue-rotate(180deg)';
+    // Канвас уже белый — инверсия больше не нужна
     sctx.drawImage(canvas, 0, srcY, srcW, srcH, 0, 0, srcW, srcH);
     sctx.restore();
     imgs.push({id: sr.id, data: sc.toDataURL('image/png')});
@@ -3030,27 +3006,18 @@ function buildSpecsHTML() {
     + '</div>';
 }
 
-// Только спецификации
+// Только спецификации (текст)
 function printSpecs() {
   const pl = document.getElementById('printLayout');
   pl.innerHTML = buildSpecsHTML();
-  pl.className = 'print-only print-specs';
-  setTimeout(() => window.print(), 200);
+  document.body.classList.add('print-specs');
+  setTimeout(() => { window.print(); document.body.classList.remove('print-specs'); }, 200);
 }
 
-// Только чертежи (на всю ширину A4)
-function printDrawings() {
-  const imgs = captureSections(0.60);
-  const pl = document.getElementById('printLayout');
-  pl.innerHTML = '<h1>📐 ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м — Чертёж</h1>'
-    + imgs.map(s => '<div class="drawing-full"><img src="' + s.data + '" class="print-drawing-img" alt="Чертёж ' + s.id + '"/></div>').join('');
-  pl.className = 'print-only print-drawings';
+// Чертёж — что видим на экране (листы A4), то и печатаем
+function printSheets() {
+  document.body.classList.remove('print-specs');
   setTimeout(() => window.print(), 200);
-}
-
-// Предзагрузка (для обратной совместимости)
-function updatePrintLayout() {
-  // Ничего не делаем — печать теперь по кнопкам
 }
 
 

@@ -2275,9 +2275,8 @@ function redrawCanvas() {
     if (hasAeroSkos) {
       ctx.fillStyle = '#f39c12';
       ctx.font = '48px DejaVu Sans';
-      ctx.fillText('-300', tX - 28, tY + 150*sc);
-      ctx.fillText('800 мм', tX + 350*sc, tY + tH/2 + 10);
-      ctx.fillText('аэро скос', tX + 300*sc, tY + 120*sc);
+      ctx.fillText('-300', tX - 34, tY + 200*sc);
+      ctx.fillText('аэро скос', tX + 340*sc, tY + 200*sc);
     }
 
     // Дуги (Π-образные перемычки) - на тех же позициях что и стойки
@@ -2316,24 +2315,19 @@ function redrawCanvas() {
       ctx.setLineDash([2,3]);
       ctx.strokeStyle = '#f39c12';
       ctx.lineWidth = 1;
-      // Линия скоса уже нарисована как часть верхней трубы, просто подпишем
       ctx.setLineDash([]);
-      ctx.fillStyle = '#f39c12';
-      ctx.font = '48px DejaVu Sans';
-      ctx.fillText('аэро скос', tX + 300*sc, tY + 150*sc);
-      ctx.fillText('300 мм ↓', tX - 30, tY + 150*sc);
     }
 
     // Размеры
     drawDimArrow(tX, tY-8, tX+tW, tY-8, `${frameL} мм`, 'top');
-    drawDimArrow(tX-15, tY, tX-15, tY+tH, `${totalFrameH} мм (борт ${boardH}+тент ${tentMM})`, 'left');
+    drawDimArrow(tX-15, tY, tX-15, tY+tH, `1500 мм`, 'left');
 
     // Аннотации
     ctx.fillStyle = '#888';
     ctx.font = '54px DejaVu Sans';
-    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт, высота ${boardH}+${tentMM}=${totalFrameH} мм | стоек = дуг: ${archCount} шт`, tX, tY+tH+12);
-    ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+24);
-    ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка -300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+36);
+    ctx.fillText(`Бок. рамки (×2): 20×20×1.5, ${(frameL/1000*2).toFixed(1)} м × 2 шт, высота ${boardH}+${tentMM}=${totalFrameH} мм | стоек = дуг: ${archCount} шт`, tX, tY+tH+70);
+    ctx.fillText(`Дуги (Π-обр.): ${archCount} шт, 20×20×1.5, концы 100 мм → проставки 25×25×2×100 внутри рамок | съёмные, без крепежа`, tX, tY+tH+140);
+    ctx.fillText(`Аэро скос: ${hasAeroSkos ? 'передняя стойка -300 мм, верхняя труба наклонная 800 мм (константы)' : 'нет (тент ≤70 см)'}`, tX, tY+tH+210);
     // Болты тента: М6, такой же шаг как борта→рама
     const tentBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
     for (let i = 0; i < tentBoltN; i++) {
@@ -2345,9 +2339,9 @@ function redrawCanvas() {
     }
     ctx.fillStyle = '#27ae60';
     ctx.font = '48px DejaVu Sans';
-    ctx.fillText(`• М6 каркас→борта: ${tentBoltN*2} шт (шаг ~800 мм)`, tX, tY+tH+48);
+    ctx.fillText(`• М6 каркас→борта: ${tentBoltN*2} шт (шаг ~800 мм)`, tX, tY+tH+280);
 
-    curY = tY + tH + 62;
+    curY = tY + tH + 350;
     sectionRects.push({id:3, y:secY, h:curY - secY}); secY = curY;
   }
 

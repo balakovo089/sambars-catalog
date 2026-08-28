@@ -2126,7 +2126,7 @@ function redrawCanvas() {
 
   ctx.fillStyle = '#3498db';
   ctx.font = 'bold 60px DejaVu Sans';
-  ctx.fillText(`ДЛИННЫЙ борт (×2): ${jLong} перемычек, шаг ~${Math.round(frameL/(jLong+1))} мм`, bX, bY+bH+12);
+  ctx.fillText(`ДЛИННЫЙ борт (×2): ${jLong} перемычек, шаг ~${Math.round(frameL/(jLong+1))} мм`, bX, bY+bH+70);
   // Болты М8 на нижней части борта (отступ 250 мм от краёв, шаг ~800 мм)
   const sMidLen = frameL - 2*250;
   const sBoltN = Math.max(2, Math.round(sMidLen / 800) + 1);
@@ -2139,9 +2139,9 @@ function redrawCanvas() {
   }
   ctx.fillStyle = '#e74c3c';
   ctx.font = '48px DejaVu Sans';
-  ctx.fillText(`• М8 борт→рама: ${sBoltN*2} шт (шаг ~800, отступ 250)`, bX, bY+bH+24);
+  ctx.fillText(`• М8 борт→рама: ${sBoltN*2} шт (шаг ~800, отступ 250)`, bX, bY+bH+140);
 
-  curY = bY + bH + 38;
+  curY = bY + bH + 185;
 
   // ── КОРОТКИЙ БОРТ ──
   const sbX = bX;
@@ -2183,12 +2183,12 @@ function redrawCanvas() {
 
   ctx.fillStyle = '#3498db';
   ctx.font = 'bold 60px DejaVu Sans';
-  ctx.fillText(`КОРОТКИЙ борт (×2): ${jShort} перемычек, шаг ~${Math.round(frameW/(jShort+1))} мм`, sbX, sbY+sbH+12);
+  ctx.fillText(`КОРОТКИЙ борт (×2): ${jShort} перемычек, шаг ~${Math.round(frameW/(jShort+1))} мм`, sbX, sbY+sbH+70);
   ctx.fillStyle = '#888';
   ctx.font = '54px DejaVu Sans';
-  ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.boardH / 1000).toFixed(1)} м`, sbX, sbY+sbH+24);
+  ctx.fillText(`всего перемычек: ${totalJumpers} шт | профиль ${bp.sideProfile} | метраж: ${(totalJumpers * bp.boardH / 1000).toFixed(1)} м`, sbX, sbY+sbH+140);
 
-  curY = sbY + sbH + 36;
+  curY = sbY + sbH + 240;
   sectionRects.push({id:2, y:secY, h:curY - secY}); secY = curY;
 
   // ─────────────────────────────────────────────

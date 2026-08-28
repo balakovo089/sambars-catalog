@@ -2282,7 +2282,6 @@ function drawSection4(ctx) {
     ctx.setLineDash([]);
 
     figDimArrow(ctx, tbLeft, tentTopY - 10, tbRight, tentTopY - 10, String(frameW+40) + ' мм', 'top');
-    figDim(ctx, secX + secW/2 - 40, tentTopY + 60, 'Дуга Π-обр. 20×20×1.5', '#27ae60');
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 0.8;
     ctx.setLineDash([3,2]);
@@ -2290,7 +2289,6 @@ function drawSection4(ctx) {
     ctx.setLineDash([]);
     ctx.fillStyle = '#f39c12';
     ctx.font = '54px DejaVu Sans';
-    ctx.fillText('тент ' + tentH + ' см', secX + secW/2 - 40, tentTopY + tentMM*sc*0.55);
   }
 
   const bLeft = secX + 10;
@@ -2312,11 +2310,6 @@ function drawSection4(ctx) {
   ctx.strokeStyle = '#2980b9';
   ctx.lineWidth = 6;
   ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
-  ctx.fillStyle = '#555';
-  ctx.font = '54px DejaVu Sans';
-  ctx.textAlign = 'center';
-  ctx.fillText(bp.frameProfile, secX + secW/2, frameY + 180*sc + 42);
-  ctx.textAlign = 'start';
 
   const rearY = frameY;
   const postW = 20 * sc;
@@ -2351,8 +2344,6 @@ function drawSection4(ctx) {
   ctx.setLineDash([]);
   ctx.fillStyle = '#f39c12';
   ctx.font = '48px DejaVu Sans';
-  ctx.fillText('400×180×1', plateX + plateW/2 - 28, plateY + plateH/2 + 3);
-  ctx.fillText('гос. номер', plateX + plateW/2 - 26, plateY + plateH/2 - 6);
 
   const ltW = 200 * sc;
   const ltH = 180 * sc;
@@ -2378,21 +2369,15 @@ function drawSection4(ctx) {
 
   ctx.fillStyle = '#e67e22';
   ctx.font = 'bold 48px DejaVu Sans';
-  ctx.fillText('40×20×2', secX - 42, rearY + postVisH/2 + 3);
-  ctx.fillText('40×20×2', secX + secW + 5, rearY + postVisH/2 + 3);
   ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
-  ctx.fillText(bp.frameProfile, secX + 10, frameY + 38);
-  ctx.fillStyle = '#f39c12';
-  ctx.font = '60px DejaVu Sans';
-  ctx.textAlign = 'center';
-  ctx.fillText(W + ' мм (заявл.) | ' + frameW + ' мм (рама)', secX + secW/2, boardTopY - 40);
-  ctx.textAlign = 'start';
 
   const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
   desc.push('Задняя рамка: 2 стойки 180 мм + перемычка ' + frameW + ' мм = ' + rearMetalM + ' м (40×20×2)');
   desc.push('Пластина номера 400×180×1 | подфарники 2×П-обр. 180×200×140×1');
   desc.push('Ось ' + bp.axleProfile + ' | Рессоры ' + bp.springs + '-лист. ×' + (axles*2));
+  desc.push('Дуга Π-обр. 20×20×1.5, концы 100 мм');
+  desc.push('тент ' + tentH + ' см | ' + W + ' мм (заявл.) | ' + frameW + ' мм (рама)');
 
   return desc;
 }

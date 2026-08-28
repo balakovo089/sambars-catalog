@@ -63,7 +63,7 @@ canvas{display:block;cursor:grab}
 @media print {
   @page { size: A4 landscape; margin: 0; }
   body { display: block !important; background: #fff !important; color: #000 !important; height: auto !important; overflow: visible !important; }
-  .sidebar, .toolbar, .legend, #c { display: none !important; }
+  .sidebar, .toolbar, .legend, #c, .topbar { display: none !important; }
 
   /* ЧЕРТЁЖ (листы) — по умолчанию, что видим то и печатаем */
   .main { overflow: visible !important; background: #fff !important; padding: 0 !important; }
@@ -94,7 +94,7 @@ canvas{display:block;cursor:grab}
 </style>
 </head>
 <body>
-<div style="position:absolute;top:0;left:0;z-index:1000;background:#16213e;padding:5px 14px;border-bottom:1px solid #2a3a5c;width:100%;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#e0e0e0">
+<div class="topbar" style="position:absolute;top:0;left:0;z-index:1000;background:#16213e;padding:5px 14px;border-bottom:1px solid #2a3a5c;width:100%;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#e0e0e0">
   <a href="../../portal.html" style="color:#f39c12;text-decoration:none;font-weight:600">← Меню</a>
   <div style="display:flex;gap:6px;align-items:center">
     <button onclick="printSheets()" class="hbtn" title="Печать чертежа (что видим — то печатаем)">🖨️ Печать</button>
@@ -2264,7 +2264,7 @@ function drawSection4(ctx) {
     ctx.strokeRect(tbRight, tentTopY, fw, totalFrameH * sc);
     ctx.fillStyle = '#27ae60';
     ctx.font = 'bold 48px DejaVu Sans';
-    ctx.fillText('рамка 20×20×1.5', tbRight + fw + 8, tentTopY + totalFrameH*sc/2);
+    ctx.fillText('рамка 20×20×1.5', tbLeft + fw + 8, tentTopY + totalFrameH*sc/2);
 
     ctx.strokeStyle = '#27ae60';
     ctx.lineWidth = 3;
@@ -2373,16 +2373,16 @@ function drawSection4(ctx) {
   drawPBracket(ltLCenterX, ltCenterY, ltW, ltH);
   drawPBracket(ltRCenterX, ltCenterY, ltW, ltH);
 
-  ctx.fillStyle = '#555';
-  ctx.font = '54px DejaVu Sans';
-  ctx.fillText('Ось: ' + bp.axleProfile + ' | Рессоры: ' + bp.springs + '-лист. ×' + (axles*2), secX, frameY - 70);
   ctx.fillStyle = '#e67e22';
   ctx.font = 'bold 48px DejaVu Sans';
   ctx.fillText('40×20×2', secX - 42, rearY + postVisH/2 + 3);
   ctx.fillText('40×20×2', secX + secW + 5, rearY + postVisH/2 + 3);
+  ctx.fillStyle = '#555';
+  ctx.font = '54px DejaVu Sans';
+  ctx.fillText(bp.frameProfile, secX + 10, frameY + 38);
   ctx.fillStyle = '#f39c12';
   ctx.font = '60px DejaVu Sans';
-  ctx.fillText(W + ' мм (заявл.) | ' + frameW + ' мм (рама)', secX + secW/2 - 70, boardTopY - 40);
+  ctx.fillText(W + ' мм (заявл.) | ' + frameW + ' мм (рама)', secX + secW/2 - 130, boardTopY - 40);
 
   const rearMetalM = ((180 * 2 + frameW) / 1000).toFixed(2);
   desc.push('Задняя рамка: 2 стойки 180 мм + перемычка ' + frameW + ' мм = ' + rearMetalM + ' м (40×20×2)');
@@ -2436,8 +2436,8 @@ function drawSection5(ctx) {
     ctx.setLineDash([]);
     const inRoof = shovFromTop > (220 + tentMM) && shovFromTop < (220 + tentMM + frameW);
     ctx.fillStyle = '#ff4444';
-    ctx.font = 'bold 54px DejaVu Sans';
-    ctx.fillText('← ШОВ ' + Math.round(shovFromTop) + ' мм ' + (inRoof ? '(на крыше)' : '(на боковине)'), tLayoutX + mainW + 4, shovY + 4);
+    ctx.font = 'bold 46px DejaVu Sans';
+    ctx.fillText('ШОВ ' + Math.round(shovFromTop) + (inRoof ? ' (крыша)' : ''), tLayoutX + mainW + 6, shovY + 4);
   }
 
   ctx.setLineDash([3,5]);

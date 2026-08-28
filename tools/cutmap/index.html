@@ -2262,10 +2262,6 @@ function drawSection4(ctx) {
     ctx.lineWidth = 2.5;
     ctx.strokeRect(tbLeft - fw, tentTopY, fw, totalFrameH * sc);
     ctx.strokeRect(tbRight, tentTopY, fw, totalFrameH * sc);
-    ctx.fillStyle = '#27ae60';
-    ctx.font = 'bold 48px DejaVu Sans';
-    ctx.fillText('рамка 20×20×1.5', tbLeft + fw + 8, tentTopY + totalFrameH*sc/2);
-
     ctx.strokeStyle = '#27ae60';
     ctx.lineWidth = 3;
     ctx.beginPath();
@@ -2286,7 +2282,7 @@ function drawSection4(ctx) {
     ctx.setLineDash([]);
 
     figDimArrow(ctx, tbLeft, tentTopY - 10, tbRight, tentTopY - 10, String(frameW+40) + ' мм', 'top');
-    figDim(ctx, secX + secW/2 - 50, tentTopY + 70, 'Дуга Π-обр. 20×20×1.5', '#27ae60');
+    figDim(ctx, secX + secW/2 - 40, tentTopY + 150, 'Дуга Π-обр. 20×20×1.5', '#27ae60');
     figDimArrow(ctx, tbLeft - 18, boardTopY, tbLeft - 18, tentTopY, 'тент ' + tentH + ' см', 'left');
   }
 
@@ -2311,7 +2307,7 @@ function drawSection4(ctx) {
   ctx.beginPath(); ctx.moveTo(secX, frameY); ctx.lineTo(secX + secW, frameY); ctx.stroke();
   ctx.fillStyle = '#555';
   ctx.font = '54px DejaVu Sans';
-  ctx.fillText(bp.frameProfile, secX + secW/2 - 20, frameY + 12);
+  ctx.fillText(bp.frameProfile, secX + 8, frameY + 30);
 
   const rearY = frameY;
   const postW = 20 * sc;
@@ -2368,7 +2364,6 @@ function drawSection4(ctx) {
     ctx.setLineDash([]);
     ctx.fillStyle = '#9b59b6';
     ctx.font = '42px DejaVu Sans';
-    ctx.fillText('180×200×140', left + 2, top - 3);
   }
   drawPBracket(ltLCenterX, ltCenterY, ltW, ltH);
   drawPBracket(ltRCenterX, ltCenterY, ltW, ltH);
@@ -2459,8 +2454,8 @@ function drawSection5(ctx) {
   ctx.setLineDash([]);
   ctx.fillStyle = '#555';
   ctx.font = '42px DejaVu Sans';
-  ctx.fillText('260', tLayoutX + 2, tLayoutY + mainH/2 + 3);
-  ctx.fillText('120', frameRightX + 2, tLayoutY + mainH/2 + 3);
+  ctx.fillText('260', tLayoutX + 2, mainH/2 + 55);
+  ctx.fillText('120', frameRightX + 2, mainH/2 + 55);
 
   ctx.setLineDash([5, 5]);
   ctx.strokeStyle = '#e74c3c';
@@ -2510,7 +2505,7 @@ function drawSection5(ctx) {
   ctx.fillStyle = '#e74c3c';
   ctx.font = 'bold 54px DejaVu Sans';
   ctx.fillText('БОК', tLayoutX + 6, tLayoutY + sideH/2 + 4);
-  ctx.fillText('КРЫША', tLayoutX + mainW/2 - 24, fold1Y + roofH/2 + 4);
+  ctx.fillText('КРЫША', tLayoutX + mainW/2 - 24, fold1Y + roofH/2 - 46);
   ctx.fillText('БОК', tLayoutX + 6, fold2Y + sideH/2 + 4);
 
   figDimArrow(ctx, tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, String(frameW+2*tentMM) + ' мм', 'left');
@@ -2539,7 +2534,7 @@ function drawSection5(ctx) {
   ctx.setLineDash([]);
   ctx.fillStyle = '#f39c12';
   ctx.font = 'bold 48px DejaVu Sans';
-  ctx.fillText('ПЕРЕД' + (aero?' -30':''), fFlapX + 4, fFlapY + fFlapH/2 + 4);
+  ctx.fillText('ПЕРЕД' + (aero?' -30':''), fFlapX + 4, fFlapY + fFlapH/2 - 41);
   figDimArrow(ctx, fFlapX + fFlapW + 4, fFlapY, fFlapX + fFlapW + 4, fFlapY + fFlapH, String(frameW+frontAdd*2) + ' мм', 'left');
 
   const rFlapW = (tentMM + 220 + 240) * tScale;
@@ -2563,7 +2558,7 @@ function drawSection5(ctx) {
   ctx.setLineDash([]);
   ctx.fillStyle = '#f39c12';
   ctx.font = 'bold 48px DejaVu Sans';
-  ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 + 4);
+  ctx.fillText('ЗАД', rFlapX + 4, rFlapY + rFlapH/2 - 41);
   figDimArrow(ctx, rFlapX - 18, rFlapY, rFlapX - 18, rFlapY + rFlapH, String(frameW+240) + ' мм', 'left');
   figDimArrow(ctx, rFlapX, rFlapY + rFlapH + 6, rFlapX + rFlapW, rFlapY + rFlapH + 6, String(tentMM+460) + ' мм', 'top');
 

@@ -2689,7 +2689,7 @@ function redrawCanvas() {
     ctx.fillText('БОК', tLayoutX + 6, fold2Y + sideH/2 + 4);
     ctx.fillStyle = '#fff';
     ctx.font = '48px DejaVu Sans';
-    ctx.fillText('ОСНОВНОЕ ПОЛОТНО', tLayoutX + mainW/2 - 55, tLayoutY + mainH/2);
+    ctx.fillText('ОСНОВНОЕ ПОЛОТНО', tLayoutX + mainW/2 - 55, (fold1Y + fold2Y)/2 + 4);
 
     // Размеры
     drawDimArrow(tLayoutX + mainW + 4, tLayoutY, tLayoutX + mainW + 4, tLayoutY + mainH, `${frameW+2*tentMM} мм`, 'left');
@@ -2763,7 +2763,7 @@ function redrawCanvas() {
 
     ctx.fillStyle = '#888';
     ctx.font = '48px DejaVu Sans';
-    ctx.fillText('клапаны припаиваются к крыше', tLayoutX + mainW/2 - 70, tLayoutY + mainH + 20);
+    ctx.fillText('клапаны припаиваются к крыше', tLayoutX + mainW/2 - 70, tLayoutY + mainH + 90);
 
     // ═══ Люверсы d10 ═══
     const louvOffsetMM = 50;

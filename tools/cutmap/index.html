@@ -744,7 +744,7 @@ function recalc() {
     const totalFrameM = (bp.boardH + tentMM) / 1000;
     const framePosts = Array(tentArchCount).fill(totalFrameM);
     // Дуги Π-образные: tentArchCount шт × (ширина + 2×100 мм ножки)
-    const archPieceM = (frameW + 240) / 1000;
+    const archPieceM = (frameW - 40 + 200) / 1000;
     const arches = Array(tentArchCount).fill(archPieceM);
     allProfilePieces.push({label:`Каркас тента 20×20×1.5`, pieces:[...frameRails, ...framePosts, ...arches]});
     // Проставки 25×25×2 - отдельный профиль
@@ -2281,7 +2281,7 @@ function drawSection4(ctx) {
     ctx.strokeRect(tbRight - spW/2, tentTopY, spW, 100*sc);
     ctx.setLineDash([]);
 
-    figDimArrow(ctx, tbLeft, tentTopY - 10, tbRight, tentTopY - 10, String(frameW+40) + ' мм', 'top');
+    figDimArrow(ctx, tbLeft, tentTopY - 10, tbRight, tentTopY - 10, String(frameW-40) + ' мм', 'top');
     ctx.strokeStyle = '#f39c12';
     ctx.lineWidth = 0.8;
     ctx.setLineDash([3,2]);

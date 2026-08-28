@@ -70,15 +70,13 @@ canvas{display:block;cursor:grab}
   #printLayout .specs-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   #printLayout .drawing-full { 
     page-break-after: always; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 90vh;
+    width: 100%;
+    height: auto;
   }
   #printLayout .print-drawing-img { 
-    max-width: 100%; 
-    max-height: 100%; 
-    object-fit: contain;
+    width: 100%; 
+    height: auto; 
+    display: block;
     filter: invert(0.92) hue-rotate(180deg);
     background: #fff;
   }
@@ -1717,8 +1715,8 @@ function redrawCanvas() {
   // ═══════════════════════════════════════════════
   // LAYOUT: 4 views arranged vertically
   // ═══════════════════════════════════════════════
-  const margin = 20;
-  const labelH = 18;
+  const margin = 30;
+  const labelH = 90;
   let curY = 10 + offY;
 
   const drawLabel = (x, y, text, color) => {
@@ -1979,7 +1977,7 @@ function redrawCanvas() {
   // ── Labels: ЗАД слева, ПЕРЕД справа ──
   ctx.fillStyle = '#888';
   ctx.font = 'bold 72px DejaVu Sans';
-  ctx.fillText('◄ ЗАД', rX - 50, rY + rH/2 + 4);
+  ctx.fillText('◄ ЗАД', rX - 190, rY + rH/2 + 4);
   ctx.fillStyle = '#fff';
   ctx.fillText('ПЕРЕД (дышло) ►', rX + rW + 8, rY + rH/2 + 4);
 
@@ -2049,17 +2047,17 @@ function redrawCanvas() {
     ctx.fillStyle = '#fff';
     ctx.beginPath(); ctx.arc(ATTACH_X, sy, 2.5, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 48px DejaVu Sans';
-    ctx.fillText('пл. 120×60×5', ATTACH_X + 4, sy - brW/2 - 2);
-    ctx.fillText('M12×80', ATTACH_X + 4, sy + brW/2 + 10);
+    ctx.fillText('пл. 120×60×5', ATTACH_X + 4, sy - brW/2 - 70);
+    ctx.fillText('M12×80', ATTACH_X + 4, sy + brW/2 + 70);
   });
 
   // Подписи дышла
   ctx.fillStyle = '#888'; ctx.font = '54px DejaVu Sans';
-  ctx.fillText('Hitch ►', HITCH_X-20, MID_Y-12);
-  ctx.fillText('120 см', (HITCH_X+FRONT_X)/2-20, MID_Y-12);
-  ctx.fillText('15 см', (HITCH_X+JOINT_X)/2-20, MID_Y+14);
-  ctx.fillText(`${dbSideLen*100} см`, (JOINT_X+ATTACH_X)/2-20, ATTACH_T-4);
-  ctx.fillText('~22 см', ATTACH_X-14, rY+rH/2-10);
+  ctx.fillText('Hitch ►', HITCH_X-30, MID_Y-70);
+  ctx.fillText('120 см', (HITCH_X+FRONT_X)/2-30, MID_Y-70);
+  ctx.fillText('15 см', (HITCH_X+JOINT_X)/2-30, MID_Y+70);
+  ctx.fillText(`${dbSideLen*100} см`, (JOINT_X+ATTACH_X)/2-30, ATTACH_T+40);
+  ctx.fillText('~22 см', ATTACH_X-180, rY+rH/2-30);
 
   // Размеры рамы
   drawDimArrow(rX, rY-8, rX+rW, rY-8, `${frameL} мм`, 'top');
@@ -2070,11 +2068,11 @@ function redrawCanvas() {
   let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ` + ${state.floorSeams} под швы пола` : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
-  ctx.fillText(annoText, rX, rY+rH+12);
-  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rH+24);
-  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rH+36);
+  ctx.fillText(annoText, rX, rY+rH+130);
+  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rH+196);
+  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rH+262);
 
-  curY = rY + rH + 60;
+  curY = rY + rH + 330;
   sectionRects.push({id:1, y:secY, h:curY - secY}); secY = curY;
 
   // ─────────────────────────────────────────────
@@ -2951,15 +2949,37 @@ function captureSections(printScale) {
   redrawCanvas();
 
   const imgs = [];
+  // ПЕЧАТНЫЙ ЗАГОТОВОК: каждый блок кладём на белый лист A4-альбом (297×210мм)
+  // с полями, чтобы печать снимала его 1:1 как готовый печатный макет.
+  // DPI: 300 → 1мм ≈ 11.81px. Лист: 3508×2480.
+  const A4W = 3508, A4H = 2480;
+  const MARGIN = Math.round(A4W * 0.06);   // поля ~6% (≈18мм)
   sectionRects.forEach((sr, idx) => {
     if (sr.h < 15) return;
+    // Источник (обычный canvas, тёмный фон). Считаем bbox по выбранной секции.
+    const srcW = canvas.width;
+    const srcH = Math.ceil(sr.h) + ((idx === sectionRects.length - 1) ? 400 : 50);
+    const srcY = sr.y;
+    // Вписываем секцию в лист с сохранением пропорций, с полями
+    const drawW = A4W - MARGIN*2;
+    const drawH = A4H - MARGIN*2;
+    const scale = Math.min(drawW / srcW, drawH / srcH);
+    const dw = srcW * scale, dh = srcH * scale;
+    const dxo = (A4W - dw) / 2, dyo = (A4H - dh) / 2;
+    // БЕЛЫЙ лист
     const sc = document.createElement('canvas');
-    sc.width = canvas.width;
-    // Добавляем запас снизу для последней секции (тент)
-    const extraPad = (idx === sectionRects.length - 1) ? 400 : 50;
-    sc.height = Math.ceil(sr.h) + extraPad;
-    sc.getContext('2d').drawImage(canvas, 0, sr.y, canvas.width, sr.h + extraPad, 0, 0, canvas.width, sr.h + extraPad);
-    imgs.push({id: sr.id, data: sc.toDataURL('image/jpeg', 0.92)});
+    sc.width = A4W; sc.height = A4H;
+    const sctx = sc.getContext('2d');
+    sctx.fillStyle = '#ffffff';
+    sctx.fillRect(0, 0, A4W, A4H);
+    // Рисуем секцию (с инверсией тёмной темы в светлую, как в CSS)
+    sctx.save();
+    sctx.translate(dxo, dyo);
+    sctx.scale(scale, scale);
+    sctx.filter = 'invert(0.92) hue-rotate(180deg)';
+    sctx.drawImage(canvas, 0, srcY, srcW, srcH, 0, 0, srcW, srcH);
+    sctx.restore();
+    imgs.push({id: sr.id, data: sc.toDataURL('image/png')});
   });
 
   baseScale = savedScale;
@@ -3025,7 +3045,7 @@ function printSpecs() {
 
 // Только чертежи (на всю ширину A4)
 function printDrawings() {
-  const imgs = captureSections(0.50);
+  const imgs = captureSections(0.60);
   const pl = document.getElementById('printLayout');
   pl.innerHTML = '<h1>📐 ' + state.brand + ' ' + (state.W/1000).toFixed(2) + '×' + (state.L/1000).toFixed(1) + ' м — Чертёж</h1>'
     + imgs.map(s => '<div class="drawing-full"><img src="' + s.data + '" class="print-drawing-img" alt="Чертёж ' + s.id + '"/></div>').join('');

@@ -1849,7 +1849,7 @@ function redrawCanvas() {
     ctx.font = 'bold 48px DejaVu Sans';
     for (let i = 0; i < pts.length - 1; i++) {
       const mx = rX + ((pts[i] + pts[i+1]) / 2 / frameL) * rW;
-      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH - 28);
+      ctx.fillText(`${Math.round(pts[i+1] - pts[i])}`, mx, rY + rH/2 + 40);
     }
   }
 
@@ -1940,7 +1940,7 @@ function redrawCanvas() {
       // подпись расстояния от зада (правее и выше, чтобы не перекрывалась перемычкой)
       ctx.fillStyle = '#00bcd4'; ctx.font = 'bold 48px DejaVu Sans';
       ctx.textAlign = 'center';
-      ctx.fillText(`${seamFromRear}`, sx + 12, rY + rH - 22);
+      ctx.fillText(`${seamFromRear}`, sx + 12, rY + rH/2 + 70);
       ctx.textAlign = 'start';
     }
     ctx.setLineDash([]);
@@ -1970,14 +1970,14 @@ function redrawCanvas() {
     }
   });
   ctx.fillStyle = '#f39c12'; ctx.font = '48px DejaVu Sans';
-  ctx.fillText(`• М6 пол→перемычки: ${totalFloorBolts} шт (шаг ~350 мм)`, rX, rY + rH + (state.hasFloorSeam ? 62 : 36));
+  ctx.fillText(`• М6 пол→перемычки: ${totalFloorBolts} шт (шаг ~350 мм)`, rX, rY + rH + 113);
   const rivetsPerSide = Math.ceil((2*(W+L)) / 300);
-  ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rH + (state.hasFloorSeam ? 76 : 50));
+  ctx.fillText(`• заклёпки 4.8×25 пол→лонжероны: ~${rivetsPerSide} шт`, rX, rY + rH + 178);
 
   // ── Labels: ЗАД слева, ПЕРЕД справа ──
   ctx.fillStyle = '#888';
   ctx.font = 'bold 72px DejaVu Sans';
-  ctx.fillText('◄ ЗАД', rX - 190, rY + rH/2 + 4);
+  ctx.fillText('◄ ЗАД', rX - 190, rY + rH - 30);
   ctx.fillStyle = '#fff';
   ctx.fillText('ПЕРЕД (дышло) ►', rX + rW + 8, rY + rH/2 + 4);
 
@@ -2068,11 +2068,11 @@ function redrawCanvas() {
   let annoText = `поперечин 40×20: ${totalCross} шт${state.hasFloorSeam ? ` + ${state.floorSeams} под швы пола` : ''} | кронштейны рессор: ${axles*4} шт | аморт: ${axles*2} шт | крылья: ${axles*2} шт`;
   if (axles === 1) annoText += ` | аморт. балка: +55 см`;
   if (axles === 2) annoText += ` | аморт. балки: +10 и +100 см`;
-  ctx.fillText(annoText, rX, rY+rH+130);
-  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rH+196);
-  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rH+262);
+  ctx.fillText(annoText, rX, rY+rH+243);
+  ctx.fillText(`профиль: ${bp.frameProfile} | ось: ${bp.axleProfile} | рессоры: ${bp.springs}-лист. ×${axles*2}`, rX, rY+rH+308);
+  if (brand !== 'Барсук') ctx.fillText(`центр. балка + косынки (4 шт)`, rX, rY+rH+373);
 
-  curY = rY + rH + 330;
+  curY = rY + rH + 460;
   sectionRects.push({id:1, y:secY, h:curY - secY}); secY = curY;
 
   // ─────────────────────────────────────────────

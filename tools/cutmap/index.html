@@ -1511,24 +1511,18 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   var totalZP = zpData ? zpData.zpTotal : 0;
   var grandTotal = totalMat + totalExtra + totalZP;
 
-  // Markup by brand × width (from standards)
-  var wCm = (st.W||1250) / 10;
-  var markup = 1.50; // fallback
-  if (st.brand === 'Барсук') {
-    if (wCm <= 125) markup = 1.50;
-    else if (wCm <= 150) markup = 1.60;
-    else markup = 1.60;
-  } else if (st.brand === 'Самбарс') {
-    if (wCm <= 125) markup = 1.55;
-    else if (wCm <= 150) markup = 1.65;
-    else if (wCm <= 170) markup = 1.80;
-    else if (wCm <= 193) markup = 2.00;
-    else markup = 2.00;
-  } else if (st.brand === 'Бизон') {
-    markup = 2.00;
-  }
+  // Ценообразование: единый алгоритм с базой бренда и шагами ширины/длины.
+  // Источник логики: вкладка "ЛОГИКА" в таблице стандартов.
+  var widthIndex = ({1250:0, 1500:1, 1700:2, 1930:3, 2000:3})[st.W] ?? 0;
+  var lengthIndex = ({2000:0, 2500:1, 3000:2, 3500:3, 4000:4, 4500:5})[st.L] ?? 0;
+  var markupBase = ({'Барсук':1.44, 'Самбарс':1.35, 'Бизон':1.45})[st.brand] ?? 1.44;
+  var markup = markupBase + 0.15 * widthIndex + 0.08 * lengthIndex + (st.axles === 2 ? 0.05 : 0);
+  // Дилерская цена — не отдельный коэффициент, а прозрачная скидка 9–20%
+  // по росту размера: 60% веса ширины + 40% веса длины.
+  var sizeProgress = Math.min(1, Math.max(0, (widthIndex / 3) * 0.6 + (lengthIndex / 5) * 0.4));
+  var dealerDiscount = 0.09 + 0.11 * sizeProgress;
   var retail = Math.round(grandTotal * markup / 100) * 100;
-  var wholesale = Math.round(grandTotal * (markup - 0.2) / 100) * 100;
+  var wholesale = Math.round(retail * (1 - dealerDiscount) / 100) * 100;
   var marginRetail = retail - grandTotal;
   var marginPctRetail = retail > 0 ? (marginRetail / retail * 100).toFixed(1) : 0;
   var marginWholesale = wholesale - grandTotal;
@@ -1572,7 +1566,7 @@ function renderSummary(pieces, bp, fSheets, sSheets, fArea, sArea, tentArea, ten
   html += '<tr style="border-top:2px solid #e94560"><td><b>ИТОГО себестоимость</b></td><td></td><td class="num"><b>' + grandTotal.toLocaleString() + ' ₽</b></td></tr>' +
     '<tr><td colspan="3" style="color:#888;padding-top:8px"><b>▸ Цена продажи</b></td></tr>' +
     '<tr><td>Розница (×' + markup.toFixed(2) + ')</td><td></td><td class="num" style="color:#f0c040;font-weight:bold">' + retail.toLocaleString() + ' ₽</td></tr>' +
-    '<tr><td>Опт (×' + (markup - 0.2).toFixed(2) + ')</td><td></td><td class="num" style="color:#f0c040">' + wholesale.toLocaleString() + ' ₽</td></tr>' +
+    '<tr><td>Опт (скидка ' + (dealerDiscount*100).toFixed(0) + '%)</td><td></td><td class="num" style="color:#f0c040">' + wholesale.toLocaleString() + ' ₽</td></tr>' +
     '<tr><td colspan="3" style="color:#888;padding-top:4px"><b>▸ Маржинальность</b></td></tr>' +
     '<tr><td>Розница</td><td class="num" style="color:#4caf50">' + marginPctRetail + '%</td><td class="num" style="color:#4caf50;font-weight:bold">' + marginRetail.toLocaleString() + ' ₽</td></tr>' +
     '<tr><td>Опт</td><td class="num" style="color:#4caf50">' + marginPctWholesale + '%</td><td class="num" style="color:#4caf50">' + marginWholesale.toLocaleString() + ' ₽</td></tr>' +

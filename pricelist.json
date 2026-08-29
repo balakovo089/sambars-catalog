@@ -9,12 +9,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 48675,
-    "retail": 73000,
-    "wholesale": 63300,
-    "marginRetail": 24325,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 14625,
-    "marginPctWholesale": "23.1"
+    "retail": 70100,
+    "wholesale": 63800,
+    "marginRetail": 21425,
+    "marginPctRetail": "30.6",
+    "marginWholesale": 15125,
+    "marginPctWholesale": "23.7"
   },
   {
     "num": 1,
@@ -26,12 +26,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 40719,
-    "retail": 61100,
-    "wholesale": 52900,
-    "marginRetail": 20381,
-    "marginPctRetail": "33.4",
-    "marginWholesale": 12181,
-    "marginPctWholesale": "23.0"
+    "retail": 58600,
+    "wholesale": 53300,
+    "marginRetail": 17881,
+    "marginPctRetail": "30.5",
+    "marginWholesale": 12581,
+    "marginPctWholesale": "23.6"
   },
   {
     "num": 1,
@@ -43,12 +43,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 34156,
-    "retail": 51200,
-    "wholesale": 44400,
-    "marginRetail": 17044,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 10244,
-    "marginPctWholesale": "23.1"
+    "retail": 49200,
+    "wholesale": 44800,
+    "marginRetail": 15044,
+    "marginPctRetail": "30.6",
+    "marginWholesale": 10644,
+    "marginPctWholesale": "23.8"
   },
   {
     "num": 1,
@@ -60,12 +60,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 31619,
-    "retail": 47400,
-    "wholesale": 41100,
-    "marginRetail": 15781,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 9481,
-    "marginPctWholesale": "23.1"
+    "retail": 45500,
+    "wholesale": 41400,
+    "marginRetail": 13881,
+    "marginPctRetail": "30.5",
+    "marginWholesale": 9781,
+    "marginPctWholesale": "23.6"
   },
   {
     "num": 2,
@@ -77,12 +77,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 51078,
-    "retail": 76600,
-    "wholesale": 66400,
-    "marginRetail": 25522,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 15322,
-    "marginPctWholesale": "23.1"
+    "retail": 77600,
+    "wholesale": 69900,
+    "marginRetail": 26522,
+    "marginPctRetail": "34.2",
+    "marginWholesale": 18822,
+    "marginPctWholesale": "26.9"
   },
   {
     "num": 2,
@@ -94,12 +94,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 41737,
-    "retail": 62600,
-    "wholesale": 54300,
-    "marginRetail": 20863,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 12563,
-    "marginPctWholesale": "23.1"
+    "retail": 63400,
+    "wholesale": 57100,
+    "marginRetail": 21663,
+    "marginPctRetail": "34.2",
+    "marginWholesale": 15363,
+    "marginPctWholesale": "26.9"
   },
   {
     "num": 2,
@@ -111,12 +111,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 34872,
-    "retail": 52300,
-    "wholesale": 45300,
-    "marginRetail": 17428,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 10428,
-    "marginPctWholesale": "23.0"
+    "retail": 53000,
+    "wholesale": 47800,
+    "marginRetail": 18128,
+    "marginPctRetail": "34.2",
+    "marginWholesale": 12928,
+    "marginPctWholesale": "27.0"
   },
   {
     "num": 2,
@@ -128,12 +128,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 32318,
-    "retail": 48500,
-    "wholesale": 42000,
-    "marginRetail": 16182,
-    "marginPctRetail": "33.4",
-    "marginWholesale": 9682,
-    "marginPctWholesale": "23.1"
+    "retail": 49100,
+    "wholesale": 44200,
+    "marginRetail": 16782,
+    "marginPctRetail": "34.2",
+    "marginWholesale": 11882,
+    "marginPctWholesale": "26.9"
   },
   {
     "num": 2,
@@ -145,12 +145,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 64962,
-    "retail": 97400,
-    "wholesale": 84500,
-    "marginRetail": 32438,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 19538,
-    "marginPctWholesale": "23.1"
+    "retail": 102000,
+    "wholesale": 91900,
+    "marginRetail": 37038,
+    "marginPctRetail": "36.3",
+    "marginWholesale": 26938,
+    "marginPctWholesale": "29.3"
   },
   {
     "num": 2,
@@ -162,12 +162,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 55623,
-    "retail": 83400,
-    "wholesale": 72300,
-    "marginRetail": 27777,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 16677,
-    "marginPctWholesale": "23.1"
+    "retail": 87300,
+    "wholesale": 78700,
+    "marginRetail": 31677,
+    "marginPctRetail": "36.3",
+    "marginWholesale": 23077,
+    "marginPctWholesale": "29.3"
   },
   {
     "num": 2,
@@ -179,12 +179,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 48757,
-    "retail": 73100,
-    "wholesale": 63400,
-    "marginRetail": 24343,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 14643,
-    "marginPctWholesale": "23.1"
+    "retail": 76500,
+    "wholesale": 68900,
+    "marginRetail": 27743,
+    "marginPctRetail": "36.3",
+    "marginWholesale": 20143,
+    "marginPctWholesale": "29.2"
   },
   {
     "num": 2,
@@ -196,12 +196,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 46186,
-    "retail": 69300,
-    "wholesale": 60000,
-    "marginRetail": 23114,
-    "marginPctRetail": "33.4",
-    "marginWholesale": 13814,
-    "marginPctWholesale": "23.0"
+    "retail": 72500,
+    "wholesale": 65300,
+    "marginRetail": 26314,
+    "marginPctRetail": "36.3",
+    "marginWholesale": 19114,
+    "marginPctWholesale": "29.3"
   },
   {
     "num": 3,
@@ -213,12 +213,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 56389,
-    "retail": 84600,
-    "wholesale": 73300,
-    "marginRetail": 28211,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 16911,
-    "marginPctWholesale": "23.1"
+    "retail": 90200,
+    "wholesale": 80500,
+    "marginRetail": 33811,
+    "marginPctRetail": "37.5",
+    "marginWholesale": 24111,
+    "marginPctWholesale": "30.0"
   },
   {
     "num": 3,
@@ -230,12 +230,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 45235,
-    "retail": 67900,
-    "wholesale": 58800,
-    "marginRetail": 22665,
-    "marginPctRetail": "33.4",
-    "marginWholesale": 13565,
-    "marginPctWholesale": "23.1"
+    "retail": 72400,
+    "wholesale": 64600,
+    "marginRetail": 27165,
+    "marginPctRetail": "37.5",
+    "marginWholesale": 19365,
+    "marginPctWholesale": "30.0"
   },
   {
     "num": 3,
@@ -247,12 +247,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 38069,
-    "retail": 57100,
-    "wholesale": 49500,
-    "marginRetail": 19031,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 11431,
-    "marginPctWholesale": "23.1"
+    "retail": 60900,
+    "wholesale": 54300,
+    "marginRetail": 22831,
+    "marginPctRetail": "37.5",
+    "marginWholesale": 16231,
+    "marginPctWholesale": "29.9"
   },
   {
     "num": 3,
@@ -264,12 +264,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 33200,
-    "retail": 49800,
-    "wholesale": 43200,
-    "marginRetail": 16600,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 10000,
-    "marginPctWholesale": "23.1"
+    "retail": 53100,
+    "wholesale": 47400,
+    "marginRetail": 19900,
+    "marginPctRetail": "37.5",
+    "marginWholesale": 14200,
+    "marginPctWholesale": "30.0"
   },
   {
     "num": 3,
@@ -281,12 +281,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 70329,
-    "retail": 105500,
-    "wholesale": 91400,
-    "marginRetail": 35171,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 21071,
-    "marginPctWholesale": "23.1"
+    "retail": 116000,
+    "wholesale": 103500,
+    "marginRetail": 45671,
+    "marginPctRetail": "39.4",
+    "marginWholesale": 33171,
+    "marginPctWholesale": "32.0"
   },
   {
     "num": 3,
@@ -298,12 +298,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 59118,
-    "retail": 88700,
-    "wholesale": 76900,
-    "marginRetail": 29582,
-    "marginPctRetail": "33.4",
-    "marginWholesale": 17782,
-    "marginPctWholesale": "23.1"
+    "retail": 97500,
+    "wholesale": 87000,
+    "marginRetail": 38382,
+    "marginPctRetail": "39.4",
+    "marginWholesale": 27882,
+    "marginPctWholesale": "32.0"
   },
   {
     "num": 3,
@@ -315,12 +315,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 51952,
-    "retail": 77900,
-    "wholesale": 67500,
-    "marginRetail": 25948,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 15548,
-    "marginPctWholesale": "23.0"
+    "retail": 85700,
+    "wholesale": 76500,
+    "marginRetail": 33748,
+    "marginPctRetail": "39.4",
+    "marginWholesale": 24548,
+    "marginPctWholesale": "32.1"
   },
   {
     "num": 3,
@@ -332,12 +332,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 47067,
-    "retail": 70600,
-    "wholesale": 61200,
-    "marginRetail": 23533,
-    "marginPctRetail": "33.3",
-    "marginWholesale": 14133,
-    "marginPctWholesale": "23.1"
+    "retail": 77700,
+    "wholesale": 69300,
+    "marginRetail": 30633,
+    "marginPctRetail": "39.4",
+    "marginWholesale": 22233,
+    "marginPctWholesale": "32.1"
   },
   {
     "num": 4,
@@ -349,12 +349,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 53857,
-    "retail": 86200,
-    "wholesale": 75400,
-    "marginRetail": 32343,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 21543,
-    "marginPctWholesale": "28.6"
+    "retail": 89900,
+    "wholesale": 79000,
+    "marginRetail": 36043,
+    "marginPctRetail": "40.1",
+    "marginWholesale": 25143,
+    "marginPctWholesale": "31.8"
   },
   {
     "num": 4,
@@ -366,12 +366,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 44106,
-    "retail": 70600,
-    "wholesale": 61700,
-    "marginRetail": 26494,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 17594,
-    "marginPctWholesale": "28.5"
+    "retail": 73700,
+    "wholesale": 64800,
+    "marginRetail": 29594,
+    "marginPctRetail": "40.2",
+    "marginWholesale": 20694,
+    "marginPctWholesale": "31.9"
   },
   {
     "num": 4,
@@ -383,12 +383,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 37048,
-    "retail": 59300,
-    "wholesale": 51900,
-    "marginRetail": 22252,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 14852,
-    "marginPctWholesale": "28.6"
+    "retail": 61900,
+    "wholesale": 54400,
+    "marginRetail": 24852,
+    "marginPctRetail": "40.1",
+    "marginWholesale": 17352,
+    "marginPctWholesale": "31.9"
   },
   {
     "num": 4,
@@ -400,12 +400,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 32935,
-    "retail": 52700,
-    "wholesale": 46100,
-    "marginRetail": 19765,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 13165,
-    "marginPctWholesale": "28.6"
+    "retail": 55000,
+    "wholesale": 48400,
+    "marginRetail": 22065,
+    "marginPctRetail": "40.1",
+    "marginWholesale": 15465,
+    "marginPctWholesale": "32.0"
   },
   {
     "num": 4,
@@ -417,12 +417,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 67873,
-    "retail": 108600,
-    "wholesale": 95000,
-    "marginRetail": 40727,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 27127,
-    "marginPctWholesale": "28.6"
+    "retail": 116700,
+    "wholesale": 102600,
+    "marginRetail": 48827,
+    "marginPctRetail": "41.8",
+    "marginWholesale": 34727,
+    "marginPctWholesale": "33.8"
   },
   {
     "num": 4,
@@ -434,12 +434,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 58126,
-    "retail": 93000,
-    "wholesale": 81400,
-    "marginRetail": 34874,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 23274,
-    "marginPctWholesale": "28.6"
+    "retail": 100000,
+    "wholesale": 87900,
+    "marginRetail": 41874,
+    "marginPctRetail": "41.9",
+    "marginWholesale": 29774,
+    "marginPctWholesale": "33.9"
   },
   {
     "num": 4,
@@ -451,12 +451,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 51066,
-    "retail": 81700,
-    "wholesale": 71500,
-    "marginRetail": 30634,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 20434,
-    "marginPctWholesale": "28.6"
+    "retail": 87800,
+    "wholesale": 77200,
+    "marginRetail": 36734,
+    "marginPctRetail": "41.8",
+    "marginWholesale": 26134,
+    "marginPctWholesale": "33.9"
   },
   {
     "num": 4,
@@ -468,12 +468,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 46936,
-    "retail": 75100,
-    "wholesale": 65700,
-    "marginRetail": 28164,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 18764,
-    "marginPctWholesale": "28.6"
+    "retail": 80700,
+    "wholesale": 71000,
+    "marginRetail": 33764,
+    "marginPctRetail": "41.8",
+    "marginWholesale": 24064,
+    "marginPctWholesale": "33.9"
   },
   {
     "num": 5,
@@ -485,12 +485,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 56834,
-    "retail": 90900,
-    "wholesale": 79600,
-    "marginRetail": 34066,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 22766,
-    "marginPctWholesale": "28.6"
+    "retail": 99500,
+    "wholesale": 86600,
+    "marginRetail": 42666,
+    "marginPctRetail": "42.9",
+    "marginWholesale": 29766,
+    "marginPctWholesale": "34.4"
   },
   {
     "num": 5,
@@ -502,12 +502,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 45332,
-    "retail": 72500,
-    "wholesale": 63500,
-    "marginRetail": 27168,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 18168,
-    "marginPctWholesale": "28.6"
+    "retail": 79300,
+    "wholesale": 69000,
+    "marginRetail": 33968,
+    "marginPctRetail": "42.8",
+    "marginWholesale": 23668,
+    "marginPctWholesale": "34.3"
   },
   {
     "num": 5,
@@ -519,12 +519,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 37974,
-    "retail": 60800,
-    "wholesale": 53200,
-    "marginRetail": 22826,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 15226,
-    "marginPctWholesale": "28.6"
+    "retail": 66500,
+    "wholesale": 57900,
+    "marginRetail": 28526,
+    "marginPctRetail": "42.9",
+    "marginWholesale": 19926,
+    "marginPctWholesale": "34.4"
   },
   {
     "num": 5,
@@ -536,12 +536,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 33841,
-    "retail": 54100,
-    "wholesale": 47400,
-    "marginRetail": 20259,
-    "marginPctRetail": "37.4",
-    "marginWholesale": 13559,
-    "marginPctWholesale": "28.6"
+    "retail": 59200,
+    "wholesale": 51500,
+    "marginRetail": 25359,
+    "marginPctRetail": "42.8",
+    "marginWholesale": 17659,
+    "marginPctWholesale": "34.3"
   },
   {
     "num": 5,
@@ -553,12 +553,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 70865,
-    "retail": 113400,
-    "wholesale": 99200,
-    "marginRetail": 42535,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 28335,
-    "marginPctWholesale": "28.6"
+    "retail": 127600,
+    "wholesale": 111100,
+    "marginRetail": 56735,
+    "marginPctRetail": "44.5",
+    "marginWholesale": 40235,
+    "marginPctWholesale": "36.2"
   },
   {
     "num": 5,
@@ -570,12 +570,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 59350,
-    "retail": 95000,
-    "wholesale": 83100,
-    "marginRetail": 35650,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 23750,
-    "marginPctWholesale": "28.6"
+    "retail": 106800,
+    "wholesale": 93000,
+    "marginRetail": 47450,
+    "marginPctRetail": "44.4",
+    "marginWholesale": 33650,
+    "marginPctWholesale": "36.2"
   },
   {
     "num": 5,
@@ -587,12 +587,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 51992,
-    "retail": 83200,
-    "wholesale": 72800,
-    "marginRetail": 31208,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 20808,
-    "marginPctWholesale": "28.6"
+    "retail": 93600,
+    "wholesale": 81500,
+    "marginRetail": 41608,
+    "marginPctRetail": "44.5",
+    "marginWholesale": 29508,
+    "marginPctWholesale": "36.2"
   },
   {
     "num": 5,
@@ -604,12 +604,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 47844,
-    "retail": 76600,
-    "wholesale": 67000,
-    "marginRetail": 28756,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 19156,
-    "marginPctWholesale": "28.6"
+    "retail": 86100,
+    "wholesale": 74900,
+    "marginRetail": 38256,
+    "marginPctRetail": "44.4",
+    "marginWholesale": 27056,
+    "marginPctWholesale": "36.1"
   },
   {
     "num": 6,
@@ -621,12 +621,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 63131,
-    "retail": 101000,
-    "wholesale": 88400,
-    "marginRetail": 37869,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 25269,
-    "marginPctWholesale": "28.6"
+    "retail": 115500,
+    "wholesale": 99500,
+    "marginRetail": 52369,
+    "marginPctRetail": "45.3",
+    "marginWholesale": 36369,
+    "marginPctWholesale": "36.6"
   },
   {
     "num": 6,
@@ -638,12 +638,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 50326,
-    "retail": 80500,
-    "wholesale": 70500,
-    "marginRetail": 30174,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 20174,
-    "marginPctWholesale": "28.6"
+    "retail": 92100,
+    "wholesale": 79400,
+    "marginRetail": 41774,
+    "marginPctRetail": "45.4",
+    "marginWholesale": 29074,
+    "marginPctWholesale": "36.6"
   },
   {
     "num": 6,
@@ -655,12 +655,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 42581,
-    "retail": 68100,
-    "wholesale": 59600,
-    "marginRetail": 25519,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 17019,
-    "marginPctWholesale": "28.6"
+    "retail": 77900,
+    "wholesale": 67100,
+    "marginRetail": 35319,
+    "marginPctRetail": "45.3",
+    "marginWholesale": 24519,
+    "marginPctWholesale": "36.5"
   },
   {
     "num": 6,
@@ -672,12 +672,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 34563,
-    "retail": 55300,
-    "wholesale": 48400,
-    "marginRetail": 20737,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 13837,
-    "marginPctWholesale": "28.6"
+    "retail": 63300,
+    "wholesale": 54500,
+    "marginRetail": 28737,
+    "marginPctRetail": "45.4",
+    "marginWholesale": 19937,
+    "marginPctWholesale": "36.6"
   },
   {
     "num": 6,
@@ -689,12 +689,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 76983,
-    "retail": 123200,
-    "wholesale": 107800,
-    "marginRetail": 46217,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 30817,
-    "marginPctWholesale": "28.6"
+    "retail": 144700,
+    "wholesale": 124700,
+    "marginRetail": 67717,
+    "marginPctRetail": "46.8",
+    "marginWholesale": 47717,
+    "marginPctWholesale": "38.3"
   },
   {
     "num": 6,
@@ -706,12 +706,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 64177,
-    "retail": 102700,
-    "wholesale": 89800,
-    "marginRetail": 38523,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 25623,
-    "marginPctWholesale": "28.5"
+    "retail": 120700,
+    "wholesale": 104000,
+    "marginRetail": 56523,
+    "marginPctRetail": "46.8",
+    "marginWholesale": 39823,
+    "marginPctWholesale": "38.3"
   },
   {
     "num": 6,
@@ -723,12 +723,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 56432,
-    "retail": 90300,
-    "wholesale": 79000,
-    "marginRetail": 33868,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 22568,
-    "marginPctWholesale": "28.6"
+    "retail": 106100,
+    "wholesale": 91400,
+    "marginRetail": 49668,
+    "marginPctRetail": "46.8",
+    "marginWholesale": 34968,
+    "marginPctWholesale": "38.3"
   },
   {
     "num": 6,
@@ -740,12 +740,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 48414,
-    "retail": 77500,
-    "wholesale": 67800,
-    "marginRetail": 29086,
-    "marginPctRetail": "37.5",
-    "marginWholesale": 19386,
-    "marginPctWholesale": "28.6"
+    "retail": 91000,
+    "wholesale": 78400,
+    "marginRetail": 42586,
+    "marginPctRetail": "46.8",
+    "marginWholesale": 29986,
+    "marginPctWholesale": "38.2"
   },
   {
     "num": 7,
@@ -757,12 +757,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 60279,
-    "retail": 93400,
-    "wholesale": 81400,
-    "marginRetail": 33121,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 21121,
-    "marginPctWholesale": "25.9"
+    "retail": 81400,
+    "wholesale": 74100,
+    "marginRetail": 21121,
+    "marginPctRetail": "25.9",
+    "marginWholesale": 13821,
+    "marginPctWholesale": "18.7"
   },
   {
     "num": 7,
@@ -774,12 +774,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 48086,
-    "retail": 74500,
-    "wholesale": 64900,
-    "marginRetail": 26414,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 16814,
-    "marginPctWholesale": "25.9"
+    "retail": 64900,
+    "wholesale": 59100,
+    "marginRetail": 16814,
+    "marginPctRetail": "25.9",
+    "marginWholesale": 11014,
+    "marginPctWholesale": "18.6"
   },
   {
     "num": 7,
@@ -791,12 +791,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 39620,
-    "retail": 61400,
-    "wholesale": 53500,
-    "marginRetail": 21780,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 13880,
-    "marginPctWholesale": "25.9"
+    "retail": 53500,
+    "wholesale": 48700,
+    "marginRetail": 13880,
+    "marginPctRetail": "25.9",
+    "marginWholesale": 9080,
+    "marginPctWholesale": "18.6"
   },
   {
     "num": 7,
@@ -808,12 +808,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 36943,
-    "retail": 57300,
-    "wholesale": 49900,
-    "marginRetail": 20357,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 12957,
-    "marginPctWholesale": "26.0"
+    "retail": 49900,
+    "wholesale": 45400,
+    "marginRetail": 12957,
+    "marginPctRetail": "26.0",
+    "marginWholesale": 8457,
+    "marginPctWholesale": "18.6"
   },
   {
     "num": 8,
@@ -825,12 +825,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 64097,
-    "retail": 99400,
-    "wholesale": 86500,
-    "marginRetail": 35303,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 22403,
-    "marginPctWholesale": "25.9"
+    "retail": 91700,
+    "wholesale": 82600,
+    "marginRetail": 27603,
+    "marginPctRetail": "30.1",
+    "marginWholesale": 18503,
+    "marginPctWholesale": "22.4"
   },
   {
     "num": 8,
@@ -842,12 +842,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 49502,
-    "retail": 76700,
-    "wholesale": 66800,
-    "marginRetail": 27198,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 17298,
-    "marginPctWholesale": "25.9"
+    "retail": 70800,
+    "wholesale": 63800,
+    "marginRetail": 21298,
+    "marginPctRetail": "30.1",
+    "marginWholesale": 14298,
+    "marginPctWholesale": "22.4"
   },
   {
     "num": 8,
@@ -859,12 +859,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 40582,
-    "retail": 62900,
-    "wholesale": 54800,
-    "marginRetail": 22318,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 14218,
-    "marginPctWholesale": "25.9"
+    "retail": 58000,
+    "wholesale": 52300,
+    "marginRetail": 17418,
+    "marginPctRetail": "30.0",
+    "marginWholesale": 11718,
+    "marginPctWholesale": "22.4"
   },
   {
     "num": 8,
@@ -876,12 +876,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 37901,
-    "retail": 58700,
-    "wholesale": 51200,
-    "marginRetail": 20799,
-    "marginPctRetail": "35.4",
-    "marginWholesale": 13299,
-    "marginPctWholesale": "26.0"
+    "retail": 54200,
+    "wholesale": 48800,
+    "marginRetail": 16299,
+    "marginPctRetail": "30.1",
+    "marginWholesale": 10899,
+    "marginPctWholesale": "22.3"
   },
   {
     "num": 8,
@@ -893,12 +893,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 78402,
-    "retail": 121500,
-    "wholesale": 105800,
-    "marginRetail": 43098,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 27398,
-    "marginPctWholesale": "25.9"
+    "retail": 116000,
+    "wholesale": 104500,
+    "marginRetail": 37598,
+    "marginPctRetail": "32.4",
+    "marginWholesale": 26098,
+    "marginPctWholesale": "25.0"
   },
   {
     "num": 8,
@@ -910,12 +910,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 63807,
-    "retail": 98900,
-    "wholesale": 86100,
-    "marginRetail": 35093,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 22293,
-    "marginPctWholesale": "25.9"
+    "retail": 94400,
+    "wholesale": 85100,
+    "marginRetail": 30593,
+    "marginPctRetail": "32.4",
+    "marginWholesale": 21293,
+    "marginPctWholesale": "25.0"
   },
   {
     "num": 8,
@@ -927,12 +927,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 54901,
-    "retail": 85100,
-    "wholesale": 74100,
-    "marginRetail": 30199,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 19199,
-    "marginPctWholesale": "25.9"
+    "retail": 81300,
+    "wholesale": 73300,
+    "marginRetail": 26399,
+    "marginPctRetail": "32.5",
+    "marginWholesale": 18399,
+    "marginPctWholesale": "25.1"
   },
   {
     "num": 8,
@@ -944,12 +944,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 52205,
-    "retail": 80900,
-    "wholesale": 70500,
-    "marginRetail": 28695,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 18295,
-    "marginPctWholesale": "26.0"
+    "retail": 77300,
+    "wholesale": 69700,
+    "marginRetail": 25095,
+    "marginPctRetail": "32.5",
+    "marginWholesale": 17495,
+    "marginPctWholesale": "25.1"
   },
   {
     "num": 9,
@@ -961,12 +961,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 69436,
-    "retail": 107600,
-    "wholesale": 93700,
-    "marginRetail": 38164,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 24264,
-    "marginPctWholesale": "25.9"
+    "retail": 104800,
+    "wholesale": 93500,
+    "marginRetail": 35364,
+    "marginPctRetail": "33.7",
+    "marginWholesale": 24064,
+    "marginPctWholesale": "25.7"
   },
   {
     "num": 9,
@@ -978,12 +978,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 53663,
-    "retail": 83200,
-    "wholesale": 72400,
-    "marginRetail": 29537,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 18737,
-    "marginPctWholesale": "25.9"
+    "retail": 81000,
+    "wholesale": 72300,
+    "marginRetail": 27337,
+    "marginPctRetail": "33.7",
+    "marginWholesale": 18637,
+    "marginPctWholesale": "25.8"
   },
   {
     "num": 9,
@@ -995,12 +995,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 44311,
-    "retail": 68700,
-    "wholesale": 59800,
-    "marginRetail": 24389,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 15489,
-    "marginPctWholesale": "25.9"
+    "retail": 66900,
+    "wholesale": 59700,
+    "marginRetail": 22589,
+    "marginPctRetail": "33.8",
+    "marginWholesale": 15389,
+    "marginPctWholesale": "25.8"
   },
   {
     "num": 9,
@@ -1012,12 +1012,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 39315,
-    "retail": 60900,
-    "wholesale": 53100,
-    "marginRetail": 21585,
-    "marginPctRetail": "35.4",
-    "marginWholesale": 13785,
-    "marginPctWholesale": "26.0"
+    "retail": 59400,
+    "wholesale": 53000,
+    "marginRetail": 20085,
+    "marginPctRetail": "33.8",
+    "marginWholesale": 13685,
+    "marginPctWholesale": "25.8"
   },
   {
     "num": 9,
@@ -1029,12 +1029,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 83740,
-    "retail": 129800,
-    "wholesale": 113000,
-    "marginRetail": 46060,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 29260,
-    "marginPctWholesale": "25.9"
+    "retail": 130600,
+    "wholesale": 116500,
+    "marginRetail": 46860,
+    "marginPctRetail": "35.9",
+    "marginWholesale": 32760,
+    "marginPctWholesale": "28.1"
   },
   {
     "num": 9,
@@ -1046,12 +1046,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 67981,
-    "retail": 105400,
-    "wholesale": 91800,
-    "marginRetail": 37419,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 23819,
-    "marginPctWholesale": "25.9"
+    "retail": 106100,
+    "wholesale": 94700,
+    "marginRetail": 38119,
+    "marginPctRetail": "35.9",
+    "marginWholesale": 26719,
+    "marginPctWholesale": "28.2"
   },
   {
     "num": 9,
@@ -1063,12 +1063,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 58616,
-    "retail": 90900,
-    "wholesale": 79100,
-    "marginRetail": 32284,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 20484,
-    "marginPctWholesale": "25.9"
+    "retail": 91400,
+    "wholesale": 81600,
+    "marginRetail": 32784,
+    "marginPctRetail": "35.9",
+    "marginWholesale": 22984,
+    "marginPctWholesale": "28.2"
   },
   {
     "num": 9,
@@ -1080,12 +1080,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 53604,
-    "retail": 83100,
-    "wholesale": 72400,
-    "marginRetail": 29496,
-    "marginPctRetail": "35.5",
-    "marginWholesale": 18796,
-    "marginPctWholesale": "26.0"
+    "retail": 83600,
+    "wholesale": 74600,
+    "marginRetail": 29996,
+    "marginPctRetail": "35.9",
+    "marginWholesale": 20996,
+    "marginPctWholesale": "28.1"
   },
   {
     "num": 10,
@@ -1097,12 +1097,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 66987,
-    "retail": 110500,
-    "wholesale": 97100,
-    "marginRetail": 43513,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 30113,
-    "marginPctWholesale": "31.0"
+    "retail": 105800,
+    "wholesale": 93000,
+    "marginRetail": 38813,
+    "marginPctRetail": "36.7",
+    "marginWholesale": 26013,
+    "marginPctWholesale": "28.0"
   },
   {
     "num": 10,
@@ -1114,12 +1114,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 51938,
-    "retail": 85700,
-    "wholesale": 75300,
-    "marginRetail": 33762,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 23362,
-    "marginPctWholesale": "31.0"
+    "retail": 82100,
+    "wholesale": 72200,
+    "marginRetail": 30162,
+    "marginPctRetail": "36.7",
+    "marginWholesale": 20262,
+    "marginPctWholesale": "28.1"
   },
   {
     "num": 10,
@@ -1131,12 +1131,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 42821,
-    "retail": 70700,
-    "wholesale": 62100,
-    "marginRetail": 27879,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 19279,
-    "marginPctWholesale": "31.0"
+    "retail": 67700,
+    "wholesale": 59500,
+    "marginRetail": 24879,
+    "marginPctRetail": "36.7",
+    "marginWholesale": 16679,
+    "marginPctWholesale": "28.0"
   },
   {
     "num": 10,
@@ -1148,12 +1148,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 38589,
-    "retail": 63700,
-    "wholesale": 56000,
-    "marginRetail": 25111,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 17411,
-    "marginPctWholesale": "31.1"
+    "retail": 61000,
+    "wholesale": 53600,
+    "marginRetail": 22411,
+    "marginPctRetail": "36.7",
+    "marginWholesale": 15011,
+    "marginPctWholesale": "28.0"
   },
   {
     "num": 10,
@@ -1165,12 +1165,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 81449,
-    "retail": 134400,
-    "wholesale": 118100,
-    "marginRetail": 52951,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 36651,
-    "marginPctWholesale": "31.0"
+    "retail": 132800,
+    "wholesale": 116800,
+    "marginRetail": 51351,
+    "marginPctRetail": "38.7",
+    "marginWholesale": 35351,
+    "marginPctWholesale": "30.3"
   },
   {
     "num": 10,
@@ -1182,12 +1182,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 66401,
-    "retail": 109600,
-    "wholesale": 96300,
-    "marginRetail": 43199,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 29899,
-    "marginPctWholesale": "31.0"
+    "retail": 108200,
+    "wholesale": 95100,
+    "marginRetail": 41799,
+    "marginPctRetail": "38.6",
+    "marginWholesale": 28699,
+    "marginPctWholesale": "30.2"
   },
   {
     "num": 10,
@@ -1199,12 +1199,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 57297,
-    "retail": 94500,
-    "wholesale": 83100,
-    "marginRetail": 37203,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 25803,
-    "marginPctWholesale": "31.1"
+    "retail": 93400,
+    "wholesale": 82100,
+    "marginRetail": 36103,
+    "marginPctRetail": "38.7",
+    "marginWholesale": 24803,
+    "marginPctWholesale": "30.2"
   },
   {
     "num": 10,
@@ -1216,12 +1216,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 53050,
-    "retail": 87500,
-    "wholesale": 76900,
-    "marginRetail": 34450,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 23850,
-    "marginPctWholesale": "31.0"
+    "retail": 86500,
+    "wholesale": 76100,
+    "marginRetail": 33450,
+    "marginPctRetail": "38.7",
+    "marginWholesale": 23050,
+    "marginPctWholesale": "30.3"
   },
   {
     "num": 11,
@@ -1233,12 +1233,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 70086,
-    "retail": 115600,
-    "wholesale": 101600,
-    "marginRetail": 45514,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 31514,
-    "marginPctWholesale": "31.0"
+    "retail": 116300,
+    "wholesale": 101200,
+    "marginRetail": 46214,
+    "marginPctRetail": "39.7",
+    "marginWholesale": 31114,
+    "marginPctWholesale": "30.7"
   },
   {
     "num": 11,
@@ -1250,12 +1250,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 53826,
-    "retail": 88800,
-    "wholesale": 78000,
-    "marginRetail": 34974,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 24174,
-    "marginPctWholesale": "31.0"
+    "retail": 89400,
+    "wholesale": 77800,
+    "marginRetail": 35574,
+    "marginPctRetail": "39.8",
+    "marginWholesale": 23974,
+    "marginPctWholesale": "30.8"
   },
   {
     "num": 11,
@@ -1267,12 +1267,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 44276,
-    "retail": 73100,
-    "wholesale": 64200,
-    "marginRetail": 28824,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 19924,
-    "marginPctWholesale": "31.0"
+    "retail": 73500,
+    "wholesale": 64000,
+    "marginRetail": 29224,
+    "marginPctRetail": "39.8",
+    "marginWholesale": 19724,
+    "marginPctWholesale": "30.8"
   },
   {
     "num": 11,
@@ -1284,12 +1284,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 40027,
-    "retail": 66000,
-    "wholesale": 58000,
-    "marginRetail": 25973,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 17973,
-    "marginPctWholesale": "31.0"
+    "retail": 66400,
+    "wholesale": 57800,
+    "marginRetail": 26373,
+    "marginPctRetail": "39.7",
+    "marginWholesale": 17773,
+    "marginPctWholesale": "30.7"
   },
   {
     "num": 11,
@@ -1301,12 +1301,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 84549,
-    "retail": 139500,
-    "wholesale": 122600,
-    "marginRetail": 54951,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 38051,
-    "marginPctWholesale": "31.0"
+    "retail": 144600,
+    "wholesale": 125900,
+    "marginRetail": 60051,
+    "marginPctRetail": "41.5",
+    "marginWholesale": 41351,
+    "marginPctWholesale": "32.8"
   },
   {
     "num": 11,
@@ -1318,12 +1318,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 68302,
-    "retail": 112700,
-    "wholesale": 99000,
-    "marginRetail": 44398,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 30698,
-    "marginPctWholesale": "31.0"
+    "retail": 116800,
+    "wholesale": 101700,
+    "marginRetail": 48498,
+    "marginPctRetail": "41.5",
+    "marginWholesale": 33398,
+    "marginPctWholesale": "32.8"
   },
   {
     "num": 11,
@@ -1335,12 +1335,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 58739,
-    "retail": 96900,
-    "wholesale": 85200,
-    "marginRetail": 38161,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 26461,
-    "marginPctWholesale": "31.1"
+    "retail": 100400,
+    "wholesale": 87400,
+    "marginRetail": 41661,
+    "marginPctRetail": "41.5",
+    "marginWholesale": 28661,
+    "marginPctWholesale": "32.8"
   },
   {
     "num": 11,
@@ -1352,12 +1352,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 54473,
-    "retail": 89900,
-    "wholesale": 79000,
-    "marginRetail": 35427,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 24527,
-    "marginPctWholesale": "31.0"
+    "retail": 93100,
+    "wholesale": 81000,
+    "marginRetail": 38627,
+    "marginPctRetail": "41.5",
+    "marginWholesale": 26527,
+    "marginPctWholesale": "32.7"
   },
   {
     "num": 12,
@@ -1369,12 +1369,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 77172,
-    "retail": 127300,
-    "wholesale": 111900,
-    "marginRetail": 50128,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 34728,
-    "marginPctWholesale": "31.0"
+    "retail": 134300,
+    "wholesale": 115700,
+    "marginRetail": 57128,
+    "marginPctRetail": "42.5",
+    "marginWholesale": 38528,
+    "marginPctWholesale": "33.3"
   },
   {
     "num": 12,
@@ -1386,12 +1386,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 59400,
-    "retail": 98000,
-    "wholesale": 86100,
-    "marginRetail": 38600,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 26700,
-    "marginPctWholesale": "31.0"
+    "retail": 103400,
+    "wholesale": 89100,
+    "marginRetail": 44000,
+    "marginPctRetail": "42.6",
+    "marginWholesale": 29700,
+    "marginPctWholesale": "33.3"
   },
   {
     "num": 12,
@@ -1403,12 +1403,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 49269,
-    "retail": 81300,
-    "wholesale": 71400,
-    "marginRetail": 32031,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 22131,
-    "marginPctWholesale": "31.0"
+    "retail": 85700,
+    "wholesale": 73800,
+    "marginRetail": 36431,
+    "marginPctRetail": "42.5",
+    "marginWholesale": 24531,
+    "marginPctWholesale": "33.2"
   },
   {
     "num": 12,
@@ -1420,12 +1420,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 41131,
-    "retail": 67900,
-    "wholesale": 59600,
-    "marginRetail": 26769,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 18469,
-    "marginPctWholesale": "31.0"
+    "retail": 71600,
+    "wholesale": 61700,
+    "marginRetail": 30469,
+    "marginPctRetail": "42.6",
+    "marginWholesale": 20569,
+    "marginPctWholesale": "33.3"
   },
   {
     "num": 12,
@@ -1437,12 +1437,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 91468,
-    "retail": 150900,
-    "wholesale": 132600,
-    "marginRetail": 59432,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 41132,
-    "marginPctWholesale": "31.0"
+    "retail": 163700,
+    "wholesale": 141000,
+    "marginRetail": 72232,
+    "marginPctRetail": "44.1",
+    "marginWholesale": 49532,
+    "marginPctWholesale": "35.1"
   },
   {
     "num": 12,
@@ -1454,12 +1454,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 73694,
-    "retail": 121600,
-    "wholesale": 106900,
-    "marginRetail": 47906,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 33206,
-    "marginPctWholesale": "31.1"
+    "retail": 131900,
+    "wholesale": 113600,
+    "marginRetail": 58206,
+    "marginPctRetail": "44.1",
+    "marginWholesale": 39906,
+    "marginPctWholesale": "35.1"
   },
   {
     "num": 12,
@@ -1471,12 +1471,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 63564,
-    "retail": 104900,
-    "wholesale": 92200,
-    "marginRetail": 41336,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 28636,
-    "marginPctWholesale": "31.1"
+    "retail": 113800,
+    "wholesale": 98100,
+    "marginRetail": 50236,
+    "marginPctRetail": "44.1",
+    "marginWholesale": 34536,
+    "marginPctWholesale": "35.2"
   },
   {
     "num": 12,
@@ -1488,12 +1488,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 55423,
-    "retail": 91400,
-    "wholesale": 80400,
-    "marginRetail": 35977,
-    "marginPctRetail": "39.4",
-    "marginWholesale": 24977,
-    "marginPctWholesale": "31.1"
+    "retail": 99200,
+    "wholesale": 85500,
+    "marginRetail": 43777,
+    "marginPctRetail": "44.1",
+    "marginWholesale": 30077,
+    "marginPctWholesale": "35.2"
   },
   {
     "num": 13,
@@ -1505,12 +1505,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 76885,
-    "retail": 138400,
-    "wholesale": 123000,
-    "marginRetail": 61515,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 46115,
-    "marginPctWholesale": "37.5"
+    "retail": 139200,
+    "wholesale": 118100,
+    "marginRetail": 62315,
+    "marginPctRetail": "44.8",
+    "marginWholesale": 41215,
+    "marginPctWholesale": "34.9"
   },
   {
     "num": 13,
@@ -1522,12 +1522,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 58016,
-    "retail": 104400,
-    "wholesale": 92800,
-    "marginRetail": 46384,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 34784,
-    "marginPctWholesale": "37.5"
+    "retail": 105000,
+    "wholesale": 89100,
+    "marginRetail": 46984,
+    "marginPctRetail": "44.7",
+    "marginWholesale": 31084,
+    "marginPctWholesale": "34.9"
   },
   {
     "num": 13,
@@ -1539,12 +1539,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 48171,
-    "retail": 86700,
-    "wholesale": 77100,
-    "marginRetail": 38529,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 28929,
-    "marginPctWholesale": "37.5"
+    "retail": 87200,
+    "wholesale": 74000,
+    "marginRetail": 39029,
+    "marginPctRetail": "44.8",
+    "marginWholesale": 25829,
+    "marginPctWholesale": "34.9"
   },
   {
     "num": 13,
@@ -1556,12 +1556,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 40749,
-    "retail": 73300,
-    "wholesale": 65200,
-    "marginRetail": 32551,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 24451,
-    "marginPctWholesale": "37.5"
+    "retail": 73800,
+    "wholesale": 62600,
+    "marginRetail": 33051,
+    "marginPctRetail": "44.8",
+    "marginWholesale": 21851,
+    "marginPctWholesale": "34.9"
   },
   {
     "num": 13,
@@ -1573,12 +1573,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 91482,
-    "retail": 164700,
-    "wholesale": 146400,
-    "marginRetail": 73218,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 54918,
-    "marginPctWholesale": "37.5"
+    "retail": 170200,
+    "wholesale": 144400,
+    "marginRetail": 78718,
+    "marginPctRetail": "46.3",
+    "marginWholesale": 52918,
+    "marginPctWholesale": "36.6"
   },
   {
     "num": 13,
@@ -1590,12 +1590,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 72613,
-    "retail": 130700,
-    "wholesale": 116200,
-    "marginRetail": 58087,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 43587,
-    "marginPctWholesale": "37.5"
+    "retail": 135100,
+    "wholesale": 114600,
+    "marginRetail": 62487,
+    "marginPctRetail": "46.3",
+    "marginWholesale": 41987,
+    "marginPctWholesale": "36.6"
   },
   {
     "num": 13,
@@ -1607,12 +1607,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 62769,
-    "retail": 113000,
-    "wholesale": 100400,
-    "marginRetail": 50231,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 37631,
-    "marginPctWholesale": "37.5"
+    "retail": 116800,
+    "wholesale": 99100,
+    "marginRetail": 54031,
+    "marginPctRetail": "46.3",
+    "marginWholesale": 36331,
+    "marginPctWholesale": "36.7"
   },
   {
     "num": 13,
@@ -1624,12 +1624,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 55325,
-    "retail": 99600,
-    "wholesale": 88500,
-    "marginRetail": 44275,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 33175,
-    "marginPctWholesale": "37.5"
+    "retail": 102900,
+    "wholesale": 87300,
+    "marginRetail": 47575,
+    "marginPctRetail": "46.2",
+    "marginWholesale": 31975,
+    "marginPctWholesale": "36.6"
   },
   {
     "num": 14,
@@ -1641,12 +1641,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 80463,
-    "retail": 144800,
-    "wholesale": 128700,
-    "marginRetail": 64337,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 48237,
-    "marginPctWholesale": "37.5"
+    "retail": 152100,
+    "wholesale": 127700,
+    "marginRetail": 71637,
+    "marginPctRetail": "47.1",
+    "marginWholesale": 47237,
+    "marginPctWholesale": "37.0"
   },
   {
     "num": 14,
@@ -1658,12 +1658,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 59732,
-    "retail": 107500,
-    "wholesale": 95600,
-    "marginRetail": 47768,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 35868,
-    "marginPctWholesale": "37.5"
+    "retail": 112900,
+    "wholesale": 94800,
+    "marginRetail": 53168,
+    "marginPctRetail": "47.1",
+    "marginWholesale": 35068,
+    "marginPctWholesale": "37.0"
   },
   {
     "num": 14,
@@ -1675,12 +1675,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 49318,
-    "retail": 88800,
-    "wholesale": 78900,
-    "marginRetail": 39482,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 29582,
-    "marginPctWholesale": "37.5"
+    "retail": 93200,
+    "wholesale": 78300,
+    "marginRetail": 43882,
+    "marginPctRetail": "47.1",
+    "marginWholesale": 28982,
+    "marginPctWholesale": "37.0"
   },
   {
     "num": 14,
@@ -1692,12 +1692,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 41873,
-    "retail": 75400,
-    "wholesale": 67000,
-    "marginRetail": 33527,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 25127,
-    "marginPctWholesale": "37.5"
+    "retail": 79100,
+    "wholesale": 66400,
+    "marginRetail": 37227,
+    "marginPctRetail": "47.1",
+    "marginWholesale": 24527,
+    "marginPctWholesale": "36.9"
   },
   {
     "num": 14,
@@ -1709,12 +1709,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 94867,
-    "retail": 170800,
-    "wholesale": 151800,
-    "marginRetail": 75933,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 56933,
-    "marginPctWholesale": "37.5"
+    "retail": 184000,
+    "wholesale": 154500,
+    "marginRetail": 89133,
+    "marginPctRetail": "48.4",
+    "marginWholesale": 59633,
+    "marginPctWholesale": "38.6"
   },
   {
     "num": 14,
@@ -1726,12 +1726,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 74135,
-    "retail": 133400,
-    "wholesale": 118600,
-    "marginRetail": 59265,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 44465,
-    "marginPctWholesale": "37.5"
+    "retail": 143800,
+    "wholesale": 120700,
+    "marginRetail": 69665,
+    "marginPctRetail": "48.4",
+    "marginWholesale": 46565,
+    "marginPctWholesale": "38.6"
   },
   {
     "num": 14,
@@ -1743,12 +1743,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 63721,
-    "retail": 114700,
-    "wholesale": 102000,
-    "marginRetail": 50979,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 38279,
-    "marginPctWholesale": "37.5"
+    "retail": 123600,
+    "wholesale": 103800,
+    "marginRetail": 59879,
+    "marginPctRetail": "48.4",
+    "marginWholesale": 40079,
+    "marginPctWholesale": "38.6"
   },
   {
     "num": 14,
@@ -1760,12 +1760,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 56275,
-    "retail": 101300,
-    "wholesale": 90000,
-    "marginRetail": 45025,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 33725,
-    "marginPctWholesale": "37.5"
+    "retail": 109200,
+    "wholesale": 91700,
+    "marginRetail": 52925,
+    "marginPctRetail": "48.5",
+    "marginWholesale": 35425,
+    "marginPctWholesale": "38.6"
   },
   {
     "num": 15,
@@ -1777,12 +1777,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 88344,
-    "retail": 159000,
-    "wholesale": 141400,
-    "marginRetail": 70656,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 53056,
-    "marginPctWholesale": "37.5"
+    "retail": 174000,
+    "wholesale": 144600,
+    "marginRetail": 85656,
+    "marginPctRetail": "49.2",
+    "marginWholesale": 56256,
+    "marginPctWholesale": "38.9"
   },
   {
     "num": 15,
@@ -1794,12 +1794,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 65746,
-    "retail": 118300,
-    "wholesale": 105200,
-    "marginRetail": 52554,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 39454,
-    "marginPctWholesale": "37.5"
+    "retail": 129500,
+    "wholesale": 107600,
+    "marginRetail": 63754,
+    "marginPctRetail": "49.2",
+    "marginWholesale": 41854,
+    "marginPctWholesale": "38.9"
   },
   {
     "num": 15,
@@ -1811,12 +1811,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 52613,
-    "retail": 94700,
-    "wholesale": 84200,
-    "marginRetail": 42087,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 31587,
-    "marginPctWholesale": "37.5"
+    "retail": 103600,
+    "wholesale": 86100,
+    "marginRetail": 50987,
+    "marginPctRetail": "49.2",
+    "marginWholesale": 33487,
+    "marginPctWholesale": "38.9"
   },
   {
     "num": 15,
@@ -1828,12 +1828,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 42821,
-    "retail": 77100,
-    "wholesale": 68500,
-    "marginRetail": 34279,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 25679,
-    "marginPctWholesale": "37.5"
+    "retail": 84400,
+    "wholesale": 70100,
+    "marginRetail": 41579,
+    "marginPctRetail": "49.3",
+    "marginWholesale": 27279,
+    "marginPctWholesale": "38.9"
   },
   {
     "num": 15,
@@ -1845,12 +1845,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 103134,
-    "retail": 185600,
-    "wholesale": 165000,
-    "marginRetail": 82466,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 61866,
-    "marginPctWholesale": "37.5"
+    "retail": 208300,
+    "wholesale": 173100,
+    "marginRetail": 105166,
+    "marginPctRetail": "50.5",
+    "marginWholesale": 69966,
+    "marginPctWholesale": "40.4"
   },
   {
     "num": 15,
@@ -1862,12 +1862,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 80536,
-    "retail": 145000,
-    "wholesale": 128900,
-    "marginRetail": 64464,
-    "marginPctRetail": "44.5",
-    "marginWholesale": 48364,
-    "marginPctWholesale": "37.5"
+    "retail": 162700,
+    "wholesale": 135200,
+    "marginRetail": 82164,
+    "marginPctRetail": "50.5",
+    "marginWholesale": 54664,
+    "marginPctWholesale": "40.4"
   },
   {
     "num": 15,
@@ -1879,12 +1879,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 67405,
-    "retail": 121300,
-    "wholesale": 107800,
-    "marginRetail": 53895,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 40395,
-    "marginPctWholesale": "37.5"
+    "retail": 136200,
+    "wholesale": 113200,
+    "marginRetail": 68795,
+    "marginPctRetail": "50.5",
+    "marginWholesale": 45795,
+    "marginPctWholesale": "40.5"
   },
   {
     "num": 15,
@@ -1896,12 +1896,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 57573,
-    "retail": 103600,
-    "wholesale": 92100,
-    "marginRetail": 46027,
-    "marginPctRetail": "44.4",
-    "marginWholesale": 34527,
-    "marginPctWholesale": "37.5"
+    "retail": 116300,
+    "wholesale": 96600,
+    "marginRetail": 58727,
+    "marginPctRetail": "50.5",
+    "marginWholesale": 39027,
+    "marginPctWholesale": "40.4"
   },
   {
     "num": 16,
@@ -1913,12 +1913,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 86288,
-    "retail": 172600,
-    "wholesale": 155300,
-    "marginRetail": 86312,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 69012,
-    "marginPctWholesale": "44.4"
+    "retail": 176000,
+    "wholesale": 143900,
+    "marginRetail": 89712,
+    "marginPctRetail": "51.0",
+    "marginWholesale": 57612,
+    "marginPctWholesale": "40.0"
   },
   {
     "num": 16,
@@ -1930,12 +1930,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 63665,
-    "retail": 127300,
-    "wholesale": 114600,
-    "marginRetail": 63635,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 50935,
-    "marginPctWholesale": "44.4"
+    "retail": 129900,
+    "wholesale": 106200,
+    "marginRetail": 66235,
+    "marginPctRetail": "51.0",
+    "marginWholesale": 42535,
+    "marginPctWholesale": "40.1"
   },
   {
     "num": 16,
@@ -1947,12 +1947,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 50550,
-    "retail": 101100,
-    "wholesale": 91000,
-    "marginRetail": 50550,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 40450,
-    "marginPctWholesale": "44.5"
+    "retail": 103100,
+    "wholesale": 84300,
+    "marginRetail": 52550,
+    "marginPctRetail": "51.0",
+    "marginWholesale": 33750,
+    "marginPctWholesale": "40.0"
   },
   {
     "num": 16,
@@ -1964,12 +1964,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 42993,
-    "retail": 86000,
-    "wholesale": 77400,
-    "marginRetail": 43007,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 34407,
-    "marginPctWholesale": "44.5"
+    "retail": 87700,
+    "wholesale": 71700,
+    "marginRetail": 44707,
+    "marginPctRetail": "51.0",
+    "marginWholesale": 28707,
+    "marginPctWholesale": "40.0"
   },
   {
     "num": 16,
@@ -1981,12 +1981,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 100862,
-    "retail": 201700,
-    "wholesale": 181600,
-    "marginRetail": 100838,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 80738,
-    "marginPctWholesale": "44.5"
+    "retail": 210800,
+    "wholesale": 172400,
+    "marginRetail": 109938,
+    "marginPctRetail": "52.2",
+    "marginWholesale": 71538,
+    "marginPctWholesale": "41.5"
   },
   {
     "num": 16,
@@ -1998,12 +1998,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 78225,
-    "retail": 156500,
-    "wholesale": 140800,
-    "marginRetail": 78275,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 62575,
-    "marginPctWholesale": "44.4"
+    "retail": 163500,
+    "wholesale": 133700,
+    "marginRetail": 85275,
+    "marginPctRetail": "52.2",
+    "marginWholesale": 55475,
+    "marginPctWholesale": "41.5"
   },
   {
     "num": 16,
@@ -2015,12 +2015,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 65112,
-    "retail": 130200,
-    "wholesale": 117200,
-    "marginRetail": 65088,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 52088,
-    "marginPctWholesale": "44.4"
+    "retail": 136100,
+    "wholesale": 111300,
+    "marginRetail": 70988,
+    "marginPctRetail": "52.2",
+    "marginWholesale": 46188,
+    "marginPctWholesale": "41.5"
   },
   {
     "num": 16,
@@ -2032,12 +2032,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 57554,
-    "retail": 115100,
-    "wholesale": 103600,
-    "marginRetail": 57546,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 46046,
-    "marginPctWholesale": "44.4"
+    "retail": 120300,
+    "wholesale": 98400,
+    "marginRetail": 62746,
+    "marginPctRetail": "52.2",
+    "marginWholesale": 40846,
+    "marginPctWholesale": "41.5"
   },
   {
     "num": 17,
@@ -2049,12 +2049,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 92236,
-    "retail": 184500,
-    "wholesale": 166000,
-    "marginRetail": 92264,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 73764,
-    "marginPctWholesale": "44.4"
+    "retail": 195500,
+    "wholesale": 158100,
+    "marginRetail": 103264,
+    "marginPctRetail": "52.8",
+    "marginWholesale": 65864,
+    "marginPctWholesale": "41.7"
   },
   {
     "num": 17,
@@ -2066,12 +2066,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 67561,
-    "retail": 135100,
-    "wholesale": 121600,
-    "marginRetail": 67539,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 54039,
-    "marginPctWholesale": "44.4"
+    "retail": 143200,
+    "wholesale": 115800,
+    "marginRetail": 75639,
+    "marginPctRetail": "52.8",
+    "marginWholesale": 48239,
+    "marginPctWholesale": "41.7"
   },
   {
     "num": 17,
@@ -2083,12 +2083,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 53880,
-    "retail": 107800,
-    "wholesale": 97000,
-    "marginRetail": 53920,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 43120,
-    "marginPctWholesale": "44.5"
+    "retail": 114200,
+    "wholesale": 92400,
+    "marginRetail": 60320,
+    "marginPctRetail": "52.8",
+    "marginWholesale": 38520,
+    "marginPctWholesale": "41.7"
   },
   {
     "num": 17,
@@ -2100,12 +2100,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 43944,
-    "retail": 87900,
-    "wholesale": 79100,
-    "marginRetail": 43956,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 35156,
-    "marginPctWholesale": "44.4"
+    "retail": 93200,
+    "wholesale": 75400,
+    "marginRetail": 49256,
+    "marginPctRetail": "52.8",
+    "marginWholesale": 31456,
+    "marginPctWholesale": "41.7"
   },
   {
     "num": 17,
@@ -2117,12 +2117,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 107250,
-    "retail": 214500,
-    "wholesale": 193100,
-    "marginRetail": 107250,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 85850,
-    "marginPctWholesale": "44.5"
+    "retail": 232700,
+    "wholesale": 188200,
+    "marginRetail": 125450,
+    "marginPctRetail": "53.9",
+    "marginWholesale": 80950,
+    "marginPctWholesale": "43.0"
   },
   {
     "num": 17,
@@ -2134,12 +2134,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 82576,
-    "retail": 165200,
-    "wholesale": 148600,
-    "marginRetail": 82624,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 66024,
-    "marginPctWholesale": "44.4"
+    "retail": 179200,
+    "wholesale": 144900,
+    "marginRetail": 96624,
+    "marginPctRetail": "53.9",
+    "marginWholesale": 62324,
+    "marginPctWholesale": "43.0"
   },
   {
     "num": 17,
@@ -2151,12 +2151,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 68894,
-    "retail": 137800,
-    "wholesale": 124000,
-    "marginRetail": 68906,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 55106,
-    "marginPctWholesale": "44.4"
+    "retail": 149500,
+    "wholesale": 120900,
+    "marginRetail": 80606,
+    "marginPctRetail": "53.9",
+    "marginWholesale": 52006,
+    "marginPctWholesale": "43.0"
   },
   {
     "num": 17,
@@ -2168,12 +2168,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 58910,
-    "retail": 117800,
-    "wholesale": 106000,
-    "marginRetail": 58890,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 47090,
-    "marginPctWholesale": "44.4"
+    "retail": 127800,
+    "wholesale": 103400,
+    "marginRetail": 68890,
+    "marginPctRetail": "53.9",
+    "marginWholesale": 44490,
+    "marginPctWholesale": "43.0"
   },
   {
     "num": 18,
@@ -2185,12 +2185,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 95744,
-    "retail": 191500,
-    "wholesale": 172300,
-    "marginRetail": 95756,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 76556,
-    "marginPctWholesale": "44.4"
+    "retail": 210600,
+    "wholesale": 168500,
+    "marginRetail": 114856,
+    "marginPctRetail": "54.5",
+    "marginWholesale": 72756,
+    "marginPctWholesale": "43.2"
   },
   {
     "num": 18,
@@ -2202,12 +2202,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 69423,
-    "retail": 138800,
-    "wholesale": 125000,
-    "marginRetail": 69377,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 55577,
-    "marginPctWholesale": "44.5"
+    "retail": 152700,
+    "wholesale": 122200,
+    "marginRetail": 83277,
+    "marginPctRetail": "54.5",
+    "marginWholesale": 52777,
+    "marginPctWholesale": "43.2"
   },
   {
     "num": 18,
@@ -2219,12 +2219,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 55286,
-    "retail": 110600,
-    "wholesale": 99500,
-    "marginRetail": 55314,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 44214,
-    "marginPctWholesale": "44.4"
+    "retail": 121600,
+    "wholesale": 97300,
+    "marginRetail": 66314,
+    "marginPctRetail": "54.5",
+    "marginWholesale": 42014,
+    "marginPctWholesale": "43.2"
   },
   {
     "num": 18,
@@ -2236,12 +2236,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 45298,
-    "retail": 90600,
-    "wholesale": 81500,
-    "marginRetail": 45302,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 36202,
-    "marginPctWholesale": "44.4"
+    "retail": 99700,
+    "wholesale": 79800,
+    "marginRetail": 54402,
+    "marginPctRetail": "54.6",
+    "marginWholesale": 34502,
+    "marginPctWholesale": "43.2"
   },
   {
     "num": 18,
@@ -2253,10 +2253,10 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 110306,
-    "retail": 220600,
+    "retail": 248200,
     "wholesale": 198600,
-    "marginRetail": 110294,
-    "marginPctRetail": "50.0",
+    "marginRetail": 137894,
+    "marginPctRetail": "55.6",
     "marginWholesale": 88294,
     "marginPctWholesale": "44.5"
   },
@@ -2270,10 +2270,10 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 83984,
-    "retail": 168000,
+    "retail": 189000,
     "wholesale": 151200,
-    "marginRetail": 84016,
-    "marginPctRetail": "50.0",
+    "marginRetail": 105016,
+    "marginPctRetail": "55.6",
     "marginWholesale": 67216,
     "marginPctWholesale": "44.5"
   },
@@ -2287,12 +2287,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 69847,
-    "retail": 139700,
-    "wholesale": 125700,
-    "marginRetail": 69853,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 55853,
-    "marginPctWholesale": "44.4"
+    "retail": 157200,
+    "wholesale": 125800,
+    "marginRetail": 87353,
+    "marginPctRetail": "55.6",
+    "marginWholesale": 55953,
+    "marginPctWholesale": "44.5"
   },
   {
     "num": 18,
@@ -2304,12 +2304,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 59859,
-    "retail": 119700,
-    "wholesale": 107700,
-    "marginRetail": 59841,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 47841,
-    "marginPctWholesale": "44.4"
+    "retail": 134700,
+    "wholesale": 107800,
+    "marginRetail": 74841,
+    "marginPctRetail": "55.6",
+    "marginWholesale": 47941,
+    "marginPctWholesale": "44.5"
   },
   {
     "num": 19,
@@ -2321,12 +2321,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 105947,
-    "retail": 211900,
-    "wholesale": 190700,
-    "marginRetail": 105953,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 84753,
-    "marginPctWholesale": "44.4"
+    "retail": 232000,
+    "wholesale": 189700,
+    "marginRetail": 126053,
+    "marginPctRetail": "54.3",
+    "marginWholesale": 83753,
+    "marginPctWholesale": "44.2"
   },
   {
     "num": 19,
@@ -2338,12 +2338,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 83501,
-    "retail": 167000,
-    "wholesale": 150300,
-    "marginRetail": 83499,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 66799,
-    "marginPctWholesale": "44.4"
+    "retail": 182900,
+    "wholesale": 149500,
+    "marginRetail": 99399,
+    "marginPctRetail": "54.3",
+    "marginWholesale": 65999,
+    "marginPctWholesale": "44.1"
   },
   {
     "num": 19,
@@ -2355,12 +2355,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 70651,
-    "retail": 141300,
-    "wholesale": 127200,
-    "marginRetail": 70649,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 56549,
-    "marginPctWholesale": "44.5"
+    "retail": 154700,
+    "wholesale": 126500,
+    "marginRetail": 84049,
+    "marginPctRetail": "54.3",
+    "marginWholesale": 55849,
+    "marginPctWholesale": "44.1"
   },
   {
     "num": 19,
@@ -2372,12 +2372,12 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 63135,
-    "retail": 126300,
-    "wholesale": 113600,
-    "marginRetail": 63165,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 50465,
-    "marginPctWholesale": "44.4"
+    "retail": 138300,
+    "wholesale": 113100,
+    "marginRetail": 75165,
+    "marginPctRetail": "54.3",
+    "marginWholesale": 49965,
+    "marginPctWholesale": "44.2"
   },
   {
     "num": 20,
@@ -2389,12 +2389,12 @@
     "kit": 4,
     "kitName": "Бортовой с тентом",
     "cost": 112582,
-    "retail": 225200,
-    "wholesale": 202600,
-    "marginRetail": 112618,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 90018,
-    "marginPctWholesale": "44.4"
+    "retail": 255600,
+    "wholesale": 206700,
+    "marginRetail": 143018,
+    "marginPctRetail": "56.0",
+    "marginWholesale": 94118,
+    "marginPctWholesale": "45.5"
   },
   {
     "num": 20,
@@ -2406,12 +2406,12 @@
     "kit": 3,
     "kitName": "Бортовой",
     "cost": 88092,
-    "retail": 176200,
-    "wholesale": 158600,
-    "marginRetail": 88108,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 70508,
-    "marginPctWholesale": "44.5"
+    "retail": 200000,
+    "wholesale": 161800,
+    "marginRetail": 111908,
+    "marginPctRetail": "56.0",
+    "marginWholesale": 73708,
+    "marginPctWholesale": "45.6"
   },
   {
     "num": 20,
@@ -2423,12 +2423,12 @@
     "kit": 2,
     "kitName": "Рама с полом",
     "cost": 74673,
-    "retail": 149300,
-    "wholesale": 134400,
-    "marginRetail": 74627,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 59727,
-    "marginPctWholesale": "44.4"
+    "retail": 169500,
+    "wholesale": 137100,
+    "marginRetail": 94827,
+    "marginPctRetail": "55.9",
+    "marginWholesale": 62427,
+    "marginPctWholesale": "45.5"
   },
   {
     "num": 20,
@@ -2440,11 +2440,11 @@
     "kit": 1,
     "kitName": "Рама",
     "cost": 64732,
-    "retail": 129500,
-    "wholesale": 116500,
-    "marginRetail": 64768,
-    "marginPctRetail": "50.0",
-    "marginWholesale": 51768,
-    "marginPctWholesale": "44.4"
+    "retail": 146900,
+    "wholesale": 118800,
+    "marginRetail": 82168,
+    "marginPctRetail": "55.9",
+    "marginWholesale": 54068,
+    "marginPctWholesale": "45.5"
   }
 ]

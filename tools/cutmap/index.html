@@ -890,8 +890,10 @@ function recalc() {
   renderConsumables(consumables);
   renderOperations(zpData.ops, zpData.opSum, bp.rate, zpData);
   
-  updateMeta();
-  renderSheets();
+  if (!BATCH_MODE) {
+    updateMeta();
+    renderSheets();
+  }
 }
 
 // ══════════════════════════════════════════════════════════

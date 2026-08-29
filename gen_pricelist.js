@@ -21,6 +21,7 @@ const TIMEOUT = 60000; // 60 seconds max
   console.log('🚀 Запускаю headless Chrome...');
   const browser = await puppeteer.launch({
     headless: 'new',
+    protocolTimeout: 1200000,
     args: ['--no-sandbox', '--disable-setuid-sandbox']
   });
 
@@ -33,11 +34,11 @@ const TIMEOUT = 60000; // 60 seconds max
     page.on('pageerror', err => console.error('Page error:', err.message));
     
     console.log(`📡 Открываю: ${CUTMAP_URL}`);
-    await page.goto(CUTMAP_URL, { waitUntil: 'networkidle0', timeout: TIMEOUT });
+    await page.goto(CUTMAP_URL, { waitUntil: 'domcontentloaded', timeout: TIMEOUT });
 
     // Wait for JS to execute batchRun (setTimeout 500ms + computation)
-    console.log('⏳ Жду расчёт batch (10 сек)...');
-    await new Promise(r => setTimeout(r, 10000));
+    console.log('⏳ Жду расчёт batch (30 сек)...');
+    await new Promise(r => setTimeout(r, 30000));
     
     // Check page content
     const text = await page.evaluate(() => {

@@ -321,6 +321,7 @@ function onModelChange() {
 }
 
 function onAxleChange() {
+  if(BATCH_RUNNING) return;
   state.axles = parseInt(document.getElementById('axles').value);
   recalc();
 }
@@ -2855,6 +2856,7 @@ if (BATCH_MODE) {
 
 // ═══ BATCH MODE ═══
 function batchRun() {
+  BATCH_RUNNING = true;
   var results = [];
   var kitNames = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
   

@@ -741,9 +741,9 @@ function recalc() {
   if (tentFrameM > 0) {
     // Боковые рамки: 2 рамки × (верх + низ) = 4 куска по frameL
     const frameRails = [frameL/1000, frameL/1000, frameL/1000, frameL/1000];
-    // Стойки рамок: tentArchCount шт × totalFrameH (борт + тент)
+    // Стойки рамок: tentArchCount шт × 2 стороны × totalFrameH (борт + тент)
     const totalFrameM = (bp.boardH + tentMM) / 1000;
-    const framePosts = Array(tentArchCount).fill(totalFrameM);
+    const framePosts = Array(tentArchCount * 2).fill(totalFrameM);
     // Дуги Π-образные: tentArchCount шт × (ширина + 2×100 мм ножки)
     const archPieceM = (frameW - 40 + 200) / 1000;
     const arches = Array(tentArchCount).fill(archPieceM);

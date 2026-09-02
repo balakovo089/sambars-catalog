@@ -130,6 +130,7 @@ td.num.bold{font-weight:bold;color:#f0c040}
 <div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px">
   <button class="btn btn-export" onclick="exportCSV()">📥 Excel (CSV)</button>
   <button class="btn btn-pdf" onclick="generateBlank()">📄 Бланк ИК</button>
+  <button class="btn btn-pdf" onclick="generateM15()">📦 Накладная М-15</button>
   <button class="btn btn-pdf" onclick="window.print()">🖨️ PDF</button>
 </div>
 </div>
@@ -469,7 +470,7 @@ function recalc(){
   document.getElementById('grandTotal').innerHTML = 'ИТОГО металла: '+totalWeight.toFixed(0)+' кг | ЗП: '+zpTotal.toLocaleString()+' ₽';
 
   window._blank = {
-    zpPerModel, aggPieces, totalWeight, rate, totalZpMin, zpTotal,
+    zpPerModel, aggPieces, aggBrackets, totalWeight, rate, totalZpMin, zpTotal,
     cons: {wire, gas, cutDiscs, grindDiscs, gloves, kragi, consCost, consPrices}
   };
 }
@@ -667,6 +668,71 @@ ${cons}
 <table class="sign"><tr><td>Заказчик:</td><td>Подрядчик:</td></tr>
 <tr><td>__________________ О.А. Антуганов</td><td>____________________________</td></tr>
 <tr><td>«_____» ____________ ${yyyy} г.</td><td>«_____» ____________ ${yyyy} г.</td></tr></table>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>{ w.print(); }, 400);
+}
+
+// ═══ НАКЛАДНАЯ М-15 ═══
+function generateM15(){
+  const d = window._blank;
+  if(!d || !d.zpPerModel || !d.zpPerModel.length) return;
+  const num = document.getElementById('orderNum').value;
+  const dateStr = document.getElementById('orderDate').value;
+  let date='________';
+  if(dateStr){ const p=dateStr.split('-'); date=`${p[2]}.${p[1]}.${p[0]}`; }
+
+  let rows='', n=0, total=0;
+  Object.entries(d.aggPieces).sort((a,b)=>b[1]-a[1]).forEach(([prof,m])=>{
+    n++;
+    const price=TUBES[prof]?TUBES[prof].price:0;
+    const sum=Math.round(m*price);
+    total+=sum;
+    rows += `<tr><td>${n}</td><td>Профиль ${prof}</td><td>м</td><td class="num">${m.toFixed(1)}</td><td class="num">${price}</td><td class="num">${sum.toLocaleString('ru-RU')}</td></tr>`;
+  });
+  Object.entries(d.aggBrackets).forEach(([name,qty])=>{
+    n++;
+    const price=BRACKET_PRICES[name]||0;
+    const sum=Math.round(qty*price);
+    total+=sum;
+    rows += `<tr><td>${n}</td><td>${name}</td><td>шт</td><td class="num">${qty}</td><td class="num">${price}</td><td class="num">${sum.toLocaleString('ru-RU')}</td></tr>`;
+  });
+
+  const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Накладная М-15</title>
+<style>
+body{font-family:'Times New Roman',serif;font-size:10pt;margin:20px;color:#000}
+.small{font-size:8pt;text-align:right;margin-bottom:8px}
+h2{font-size:12pt;text-align:center;margin:2px 0 12px;font-weight:bold}
+table{border-collapse:collapse;width:100%;margin:6px 0}
+th,td{border:1px solid #000;padding:4px 6px;text-align:left;font-size:9pt;vertical-align:top}
+th{text-align:center;font-weight:bold}
+.num{text-align:right}
+.sign{width:100%;margin-top:24px}
+.sign td{border:none;padding:6px 10px}
+@media print{body{margin:8mm}}
+</style></head><body>
+<div class="small">Типовая межотраслевая форма № М-15<br>Утверждена Постановлением Госкомстата России от 30.10.97 № 71а</div>
+<h2>НАКЛАДНАЯ № ${num}<br>на отпуск материалов на сторону</h2>
+<table class="meta">
+<tr><td>Форма по ОКУД</td><td>0315007</td><td>по ОКПО</td><td>53220428</td></tr>
+<tr><td colspan="4"><b>Организация:</b> ООО «САМБАРС», 443101, г. Самара, ул. Хасановская, д. 47, цех 1, ИНН 6317163799, КПП 631701001</td></tr>
+<tr><td>Дата составления</td><td>${date}</td><td>Основание</td><td>Договор подряда № 1 от 15.01.2026</td></tr>
+<tr><td>Кому</td><td>ФКУ ИК-4</td><td>Через кого</td><td></td></tr>
+</table>
+<table>
+<tr><th>№ п/п</th><th>Материальные ценности (наименование, сорт, размер, марка)</th><th>Ед. изм.</th><th>Кол-во (отпустить)</th><th>Цена, руб. коп.</th><th>Сумма без НДС, руб. коп.</th></tr>
+${rows}
+<tr><td colspan="3" style="text-align:right"><b>Всего:</b></td><td class="num"></td><td></td><td class="num"><b>${total.toLocaleString('ru-RU')}</b></td></tr>
+</table>
+<p>Всего отпущено <b>${n}</b> наименований на сумму <b>${total.toLocaleString('ru-RU')}</b> руб. 00 коп.</p>
+<table class="sign">
+<tr><td>Отпуск разрешил</td><td>Ген. директор</td><td>________________</td><td>Антуганов О.А.</td><td>Главный бухгалтер</td><td>________________</td><td>Антуганов О.А.</td></tr>
+<tr><td>Отпустил</td><td>Ген. директор</td><td>________________</td><td>Антуганов О.А.</td><td>Получил</td><td>________________</td><td>______________________</td></tr>
+</table>
 </body></html>`;
 
   const w = window.open('', '_blank');

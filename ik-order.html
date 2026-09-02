@@ -129,6 +129,7 @@ td.num.bold{font-weight:bold;color:#f0c040}
 </div>
 <div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px">
   <button class="btn btn-export" onclick="exportCSV()">📥 Excel (CSV)</button>
+  <button class="btn btn-pdf" onclick="generateBlank()">📄 Бланк ИК</button>
   <button class="btn btn-pdf" onclick="window.print()">🖨️ PDF</button>
 </div>
 </div>
@@ -303,7 +304,8 @@ function recalc(){
 
   // Aggregate profiles
   const aggPieces = {};
-  let totalCuts = 0, totalZpMin = 0, zpBreakdown = {};
+  let totalCuts = 0, totalZpMin = 0;
+  let zpPerModel = [];
   let linearM500 = 0, linearM650 = 0, tentHardware = {};
 
   const addTentHW = (name,qty)=>{ tentHardware[name] = (tentHardware[name]||0)+qty; };
@@ -321,16 +323,17 @@ function recalc(){
       aggPieces[prof] = (aggPieces[prof]||0) + meters*qty;
     }
 
-    // ZP calculations
+    // ZP calculations — по модели
     const opMins = calcZPMinutes(m,bp,axles,kit);
-    for(const [op,min] of Object.entries(opMins)){
-      const k = op;
-      zpBreakdown[k] = {min:(zpBreakdown[k]?zpBreakdown[k].min:0)+min*qty, qty:(zpBreakdown[k]?zpBreakdown[k].qty:0)+qty};
-      totalZpMin += min*qty;
-      // Cuts = 1 cut per piece per model (rough)
-      const proCount = Object.values(profPieces).reduce((s,v)=>s+v,0)*0.15; // ~cuts per meter
-      totalCuts += Math.round(proCount*qty);
-    }
+    const modelOps = Object.entries(opMins).map(([op,min])=>({op,min}));
+    const tentMins = calcTentMins(m, bp, kit);
+    if(tentMins > 0) modelOps.push({op:'Изготовление тента (тентовик)', min:tentMins});
+    modelOps.forEach(o=>{ totalZpMin += o.min*qty; });
+    zpPerModel.push({model:m.model, kit, axles, qty, ops:modelOps});
+
+    // Cuts = 1 cut per piece per model (rough)
+    const proCount = Object.values(profPieces).reduce((s,v)=>s+v,0)*0.15; // ~cuts per meter
+    totalCuts += Math.round(proCount*qty);
 
     // Tent — linear meters from roll strips
     if(document.getElementById('opTent').checked && kit>=4 && m.tent>0){
@@ -425,14 +428,24 @@ function recalc(){
   bHTML += `<tr class="total-row"><td>ИТОГО</td><td class="num">${Math.round(bracketTotal).toLocaleString()} ₽</td></tr></table>`;
   document.getElementById('bracketTable').innerHTML = bHTML;
 
-  // ZP
-  let zpHTML = '<table><tr><th>Операция</th><th class="num">Кол-во</th><th class="num">Минут</th><th class="num">Сумма</th></tr>';
+  // ZP — по моделям
   const zpTotal = Math.round(totalZpMin/60*rate);
-  for(const [op,data] of Object.entries(zpBreakdown)){
-    const sum = Math.round(data.min/60*rate);
-    zpHTML += `<tr><td>${op}</td><td class="num">${data.qty} шт</td><td class="num">${data.min}</td><td class="num">${sum.toLocaleString()} ₽</td></tr>`;
-  }
-  zpHTML += `<tr class="total-row"><td>ИТОГО</td><td></td><td class="num">${totalZpMin}</td><td class="num">${zpTotal.toLocaleString()} ₽</td></tr></table>`;
+  const kitName = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
+  let zpHTML = '';
+  zpPerModel.forEach(pm=>{
+    const pricePerMin = rate/60;
+    let modelSum = 0;
+    zpHTML += `<div style="margin:12px 0 4px;font-weight:700">${pm.model} — ${kitName[pm.kit]} — ${pm.axles} ось(и) — ×${pm.qty} шт</div>`;
+    zpHTML += '<table><tr><th>Операция</th><th class="num">Цена/шт</th><th class="num">Кол-во</th><th class="num">Сумма</th></tr>';
+    pm.ops.forEach(o=>{
+      const pricePerUnit = Math.round(o.min*pricePerMin);
+      const sum = pricePerUnit * pm.qty;
+      modelSum += sum;
+      zpHTML += `<tr><td>${o.op}</td><td class="num">${pricePerUnit} ₽</td><td class="num">${pm.qty}</td><td class="num">${sum.toLocaleString()} ₽</td></tr>`;
+    });
+    zpHTML += `<tr class="total-row"><td>Итого модель</td><td class="num"></td><td class="num"></td><td class="num">${modelSum.toLocaleString()} ₽</td></tr></table>`;
+  });
+  zpHTML += `<div style="margin-top:10px;font-weight:700">ИТОГО ЗП (ставка ${rate} ₽/ч): ${zpTotal.toLocaleString()} ₽ <span style="font-weight:400;color:#888">(${totalZpMin} мин)</span></div>`;
   document.getElementById('zpTable').innerHTML = zpHTML;
   document.getElementById('zpTotal').innerHTML = `ЗП (ставка ${rate} ₽/ч): <b>${zpTotal.toLocaleString()} ₽</b>`;
 
@@ -453,7 +466,12 @@ function recalc(){
     tentSec.style.display = 'none';
   }
 
-  document.getElementById('grandTotal').innerHTML = 'ИТОГО металла: '+totalWeight.toFixed(0)+' кг | ЗП сварка: '+zpTotal.toLocaleString()+' ₽';
+  document.getElementById('grandTotal').innerHTML = 'ИТОГО металла: '+totalWeight.toFixed(0)+' кг | ЗП: '+zpTotal.toLocaleString()+' ₽';
+
+  window._blank = {
+    zpPerModel, aggPieces, totalWeight, rate, totalZpMin, zpTotal,
+    cons: {wire, gas, cutDiscs, grindDiscs, gloves, kragi, consCost}
+  };
 }
 
 function calcZPMinutes(m,bp,axles,kit){
@@ -462,28 +480,35 @@ function calcZPMinutes(m,bp,axles,kit){
   const extraMM = bp.extraMM;
   const frameW = W+extraMM, frameL = L+extraMM;
 
-  // Reference minutes for 1.25×2.5 — indices: 0-распил рамы,1-сварка рамы,2-распил бортов,3-сварка бортов,4-сварка оси,5-распил каркаса,6-сварка каркаса
-  const refS=[75,290,45,120,60,55,190];
-  const refB=[65,270,40,110,50,45,170];
-  const ref = brand==='Барсук'?refB:refS;
-  const lenStep = brand==='Барсук'?15:19;
-  const lenSteps = (L-2500)/500;
-  const LEN_F=[0.25,0.45,0,0,0,0,0]; // frame cut, frame weld, sides cut, sides weld, axle weld, tent frame cut, tent frame weld
-  const lenMin = LEN_F.map(f=>Math.round(f*lenStep*lenSteps));
-  // Width surcharge
-  let ws=0;
+  // База (2.0×1.25, 1 ось) и шаг на +0.5м длины — из таблицы ЗП
+  // индексы: 0-распил рамы,1-сварка рамы,2-распил бортов,3-сварка бортов,4-сварка оси,5-распил каркаса,6-сварка каркаса
+  const baseS=[35,220,30,120,60,40,160];
+  const baseB=[25,190,30,120,60,40,160];
+  const stepS=[10,20,5,0,0,5,10];
+  const stepB=[10,10,5,0,0,5,10];
+  const base = brand==='Барсук'?baseB:baseS;
+  const step = brand==='Барсук'?stepB:stepS;
+  const lenSteps = (L-2000)/500;
+
+  // Надбавка ширины: распил рамы (0), сварка рамы (1)
+  let w0=0, w1=0;
   if(brand==='Самбарс'){
-    if(W<=1500)ws=0;else if(W<=1700)ws=Math.round((W-1500)/200*40);
-    else if(W<=1930)ws=40+Math.round((W-1700)/230*50);else ws=90+Math.round((W-1930)/70*15);
-  }else if(brand==='Барсук'){if(W<=1250)ws=0;else if(W<=1500)ws=25;}
-  const W_F=[0.15,0.25,0,0,0,0,0];
-  const wMin = W_F.map(f=>Math.round(f*ws));
-  // Axle2 surcharge
-  let as2=0;if(axles===2)as2=brand==='Барсук'?40:60;
-  const A_F=[0.25,0.25,0,0,0.50,0,0];
-  const aMin = A_F.map(f=>Math.round(f*as2));
+    if(W<=1250){w0=0;w1=0;}
+    else if(W<=1500){w0=15;w1=20;}
+    else if(W<=1700){w0=25;w1=35;}
+    else{w0=40;w1=55;}
+  }
+  // Надбавка 2-й оси: сварка оси (4) +60
+  const axle2 = (axles===2)?60:0;
+
   // Op minutes
-  const mins = ref.map((b,i)=>b+lenMin[i]+wMin[i]+aMin[i]);
+  const mins = base.map((b,i)=>{
+    let v = b + step[i]*lenSteps;
+    if(i===0) v+=w0;
+    if(i===1) v+=w1;
+    if(i===4) v+=axle2;
+    return Math.round(v);
+  });
 
   const ops = document.getElementById('opFrame');
   const sides = document.getElementById('opSides');
@@ -496,15 +521,26 @@ function calcZPMinutes(m,bp,axles,kit){
   if(tf.checked&&kit>=4&&m.tent>0){
     result['Распил каркаса тента']=mins[5];
     result['Сварка каркаса тента']=mins[6];
-    if(document.getElementById('opTent').checked){
-      const tentMM = m.tent*10;
-      const ta = ((frameW+2*tentMM)/1000)*(frameL/1000)*1.15;
-      const refTA = ((1500+70+2*1200)/1000)*((3500+70)/1000)*1.15;
-      result['Изготовление тента']=Math.round(485*ta/refTA);
-    }
   }
 
   return result;
+}
+
+function calcTentMins(m, bp, kit){
+  if(kit < 4 || !m.tent || m.tent <= 0) return 0;
+  if(!document.getElementById('opTent').checked) return 0;
+  const W = m.w, L = m.l, brand = m.brand;
+  const tentMM = m.tent * 10;
+  const frameW = W + bp.extraMM, frameL = L + bp.extraMM;
+  const aero = m.tent >= 120;
+  const tentArea = Math.round(((frameW+2*tentMM)/1000)*(frameL/1000)*1.15*10)/10;
+  const reinfM = Math.round(2*(frameL+380)/1000*10)/10;
+  const corners = aero ? 6 : 4;
+  const louv = brand==='Барсук' ? (W<=1250?24:26) : (W<=1250?26:W<=1500?28:W<=1700?32:36);
+  const valves = brand==='Барсук' ? 12 : (W<=1250?26:W<=1500?28:W<=1700?30:34);
+  // сделка (₽) → нормо-минуты (эталон через ставку цеха bp.rate): расценки 100/50/150/10/30 ₽
+  const cost = tentArea*100 + reinfM*50 + corners*150 + louv*10 + valves*30;
+  return Math.round(cost * 60 / bp.rate);
 }
 
 // ═══ EXPORT ═══
@@ -540,6 +576,101 @@ function exportCSV(){
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
   a.download='zakaz-ik4-'+document.getElementById('orderNum').value+'.csv';a.click();
+}
+
+// ═══ БЛАНК ИК ═══
+function generateBlank(){
+  const d = window._blank;
+  if(!d || !d.zpPerModel || !d.zpPerModel.length) return;
+  const rate = d.rate;
+  const kitName = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
+  const num = document.getElementById('orderNum').value;
+  const dateStr = document.getElementById('orderDate').value;
+  const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  let dd='__', mm='_____________', yyyy='____';
+  if(dateStr){ const p=dateStr.split('-'); yyyy=p[0]; dd=p[2]; mm=MON[parseInt(p[1])-1]||''; }
+
+  // П.1 — услуги (по моделям, детально)
+  const pricePerMin = rate/60;
+  let rows='', n=0, grandSum=0;
+  d.zpPerModel.forEach(pm=>{
+    rows += `<tr><td colspan="7" class="mh">${pm.model} — ${kitName[pm.kit]} — ${pm.axles} ось(и) — ×${pm.qty} шт</td></tr>`;
+    pm.ops.forEach(o=>{
+      n++;
+      const price = Math.round(o.min*pricePerMin);
+      const sum = price * pm.qty;
+      grandSum += sum;
+      rows += `<tr><td>${n}</td><td>${o.op}</td><td>шт</td><td class="num">${price.toLocaleString('ru-RU')}</td><td class="num">${pm.qty}</td><td class="num">${sum.toLocaleString('ru-RU')}</td><td></td></tr>`;
+    });
+  });
+
+  // П.3 — материалы (металл)
+  let mat=''; let mn=0;
+  Object.entries(d.aggPieces).sort((a,b)=>b[1]-a[1]).forEach(([prof,m])=>{
+    mn++;
+    const mass=(TUBES[prof]?TUBES[prof].mass:0)*m;
+    const rods=Math.ceil(m*1.10/6);
+    mat += `<tr><td>${mn}</td><td>Профиль ${prof}</td><td>м</td><td class="num">${m.toFixed(1)}</td><td></td><td></td><td>${rods} хлыст. / ${mass.toFixed(1)} кг</td></tr>`;
+  });
+
+  // П.4 — расходники
+  const c = d.cons;
+  const consList = [
+    ['Проволока сварочная 0.8 мм','кг',c.wire],
+    ['Газ (пропан/CO2)','кг',c.gas],
+    ['Диски отрезные 125 мм','шт',c.cutDiscs],
+    ['Диски лепестковые 125 мм','шт',c.grindDiscs],
+    ['Перчатки','пар',c.gloves],
+    ['Краги сварочные','пар',c.kragi]
+  ];
+  let cons='';
+  consList.forEach((x,i)=>{ cons += `<tr><td>${i+1}</td><td>${x[0]}</td><td>${x[1]}</td><td class="num">${x[2]}</td><td></td><td></td><td></td></tr>`; });
+
+  const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Спецификация</title>
+<style>
+body{font-family:'Times New Roman',serif;font-size:11pt;margin:24px;color:#000}
+h1{text-align:center;font-size:13pt;margin:0 0 12px}
+p{margin:7px 0;text-align:justify}
+table{border-collapse:collapse;width:100%;margin:8px 0;font-size:10pt}
+th,td{border:1px solid #000;padding:4px 6px;text-align:left;vertical-align:top}
+th{text-align:center;font-weight:bold}
+.num{text-align:right}
+.mh{font-weight:bold;background:#eee;border-top:2px solid #000}
+.total td{font-weight:bold;border-top:2px solid #000}
+.sign{width:100%;margin-top:36px}
+.sign td{border:none;padding:6px 20px}
+@media print{body{margin:10mm}}
+</style></head><body>
+<h1>Спецификация № ${num} от «${dd}» ${mm} ${yyyy} г.</h1>
+<p>1. Во исполнение договора подряда № 1 от «15» января 2026 г. Подрядчик обязуется выполнить следующие работы:</p>
+<table>
+<tr><th>№ п/п</th><th>Наименование услуги</th><th>Ед. изм.</th><th>Цена за ед., руб.</th><th>Кол-во</th><th>Общая сумма, руб.</th><th>Срок изготовления</th></tr>
+${rows}
+<tr class="total"><td></td><td colspan="3" style="text-align:right">Итого:</td><td></td><td class="num">${grandSum.toLocaleString('ru-RU')}</td><td></td></tr>
+</table>
+<p>2. Требования к подлежащей выполнению работе: согласно чертежам. Указанный чертёж Заказчик передаёт Подрядчику в день подписания настоящей спецификации. Подрядчик возвращает Заказчику чертежи в день поступления готовых изделий на склад Заказчика в полном объёме.</p>
+<p>3. Заказчик в течение 7 (семи) рабочих дней с даты заключения настоящей спецификации передаёт Подрядчику по накладной по форме М-15 следующие материалы:</p>
+<table>
+<tr><th>№ п/п</th><th>Наименование</th><th>Ед. изм.</th><th>Кол-во</th><th>Залоговая цена за ед., руб.</th><th>Залоговая стоимость, руб.</th><th>Норма расхода на 1 сб. ед.</th></tr>
+${mat}
+</table>
+<p>4. Для производства работ Заказчик в течение 7 (семи) рабочих дней передаёт Подрядчику по накладной по форме М-15 следующие расходные материалы:</p>
+<table>
+<tr><th>№ п/п</th><th>Наименование</th><th>Ед. изм.</th><th>Кол-во</th><th>Залоговая цена за ед., руб.</th><th>Залоговая стоимость, руб.</th><th>Норма расхода на 1 ед. изделия (кг/шт)</th></tr>
+${cons}
+</table>
+<p>5. Срок выполнения работ: ______ рабочих дней с момента передачи Подрядчику сырья и материалов.</p>
+<p>6. Условия оплаты: 100% оплата в течение 10 (десяти) рабочих дней.</p>
+<table class="sign"><tr><td>Заказчик:</td><td>Подрядчик:</td></tr>
+<tr><td>__________________ О.А. Антуганов</td><td>____________________________</td></tr>
+<tr><td>«_____» ____________ ${yyyy} г.</td><td>«_____» ____________ ${yyyy} г.</td></tr></table>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+  setTimeout(()=>{ w.print(); }, 400);
 }
 </script>
 </body>

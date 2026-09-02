@@ -1592,44 +1592,59 @@ function calcZP(brand, W, L, tentH, axles) {
   const frameW = W + bp.extraMM;
   const frameL = L + bp.extraMM;
 
-  const REF_OPS_S = [75, 290, 45, 120, 60, 55, 190, 15, 60, 60, 25, 60, 120, 90, 55, 35, 50, 55];
-  const REF_OPS_B = [65, 270, 40, 110, 50, 45, 170, 15, 50, 50, 25, 50, 110, 80, 50, 30, 45, 50];
+  const REF_OPS_S = [35, 220, 30, 120, 60, 40, 160, 15, 45, 60, 25, 60, 90, 60, 30, 35, 20, 40];
+  const REF_OPS_B = [25, 190, 30, 120, 60, 40, 160, 15, 45, 60, 25, 60, 80, 55, 30, 35, 20, 40];
+  const STEP_S = [10, 20, 5, 0, 0, 5, 10, 0, 5, 0, 0, 0, 10, 10, 5, 0, 10, 5];
+  const STEP_B = [10, 10, 5, 0, 0, 5, 10, 0, 5, 0, 0, 0, 10, 10, 5, 0, 10, 5];
   const refOps = brand === 'Барсук' ? REF_OPS_B : REF_OPS_S;
-  const lenSteps = (L - 2500) / 500;
-  const lenStep = brand === 'Барсук' ? 15 : 19;
-  const LEN_FACTORS = [0.25, 0.45, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.30, 0, 0, 0, 0];
-  const lenMinutes = LEN_FACTORS.map(f => Math.round(f * lenStep * lenSteps));
-  let widthSurcharge = 0;
+  const steps = brand === 'Барсук' ? STEP_B : STEP_S;
+  const lenSteps = (L - 2000) / 500;
+
+  // Надбавка ширины: распил рамы (0), сварка рамы (1), обшивка пола (14)
+  let w0 = 0, w1 = 0, w14 = 0;
   if (brand === 'Самбарс') {
-    if (W <= 1500) widthSurcharge = 0;
-    else if (W <= 1700) widthSurcharge = Math.round((W-1500)/200*40);
-    else if (W <= 1930) widthSurcharge = 40 + Math.round((W-1700)/230*50);
-    else widthSurcharge = 90 + Math.round((W-1930)/70*15);
+    if (W <= 1250) { w0 = 0; w1 = 0; w14 = 0; }
+    else if (W <= 1500) { w0 = 15; w1 = 20; w14 = 15; }
+    else if (W <= 1700) { w0 = 25; w1 = 35; w14 = 30; }
+    else { w0 = 40; w1 = 55; w14 = 45; }
   } else if (brand === 'Барсук') {
-    if (W <= 1250) widthSurcharge = 0;
-    else if (W <= 1500) widthSurcharge = 25;
+    if (W >= 1500) w14 = 25;
   }
-  const WIDTH_FACTORS = [0.15, 0.25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.35, 0.05, 0.05, 0.10, 0.05];
-  const widthMinutes = WIDTH_FACTORS.map(f => Math.round(f * widthSurcharge));
-  let axle2Surcharge = 0;
-  if (axles === 2) axle2Surcharge = brand === 'Барсук' ? 40 : 60;
-  const AXLE_FACTORS = [0.25, 0.25, 0, 0, 0.50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  const axleMinutes = AXLE_FACTORS.map(f => Math.round(f * axle2Surcharge));
-  const opMinutes = refOps.map((base,i)=>base+lenMinutes[i]+widthMinutes[i]+axleMinutes[i]);
+  // Бизон: без надбавки ширины
+
+  // Надбавка 2-й оси: сварка оси (4) +60, покраска оси (7) +15, сборка оси (9) +42
+  const a4 = (axles === 2) ? 60 : 0;
+  const a7 = (axles === 2) ? 15 : 0;
+  const a9 = (axles === 2) ? 42 : 0;
+
+  const opMinutes = refOps.map((base, i) => {
+    let v = base + steps[i] * lenSteps;
+    if (i === 0) v += w0;
+    if (i === 1) v += w1;
+    if (i === 14) v += w14;
+    if (i === 4) v += a4;
+    if (i === 7) v += a7;
+    if (i === 9) v += a9;
+    return Math.round(v);
+  });
   const opSum = opMinutes.reduce((a,b)=>a+b,0);
-  const welderM = Math.round(opSum*0.585), painterM = Math.round(opSum*0.05), assemblerM = opSum-welderM-painterM;
+  const welderM = opMinutes.slice(0,7).reduce((a,b)=>a+b,0);
+  const painterM = opMinutes.slice(7,9).reduce((a,b)=>a+b,0);
+  const assemblerM = opMinutes.slice(9,18).reduce((a,b)=>a+b,0);
   const rate = bp.rate;
   const welderR = Math.round(welderM/60*rate), painterR = Math.round(painterM/60*rate), assemblerR = Math.round(assemblerM/60*rate);
   const zpNoTent = welderR + painterR + assemblerR;
   let tentMakerR = 0;
   if (hasTent) {
-    const totalFrameH = bp.boardH + tentMM;
-    const perimeter = 2 * (frameW + 2*tentMM + frameL) / 1000;
-    const tentArea = ((frameW+2*tentMM)/1000) * (frameL/1000) * 1.15;
-    const refTentArea = ((1500+70+2*1200)/1000) * ((3500+70)/1000) * 1.15;
-    const refTentMins = 485;
-    const tentMakerM = Math.round(refTentMins * tentArea / refTentArea);
-    tentMakerR = Math.round(tentMakerM/60 * rate);
+    const aero = tentH >= 120;
+    const tentArea = Math.round(((frameW+2*tentMM)/1000) * (frameL/1000) * 1.15 * 10) / 10;
+    const reinfM = Math.round(2*(frameL+380)/1000*10)/10;   // усилители на сгибах, м.п.
+    const corners = aero ? 6 : 4;
+    const louv = brand === 'Барсук' ? (W <= 1250 ? 24 : 26) : (W <= 1250 ? 26 : W <= 1500 ? 28 : W <= 1700 ? 32 : 36);
+    const valves = brand === 'Барсук' ? 12 : (W <= 1250 ? 26 : W <= 1500 ? 28 : W <= 1700 ? 30 : 34);
+    // Нормо-минуты тентовика (эталон через ставку цеха bp.rate): расценки 100/50/150/10/30 ₽
+    const tentMakerM = Math.round((tentArea*100 + reinfM*50 + corners*150 + louv*10 + valves*30) * 60 / rate);
+    tentMakerR = Math.round(tentMakerM * rate / 60);
   }
   const zpTotal = zpNoTent + tentMakerR;
   

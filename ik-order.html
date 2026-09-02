@@ -137,7 +137,8 @@ td.num.bold{font-weight:bold;color:#f0c040}
 </div>
 <div class="row" style="justify-content:flex-end;gap:8px;margin-top:10px">
   <button class="btn btn-export" onclick="exportCSV()">📥 Excel (CSV)</button>
-  <button class="btn btn-pdf" onclick="generateBlank()">📄 Бланк ИК</button>
+  <button class="btn btn-pdf" onclick="generateBlank()">📄 Бланк ИК (PDF)</button>
+  <button class="btn btn-export" onclick="generateBlankWord()">📝 Бланк ИК (Word)</button>
   <button class="btn btn-pdf" onclick="generateM15()">📦 Накладная М-15</button>
   <button class="btn btn-pdf" onclick="window.print()">🖨️ PDF</button>
 </div>
@@ -736,6 +737,34 @@ ${cons}
   w.document.close();
   w.focus();
   setTimeout(()=>{ w.print(); }, 400);
+}
+
+// Word-версия: тот же полностью редактируемый HTML-документ, который Word открывает как .doc
+function generateBlankWord(){
+  const d = window._blank;
+  if(!d || !d.zpPerModel || !d.zpPerModel.length) return;
+  const num = document.getElementById('orderNum').value;
+  const dateStr = document.getElementById('orderDate').value;
+  const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  let dd='__', mm='_____________', yyyy='____';
+  if(dateStr){ const p=dateStr.split('-'); yyyy=p[0]; dd=p[2]; mm=MON[parseInt(p[1])-1]||''; }
+  const kitName=['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
+  const pricePerMin=d.rate/60;
+  let rows='', n=0, grandSum=0;
+  d.zpPerModel.forEach(pm=>{
+    rows += `<tr><td colspan="7" class="mh">${pm.model} — ${kitName[pm.kit]} — ${pm.axles} ось(и) — ×${pm.qty} шт</td></tr>`;
+    pm.ops.forEach(o=>{ n++; const price=Math.round(o.min*pricePerMin), sum=price*pm.qty; grandSum+=sum; rows+=`<tr><td>${n}</td><td>${o.op}</td><td>шт</td><td class="num">${price}</td><td class="num">${pm.qty}</td><td class="num">${sum}</td><td></td></tr>`; });
+  });
+  const totalQty=d.zpPerModel.reduce((s,pm)=>s+pm.qty,0);
+  let mat='', mn=0;
+  Object.entries(d.aggPieces).sort((a,b)=>b[1]-a[1]).forEach(([prof,m])=>{ mn++; const pm=TUBES[prof]?TUBES[prof].price:0, rods=Math.ceil(m*1.10/6), price=Math.round(pm*6*100)/100, cost=Math.round(rods*price); mat+=`<tr><td>${mn}</td><td>Профиль ${prof}</td><td>шт</td><td class="num">${rods}</td><td class="num">${price}</td><td class="num">${cost}</td><td class="num">${(rods/totalQty).toFixed(2)}</td></tr>`; });
+  Object.entries(d.aggBrackets).forEach(([name,qty])=>{ mn++; const price=BRACKET_PRICES[name]||0, cost=Math.round(qty*price); mat+=`<tr><td>${mn}</td><td>${name}</td><td>шт</td><td class="num">${qty}</td><td class="num">${price}</td><td class="num">${cost}</td><td class="num">${(qty/totalQty).toFixed(2)}</td></tr>`; });
+  const c=d.cons, cp=c.consPrices;
+  const consList=[['Проволока сварочная 0.8 мм','кг',c.wire,'wire'],['Газ (пропан/CO2)','кг',c.gas,'gas'],['Диски отрезные 125 мм','шт',c.cutDiscs,'cutDisc'],['Диски лепестковые 125 мм','шт',c.grindDiscs,'grindDisc'],['Перчатки','пар',c.gloves,'gloves'],['Краги сварочные','пар',c.kragi,'kragi']];
+  let cons=''; consList.forEach((x,i)=>{ const price=cp[x[3]], cost=Math.round(x[2]*price); cons+=`<tr><td>${i+1}</td><td>${x[0]}</td><td>${x[1]}</td><td class="num">${x[2]}</td><td class="num">${price}</td><td class="num">${cost}</td><td class="num">${(x[2]/totalQty).toFixed(3)}</td></tr>`; });
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="ProgId" content="Word.Document"><meta name="Generator" content="Microsoft Word"><style>@page{size:A4 landscape;margin:16mm}body{font-family:'Times New Roman',serif;font-size:10pt;color:#000}h1{text-align:center;font-size:13pt}p{margin:7px 0;text-align:justify}table{border-collapse:collapse;width:100%;margin:7px 0}th,td{border:1px solid #000;padding:4px 6px;vertical-align:top}th{text-align:center;font-weight:bold}.num{text-align:right}.mh{font-weight:bold;background:#eee}.total td{font-weight:bold;border-top:2px solid #000}.sign td{border:none;padding:7px 15px}</style></head><body><h1>Спецификация № ${num} от «${dd}» ${mm} ${yyyy} г.</h1><p>1. Во исполнение договора подряда № 1 от «15» января 2026 г. Подрядчик обязуется выполнить следующие работы:</p><table><tr><th>№ п/п</th><th>Наименование услуги</th><th>Ед. изм.</th><th>Цена за ед., руб.</th><th>Кол-во</th><th>Общая сумма, руб.</th><th>Срок изготовления</th></tr>${rows}<tr class="total"><td></td><td colspan="3" style="text-align:right">Итого:</td><td></td><td class="num">${grandSum}</td><td></td></tr></table><p>2. Требования к подлежащей выполнению работе: согласно чертежам.</p><p>3. Материалы по накладной М-15:</p><table><tr><th>№</th><th>Наименование</th><th>Ед.</th><th>Кол-во</th><th>Залоговая цена</th><th>Залоговая стоимость</th><th>Норма на 1 изделие</th></tr>${mat}</table><p>4. Расходные материалы по накладной М-15:</p><table><tr><th>№</th><th>Наименование</th><th>Ед.</th><th>Кол-во</th><th>Цена</th><th>Стоимость</th><th>Норма на 1 изделие</th></tr>${cons}</table><p>5. Срок выполнения работ: ______ рабочих дней с момента передачи сырья и материалов.</p><p>6. Условия оплаты: 100% оплата в течение 10 (десяти) рабочих дней.</p><table class="sign"><tr><td>Заказчик:</td><td>Подрядчик:</td></tr><tr><td>__________________ О.А. Антуганов</td><td>____________________________</td></tr></table></body></html>`;
+  const blob=new Blob(['\ufeff',html],{type:'application/msword'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`spec-ik4-${num}.doc`; a.click();
 }
 
 // ═══ НАКЛАДНАЯ М-15 ═══

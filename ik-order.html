@@ -94,6 +94,14 @@ td.num.bold{font-weight:bold;color:#f0c040}
   <label><input type="checkbox" id="opAxles" onchange="recalc()"> Оси</label>
   <label><input type="checkbox" id="opTent" onchange="recalc()"> Тент (ткань+фурнитура)</label>
 </div>
+<div class="row" style="margin-top:12px"><label>📝 Названия операций (для бланка/Excel — можно менять):</label></div>
+<div class="row">
+  <label>Рама:</label><input type="text" id="opNameFrame" value="Рама + дышло" style="width:150px" onchange="recalc()">
+  <label>Борта:</label><input type="text" id="opNameSides" value="Борта" style="width:110px" onchange="recalc()">
+  <label>Ось:</label><input type="text" id="opNameAxle" value="Ось" style="width:100px" onchange="recalc()">
+  <label>Каркас:</label><input type="text" id="opNameTentFrame" value="Каркас тента" style="width:140px" onchange="recalc()">
+  <label>Тент:</label><input type="text" id="opNameTent" value="Изготовление тента" style="width:160px" onchange="recalc()">
+</div>
 </div>
 
 <!-- RESULTS -->
@@ -341,7 +349,7 @@ function recalc(){
     const opMins = calcZPMinutes(m,bp,axles,kit);
     const modelOps = Object.entries(opMins).map(([op,min])=>({op,min}));
     const tentMins = calcTentMins(m, bp, kit);
-    if(tentMins > 0) modelOps.push({op:'Изготовление тента (тентовик)', min:tentMins});
+    if(tentMins > 0) modelOps.push({op:document.getElementById('opNameTent').value||'Изготовление тента', min:tentMins});
     modelOps.forEach(o=>{ totalZpMin += o.min*qty; });
     zpPerModel.push({model:m.model, kit, axles, qty, ops:modelOps});
 
@@ -529,10 +537,14 @@ function calcZPMinutes(m,bp,axles,kit){
   const tf = document.getElementById('opTentFrame');
   const ax = document.getElementById('opAxles');
 
-  if(ops.checked){ result['Рама + дышло']=mins[0]+mins[1]; }
-  if(sides.checked&&kit>=3){ result['Борта']=mins[2]+mins[3]; }
-  if(ax.checked){ result['Ось']=mins[4]; }
-  if(tf.checked&&kit>=4&&m.tent>0){ result['Каркас тента']=mins[5]+mins[6]; }
+  const nFrame=document.getElementById('opNameFrame').value||'Рама + дышло';
+  const nSides=document.getElementById('opNameSides').value||'Борта';
+  const nAxle=document.getElementById('opNameAxle').value||'Ось';
+  const nTentFrame=document.getElementById('opNameTentFrame').value||'Каркас тента';
+  if(ops.checked){ result[nFrame]=mins[0]+mins[1]; }
+  if(sides.checked&&kit>=3){ result[nSides]=mins[2]+mins[3]; }
+  if(ax.checked){ result[nAxle]=mins[4]; }
+  if(tf.checked&&kit>=4&&m.tent>0){ result[nTentFrame]=mins[5]+mins[6]; }
 
   return result;
 }
@@ -556,37 +568,67 @@ function calcTentMins(m, bp, kit){
 
 // ═══ EXPORT ═══
 function exportCSV(){
-  if(!positions.length)return;
-  const rate = document.getElementById('zpRate').value;
-  let csv='\uFEFFЗАКАЗ ИК-4 №'+document.getElementById('orderNum').value+'\n';
-  csv+='от '+document.getElementById('orderDate').value+' | Срок: '+document.getElementById('orderDeadline').value+' | Ставка: '+rate+' ₽/ч\n\n';
-  csv+='Модель;Комплектация;Осей;Кол-во\n';
-  positions.forEach(p=>{
-    const m=CATALOG[p.catIdx];
-    const kn=['','Рама','Рама с полом','Бортовой','Бортовой с тентом'][p.kit];
-    csv+=m.model+';'+kn+';'+p.axles+';'+p.qty+'\n';
+  const d = window._blank;
+  if(!d || !d.zpPerModel || !d.zpPerModel.length) return;
+  const rate = d.rate;
+  const kitName = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
+  const num = document.getElementById('orderNum').value;
+  const dateStr = document.getElementById('orderDate').value;
+  const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  let dd='__', mm='_____________', yyyy='____';
+  if(dateStr){ const p=dateStr.split('-'); yyyy=p[0]; dd=p[2]; mm=MON[parseInt(p[1])-1]||''; }
+  const fnum = (x)=>{ const v=Math.round(x*100)/100; return (Number.isInteger(v)? v : String(v).replace('.', ',')); };
+  const pricePerMin = rate/60;
+  let csv='\uFEFF';
+  csv+=`СПЕЦИФИКАЦИЯ № ${num} от «${dd}» ${mm} ${yyyy} г.\n\n`;
+  csv+='1. Во исполнение договора подряда № 1 от 15.01.2026 г. Подрядчик обязуется выполнить следующие работы:\n\n';
+  csv+='№ п/п;Наименование услуги;Ед. изм.;Цена за ед., руб.;Кол-во;Общая сумма, руб.;Срок изготовления\n';
+  let n=0, grandSum=0;
+  d.zpPerModel.forEach(pm=>{
+    csv+=`\n${pm.model} — ${kitName[pm.kit]} — ${pm.axles} ось(и) — ×${pm.qty} шт\n`;
+    pm.ops.forEach(o=>{
+      n++;
+      const price=Math.round(o.min*pricePerMin);
+      const sum=price*pm.qty;
+      grandSum+=sum;
+      csv+=`${n};${o.op};шт;${fnum(price)};${pm.qty};${fnum(sum)};\n`;
+    });
   });
-  // Add metal table
-  csv+='\nРАСКРОЙ МЕТАЛЛА\nПрофиль;Метров;Хлыстов 6м;Вес кг\n';
-  document.querySelectorAll('#metalTable table tr').forEach(tr=>{
-    const tds=tr.querySelectorAll('td,th');
-    csv+=Array.from(tds).map(t=>t.textContent).join(';')+'\n';
+  csv+=`\nИтого:;;; ; ;${fnum(grandSum)};\n`;
+  // П.3 материалы М-15
+  csv+='\n3. Материалы по накладной М-15:\n';
+  csv+='№ п/п;Наименование;Ед. изм.;Кол-во;Залоговая цена, руб.;Залоговая стоимость, руб.\n';
+  let mn=0;
+  Object.entries(d.aggPieces).sort((a,b)=>b[1]-a[1]).forEach(([prof,m])=>{
+    mn++;
+    const pricePerM=TUBES[prof]?TUBES[prof].price:0;
+    const rods=Math.ceil(m*1.10/6);
+    const price=Math.round(pricePerM*6*100)/100;
+    const cost=Math.round(rods*price);
+    csv+=`${mn};Профиль ${prof};шт;${rods};${fnum(price)};${fnum(cost)};\n`;
   });
-  // Consumables
-  csv+='\nРАСХОДНИКИ\n';
-  document.querySelectorAll('#consTable table tr').forEach(tr=>{
-    const tds=tr.querySelectorAll('td');
-    csv+=Array.from(tds).map(t=>t.textContent).join(';')+'\n';
+  Object.entries(d.aggBrackets).forEach(([name,qty])=>{
+    mn++;
+    const price=BRACKET_PRICES[name]||0;
+    const cost=Math.round(qty*price);
+    csv+=`${mn};${name};шт;${qty};${fnum(price)};${fnum(cost)};\n`;
   });
-  // ZP
-  csv+='\nЗП\n';
-  document.querySelectorAll('#zpTable table tr').forEach(tr=>{
-    const tds=tr.querySelectorAll('td,th');
-    csv+=Array.from(tds).map(t=>t.textContent).join(';')+'\n';
-  });
+  // П.4 расходники
+  csv+='\n4. Расходные материалы:\n';
+  csv+='№ п/п;Наименование;Ед. изм.;Кол-во;Цена, руб.;Сумма, руб.\n';
+  const c=d.cons, cp=c.consPrices;
+  const consList=[
+    ['Проволока сварочная 0.8 мм','кг',c.wire,'wire'],
+    ['Газ (пропан/CO2)','кг',c.gas,'gas'],
+    ['Диски отрезные 125 мм','шт',c.cutDiscs,'cutDisc'],
+    ['Диски лепестковые 125 мм','шт',c.grindDiscs,'grindDisc'],
+    ['Перчатки','пар',c.gloves,'gloves'],
+    ['Краги сварочные','пар',c.kragi,'kragi']
+  ];
+  consList.forEach((x,i)=>{ const price=cp[x[3]]; const cost=Math.round(x[2]*price); csv+=`${i+1};${x[0]};${x[1]};${x[2]};${fnum(price)};${fnum(cost)};\n`; });
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
-  a.download='zakaz-ik4-'+document.getElementById('orderNum').value+'.csv';a.click();
+  a.download='spec-ik4-'+num+'.csv';a.click();
 }
 
 // ═══ БЛАНК ИК ═══

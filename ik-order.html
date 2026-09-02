@@ -584,6 +584,7 @@ function generateBlank(){
   if(!d || !d.zpPerModel || !d.zpPerModel.length) return;
   const rate = d.rate;
   const kitName = ['','Рама','Рама с полом','Бортовой','Бортовой с тентом'];
+  const totalQty = d.zpPerModel.reduce((s,pm)=>s+pm.qty, 0);
   const num = document.getElementById('orderNum').value;
   const dateStr = document.getElementById('orderDate').value;
   const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -609,10 +610,9 @@ function generateBlank(){
   Object.entries(d.aggPieces).sort((a,b)=>b[1]-a[1]).forEach(([prof,m])=>{
     mn++;
     const price=(TUBES[prof]?TUBES[prof].price:0);
-    const mass=(TUBES[prof]?TUBES[prof].mass:0)*m;
-    const rods=Math.ceil(m*1.10/6);
     const cost=Math.round(m*price);
-    mat += `<tr><td>${mn}</td><td>Профиль ${prof}</td><td>м</td><td class="num">${m.toFixed(1)}</td><td class="num">${price}</td><td class="num">${cost.toLocaleString('ru-RU')}</td><td>${rods} хлыст. / ${mass.toFixed(1)} кг</td></tr>`;
+    const norm=(m/totalQty).toFixed(2);
+    mat += `<tr><td>${mn}</td><td>Профиль ${prof}</td><td>м</td><td class="num">${m.toFixed(1)}</td><td class="num">${price}</td><td class="num">${cost.toLocaleString('ru-RU')}</td><td class="num">${norm}</td></tr>`;
   });
 
   // П.4 — расходники
@@ -627,7 +627,7 @@ function generateBlank(){
     ['Краги сварочные','пар',c.kragi,cp.kragi]
   ];
   let cons='';
-  consList.forEach((x,i)=>{ const cost=Math.round(x[2]*x[3]); cons += `<tr><td>${i+1}</td><td>${x[0]}</td><td>${x[1]}</td><td class="num">${x[2]}</td><td class="num">${x[3]}</td><td class="num">${cost.toLocaleString('ru-RU')}</td><td></td></tr>`; });
+  consList.forEach((x,i)=>{ const cost=Math.round(x[2]*x[3]); const norm=(x[2]/totalQty); cons += `<tr><td>${i+1}</td><td>${x[0]}</td><td>${x[1]}</td><td class="num">${x[2]}</td><td class="num">${x[3]}</td><td class="num">${cost.toLocaleString('ru-RU')}</td><td class="num">${(+norm).toFixed(3)}</td></tr>`; });
 
   const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Спецификация</title>
 <style>

@@ -470,7 +470,7 @@ function recalc(){
 
   window._blank = {
     zpPerModel, aggPieces, totalWeight, rate, totalZpMin, zpTotal,
-    cons: {wire, gas, cutDiscs, grindDiscs, gloves, kragi, consCost}
+    cons: {wire, gas, cutDiscs, grindDiscs, gloves, kragi, consCost, consPrices}
   };
 }
 
@@ -608,23 +608,26 @@ function generateBlank(){
   let mat=''; let mn=0;
   Object.entries(d.aggPieces).sort((a,b)=>b[1]-a[1]).forEach(([prof,m])=>{
     mn++;
+    const price=(TUBES[prof]?TUBES[prof].price:0);
     const mass=(TUBES[prof]?TUBES[prof].mass:0)*m;
     const rods=Math.ceil(m*1.10/6);
-    mat += `<tr><td>${mn}</td><td>Профиль ${prof}</td><td>м</td><td class="num">${m.toFixed(1)}</td><td></td><td></td><td>${rods} хлыст. / ${mass.toFixed(1)} кг</td></tr>`;
+    const cost=Math.round(m*price);
+    mat += `<tr><td>${mn}</td><td>Профиль ${prof}</td><td>м</td><td class="num">${m.toFixed(1)}</td><td class="num">${price}</td><td class="num">${cost.toLocaleString('ru-RU')}</td><td>${rods} хлыст. / ${mass.toFixed(1)} кг</td></tr>`;
   });
 
   // П.4 — расходники
   const c = d.cons;
+  const cp = c.consPrices;
   const consList = [
-    ['Проволока сварочная 0.8 мм','кг',c.wire],
-    ['Газ (пропан/CO2)','кг',c.gas],
-    ['Диски отрезные 125 мм','шт',c.cutDiscs],
-    ['Диски лепестковые 125 мм','шт',c.grindDiscs],
-    ['Перчатки','пар',c.gloves],
-    ['Краги сварочные','пар',c.kragi]
+    ['Проволока сварочная 0.8 мм','кг',c.wire,cp.wire],
+    ['Газ (пропан/CO2)','кг',c.gas,cp.gas],
+    ['Диски отрезные 125 мм','шт',c.cutDiscs,cp.cutDisc],
+    ['Диски лепестковые 125 мм','шт',c.grindDiscs,cp.grindDisc],
+    ['Перчатки','пар',c.gloves,cp.gloves],
+    ['Краги сварочные','пар',c.kragi,cp.kragi]
   ];
   let cons='';
-  consList.forEach((x,i)=>{ cons += `<tr><td>${i+1}</td><td>${x[0]}</td><td>${x[1]}</td><td class="num">${x[2]}</td><td></td><td></td><td></td></tr>`; });
+  consList.forEach((x,i)=>{ const cost=Math.round(x[2]*x[3]); cons += `<tr><td>${i+1}</td><td>${x[0]}</td><td>${x[1]}</td><td class="num">${x[2]}</td><td class="num">${x[3]}</td><td class="num">${cost.toLocaleString('ru-RU')}</td><td></td></tr>`; });
 
   const html = `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><title>Спецификация</title>
 <style>

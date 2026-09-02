@@ -270,21 +270,34 @@ function calcProfilePieces(m,bp,axles,kit){
   }
 
   if(document.getElementById('opSides').checked && kit>=3){
-    const sideStep = calcStep(frameL/1000,0.8);
-    const totalJumpers = sideStep.n;
-    const sideL = frameL/1000*2 + frameW/1000*2;
-    const jumperM = totalJumpers * bp.boardH/1000;
-    add(bp.sideProfile, sideL + jumperM);
+    // Борта — логика из cutmap (источник истины)
+    const sPerimeter = 2*(m.w + m.l)/1000;
+    const sFrame = 2 * sPerimeter; // верхняя + нижняя рейка
+    const jumpLong = m.l <= 3000 ? 2 : m.l <= 3500 ? 3 : 4;
+    const jumpShort = m.w < 1930 ? 1 : 2;
+    const totalJumpers = jumpLong * 2 + jumpShort * 2;
+    const sJumpers = totalJumpers * bp.boardH/1000;
+    add(bp.sideProfile, sFrame + sJumpers);
   }
 
   if(document.getElementById('opTentFrame').checked && kit>=4 && m.tent>0){
+    // Каркас тента — логика из cutmap (источник истины)
     const tentMM = m.tent*10;
     const totalFrameH = (bp.boardH + tentMM)/1000;
-    const archCount = Math.max(1,Math.round(frameL/700));
-    // Side frames: 4 rails × frameL/1000
-    add('20×20×1.5', frameL/1000*4 + archCount*totalFrameH + archCount*(frameW+240)/1000);
-    // Spacers
-    add('25×25×2', archCount*2*0.10);
+    let archCount;
+    if(m.tent >= 120){
+      const remaining = frameL - 800;
+      const rs = remaining > 0 ? calcStep(remaining, 700) : {n:0};
+      archCount = 2 + rs.n;
+    } else {
+      const s = calcStep(frameL, 700);
+      archCount = s.n + 2;
+    }
+    const frameRailsM = frameL/1000*4;
+    const framePostsM = archCount * 2 * totalFrameH;
+    const archesM = archCount * (frameW - 40 + 200)/1000;
+    add('20×20×1.5', frameRailsM + framePostsM + archesM);
+    add('25×25×2', archCount * 2 * 0.10);
   }
 
   if(document.getElementById('opAxles').checked){

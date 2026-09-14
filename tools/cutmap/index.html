@@ -258,8 +258,11 @@ const TUBES = {
 const urlParams = new URLSearchParams(window.location.search);
 const BATCH_MODE = urlParams.get('batch') === '1';
 const EXPORT_MODE = urlParams.get('export') === '1';
+// Норма расхода газа, кг на 1 рез. 0 = норма не задана (тогда строка газа не выводится).
+// Раньше газ ошибочно считался как проволока (та же норма 0.007 кг/рез).
+const GAS_PER_CUT = 0;
 // ═══ AUTH (skip for batch mode) ═══
-(function(){if(BATCH_MODE)return;const a=localStorage.getItem('sambars_auth');if(!a||a!=='director'){window.location.href='../../portal.html';return;}document.getElementById('authBadge').textContent='👑 Руководитель';})();
+(function(){if(BATCH_MODE||EXPORT_MODE)return;const a=localStorage.getItem('sambars_auth');if(!a||a!=='director'){window.location.href='../../portal.html';return;}document.getElementById('authBadge').textContent='👑 Руководитель';})();
 
 // ══════════════════════════════════════════════════════════
 // STATE
@@ -530,10 +533,12 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
   }
 
   // === CONSUMABLES ===
-  const totalCuts = pieces.reduce((sum, g) => sum + g.pieces.length, 0);
+  // резы на количеств�� изделий: расходники считаются сразу на заказ (qty из экспорта)
+  const totalCuts = pieces.reduce((sum, g) => sum + g.pieces.length, 0) * (st.qty || 1);
   add('диск отрезной d125 ', Math.ceil(totalCuts / 18), 'шт', 'Расходники');
   add('шлиф.круг 125мм', Math.ceil(totalCuts / 55), 'шт', 'Расходники');
   add('Сварочная проволока', parseFloat((totalCuts * 0.007).toFixed(3)), 'кг', 'Расходники');
+  add('Газ (пропан)', parseFloat((totalCuts * GAS_PER_CUT).toFixed(3)), 'кг', 'Расходники');
   add('Сварочные Перчатки (Краги)', Math.max(1, Math.ceil(totalCuts / 200)), 'пар', 'Расходники');
   add('Перчатки нитриловые ROXTOR', Math.max(1, Math.ceil(totalCuts / 100)), 'пар', 'Расходники');
 
@@ -543,6 +548,18 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
     W, L,
     tentH: st.tentH,
     axles: st.axles,
+    kit: st.kit,
+    qty: st.qty || 1,
+    cuts: totalCuts,
+    consumables: {
+      cuts: totalCuts,
+      wire: totalCuts * 0.007,
+      gas: totalCuts * GAS_PER_CUT,
+      cutDiscs: Math.ceil(totalCuts / 18),
+      grindDiscs: Math.ceil(totalCuts / 55),
+      gloves: Math.max(1, Math.ceil(totalCuts / 100)),
+      kragi: Math.max(1, Math.ceil(totalCuts / 200))
+    },
     materials: mats
   };
 }
@@ -752,9 +769,15 @@ function recalc() {
     allProfilePieces.push({label:`Проставки дуг 25×25×2`, pieces:Array(tentArchCount * 2).fill(0.10)});
   }
 
+  // ═══ FILTER BY KIT ═══
+  let kitPieces = allProfilePieces;
+  if (state.kit < 4) kitPieces = kitPieces.filter(g => !g.label.startsWith('Каркас тента') && !g.label.startsWith('Проставки дуг'));
+  if (state.kit < 3) kitPieces = kitPieces.filter(g => !g.label.startsWith('Борта'));
+  if (state.kit < 2) kitPieces = kitPieces.filter(g => !g.label.startsWith('Перемычка под шов'));
+
   // ═══ EXPORT MODE ═══
   if (EXPORT_MODE) {
-    const exp = buildExportData(state, allProfilePieces, bp, floorSheets, sideSheets, floorSheetType,
+    const exp = buildExportData(state, kitPieces, bp, floorSheets, sideSheets, floorSheetType,
       tentArea, hasTent, sBoltsCount, floorBolts, axleBolts, tentBolts, rivetsFloor, rivetsSides,
       frameW, frameL, tentMM, brand, W, L);
     document.body.innerHTML = '<pre>' + JSON.stringify(exp, null, 2) + '</pre>';
@@ -764,18 +787,12 @@ function recalc() {
     return;
   }
 
-  // ═══ FILTER BY KIT ═══
-  let kitPieces = allProfilePieces;
-  if (state.kit < 4) kitPieces = kitPieces.filter(g => !g.label.startsWith('Каркас тента') && !g.label.startsWith('Проставки дуг'));
-  if (state.kit < 3) kitPieces = kitPieces.filter(g => !g.label.startsWith('Борта'));
-  if (state.kit < 2) kitPieces = kitPieces.filter(g => !g.label.startsWith('Перемычка под шов'));
-
   // ═══ РАСХОДНИКИ (по комплектации) ═══
   const totalCuts = kitPieces.reduce((sum, g) => sum + g.pieces.length, 0);
   const consumables = {
     cuts: totalCuts,
     wire: (totalCuts * 0.007).toFixed(3),
-    gas: (totalCuts * 0.007).toFixed(3),
+    gas: (totalCuts * GAS_PER_CUT).toFixed(3),
     cutDiscs: Math.ceil(totalCuts / 18),
     grindDiscs: Math.ceil(totalCuts / 55),
     gloves: Math.max(1, Math.ceil(totalCuts / 100)),
@@ -2859,6 +2876,8 @@ if (BATCH_MODE) {
   state.L = parseInt(urlParams.get('l')) || 2500;
   state.tentH = parseInt(urlParams.get('tentH')) || 120;
   state.axles = parseInt(urlParams.get('axles')) || 1;
+  state.kit = parseInt(urlParams.get('kit')) || 4;
+  state.qty = parseInt(urlParams.get('qty')) || 1;
   state.model = `${state.brand} ${(state.W/1000).toFixed(2)}×${(state.L/1000).toFixed(1)}`;
   recalc();
 } else {

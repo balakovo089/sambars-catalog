@@ -374,6 +374,36 @@ function calcProfilePieces(m,bp,axles,kit){
   return pieces;
 }
 
+// ═══ РАСХОДНИКИ ИЗ CUTMAP ═══
+// Нормы расхода живут только в cutmap (источник истины). Здесь — запрос его
+// экспорта (?export=1), кэш и ничего больше: своих формул расхода нет.
+const CM_CACHE = {};
+const CM_LOADING = {};
+function cmKey(m, kit, axles, qty) { return [m.brand, m.w, m.l, m.tent, kit, axles, qty].join('|'); }
+function cmData(m, kit, axles, qty) {
+  const key = cmKey(m, kit, axles, qty);
+  if (CM_CACHE[key] === undefined && !CM_LOADING[key]) {
+    CM_LOADING[key] = true;
+    const tentH = kit >= 4 ? (m.tent || 0) : 0;
+    const url = 'tools/cutmap/index.html?export=1&brand=' + encodeURIComponent(m.brand)
+      + '&w=' + m.w + '&l=' + m.l + '&tentH=' + tentH + '&axles=' + axles + '&kit=' + kit + '&qty=' + qty;
+    const f = document.createElement('iframe');
+    f.style.cssText = 'position:fixed;left:-9999px;top:0;width:500px;height:300px;border:0';
+    f.onload = () => {
+      let data = null;
+      try { data = JSON.parse(f.contentDocument.querySelector('pre').textContent); } catch (e) { data = null; }
+      CM_CACHE[key] = data;
+      CM_LOADING[key] = false;
+      f.remove();
+      recalc();
+    };
+    f.onerror = () => { CM_CACHE[key] = null; CM_LOADING[key] = false; f.remove(); recalc(); };
+    f.src = url;
+    document.body.appendChild(f);
+  }
+  return CM_CACHE[key] || null;
+}
+
 function recalc(){
   if(!positions.length){ document.getElementById('results').style.display='none'; return; }
   document.getElementById('results').style.display='block';
@@ -382,7 +412,7 @@ function recalc(){
 
   // Aggregate profiles
   const aggPieces = {};
-  let totalCuts = 0, totalZpMin = 0;
+  let totalZpMin = 0;
   let zpPerModel = [];
   let linearM500 = 0, linearM650 = 0, tentHardware = {};
 
@@ -408,10 +438,6 @@ function recalc(){
     if(tentMins > 0) modelOps.push({op:document.getElementById('opNameTent').value||'Изготовление тента', min:tentMins});
     modelOps.forEach(o=>{ totalZpMin += o.min*qty; });
     zpPerModel.push({model:m.model, kit, axles, qty, ops:modelOps});
-
-    // Cuts = 1 cut per piece per model (rough)
-    const proCount = Object.values(profPieces).reduce((s,v)=>s+v,0)*0.15; // ~cuts per meter
-    totalCuts += Math.round(proCount*qty);
 
     // Tent — linear meters from roll strips
     if(document.getElementById('opTent').checked && kit>=4 && m.tent>0){
@@ -460,16 +486,31 @@ function recalc(){
   metalHTML += `<tr class="total-row"><td>ИТОГО</td><td class="num"></td><td class="num"></td><td class="num"></td><td class="num">${totalWeight.toFixed(1)} кг</td><td class="num">${totalMetalCost.toLocaleString()} ₽</td></tr></table>`;
   document.getElementById('metalTable').innerHTML = metalHTML;
 
-  // Consumables
-  const wire = (totalCuts*0.007).toFixed(2);
-  const gas = (totalCuts*0.007).toFixed(2);
-  const cutDiscs = Math.ceil(totalCuts/18);
-  const grindDiscs = Math.ceil(totalCuts/55);
-  const gloves = Math.max(1,Math.ceil(totalCuts/100));
-  const kragi = Math.max(1,Math.ceil(totalCuts/200));
+  // Consumables — из cutmap (единый источник, прямой экспорт)
+  let cmMissing = false;
+  const cmSum = { cuts: 0, wire: 0, gas: 0, cutDiscs: 0, grindDiscs: 0, gloves: 0, kragi: 0 };
+  positions.forEach(pos => {
+    const m = CATALOG[pos.catIdx];
+    const cm = cmData(m, pos.kit, pos.axles, pos.qty);
+    if (!cm) { cmMissing = true; return; }
+    const cc = cm.consumables || {};
+    cmSum.cuts += +cc.cuts || 0;
+    cmSum.wire += +cc.wire || 0;
+    cmSum.gas += +cc.gas || 0;
+    cmSum.cutDiscs += +cc.cutDiscs || 0;
+    cmSum.grindDiscs += +cc.grindDiscs || 0;
+    cmSum.gloves += +cc.gloves || 0;
+    cmSum.kragi += +cc.kragi || 0;
+  });
+  const wire = cmSum.wire.toFixed(3);
+  const gas = cmSum.gas.toFixed(3);
+  const cutDiscs = cmSum.cutDiscs;
+  const grindDiscs = cmSum.grindDiscs;
+  const gloves = cmSum.gloves;
+  const kragi = cmSum.kragi;
   const consPrices = {wire:250,gas:43,cutDisc:13,grindDisc:44,gloves:25,kragi:420};
   const consCost = Math.round(wire*consPrices.wire + gas*consPrices.gas + cutDiscs*consPrices.cutDisc + grindDiscs*consPrices.grindDisc + gloves*consPrices.gloves + kragi*consPrices.kragi);
-  document.getElementById('consTable').innerHTML = `<table>
+  document.getElementById('consTable').innerHTML = `${cmMissing ? '<div style="color:#e9a23b;font-size:12px;margin:6px 0">⏳ расходники подгружаются из cutmap…</div>' : ''}<table>
     <tr><th>Расходник</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Стоимость</th></tr>
     <tr><td>Проволока 0.8 мм</td><td class="num">${wire} кг</td><td class="num">${consPrices.wire} ₽/кг</td><td class="num">${Math.round(wire*consPrices.wire)} ₽</td></tr>
     <tr><td>Газ пропан</td><td class="num">${gas} кг</td><td class="num">${consPrices.gas} ₽/кг</td><td class="num">${Math.round(gas*consPrices.gas)} ₽</td></tr>

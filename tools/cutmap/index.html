@@ -1439,7 +1439,7 @@ function renderConsumables(c) {
   const el = document.getElementById('consumables');
   if (!el) return;
   // Prices from ALL_MAT_PRICES with fallbacks
-  var pWire = 250, pGas = 26.9, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
+  var pWire = 250, pGas = 43, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
   try { pWire = ALL_MAT_PRICES['Расходники']['Проволока св. 0.8мм'].price; } catch(e) {}
   try { pGas = ALL_MAT_PRICES['Расходники']['Газ (CO₂)'].price; } catch(e) {}
   try { pDisc = ALL_MAT_PRICES['Расходники']['Диск отрезной d125'].price; } catch(e) {}
@@ -3056,7 +3056,7 @@ const ALL_MAT_PRICES = {
     'Диск отрезной d125': {price:13, unit:'₽/шт'},
     'Шлифкруг 125мм': {price:44, unit:'₽/шт'},
     'Проволока св. 0.8мм': {price:250, unit:'₽/кг'},
-    'Газ (CO₂)': {price:26.9, unit:'₽/л'},
+    'Газ (CO₂)': {price:43, unit:'₽/л'},
     'Краги сварочные': {price:420, unit:'₽/пар'},
     'Перчатки нитриловые': {price:25, unit:'₽/пар'},
   },

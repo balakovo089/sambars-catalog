@@ -263,6 +263,10 @@ const EXPORT_MODE = urlParams.get('export') === '1';
 // Калибровка по факту цеха, база — комплект Самбарс 150×350, 2 оси, К4:
 //   длина шва базы ≈ 100,8 м, расход ~10 л из баллона на комплект → норма ≈ 0,0992 л/м.
 const GAS_L_PER_WELD_M = 0.0992;
+// Норма сварочной проволоки — тоже от длины шва. Калибровка по факту цеха:
+// база Самбарс 150×350, 2 оси, К4 — ~8 кг проволоки при длине шва 100,8 м → ≈0,0794 кг/м.
+// (было 7 г на рез — занижало расход в ~15 раз; справочник для стали 2 мм даёт 0,091 кг/м)
+const WIRE_KG_PER_WELD_M = 0.0794;
 // цена расходника из справочника цен (единое место — ALL_MAT_PRICES)
 function matPrice(name) { try { return ALL_MAT_PRICES['Расходники'][name].price; } catch (e) { return 0; } }
 // ═══ AUTH (skip for batch mode) ═══
@@ -539,10 +543,11 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
   // === CONSUMABLES ===
   // резы на количеств�� изделий: расходники считаются сразу на заказ (qty из экспорта)
   const totalCuts = pieces.reduce((sum, g) => sum + g.pieces.length, 0) * (st.qty || 1);
+  // длина шва = суммарная длина деталей (расход проволоки и газа считается от неё)
+  const weldMExp = pieces.reduce((s, g) => s + g.pieces.reduce((a, b) => a + b, 0), 0);
   add('диск отрезной d125 ', Math.ceil(totalCuts / 18), 'шт', 'Расходники');
   add('шлиф.круг 125мм', Math.ceil(totalCuts / 55), 'шт', 'Расходники');
-  add('Сварочная проволока', parseFloat((totalCuts * 0.007).toFixed(3)), 'кг', 'Расходники');
-  const weldMExp = pieces.reduce((s, g) => s + g.pieces.reduce((a, b) => a + b, 0), 0);
+  add('Сварочная проволока', parseFloat((weldMExp * WIRE_KG_PER_WELD_M).toFixed(3)), 'кг', 'Расходники');
   add('Газ (CO₂)', parseFloat((weldMExp * GAS_L_PER_WELD_M).toFixed(2)), 'л', 'Расходники');
   add('Сварочные Перчатки (Краги)', Math.max(1, Math.ceil(totalCuts / 200)), 'пар', 'Расходники');
   add('Перчатки нитриловые ROXTOR', Math.max(1, Math.ceil(totalCuts / 100)), 'пар', 'Расходники');
@@ -559,7 +564,7 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
     consumables: {
       cuts: totalCuts,
       weldM: +(weldMExp).toFixed(2),
-      wire: totalCuts * 0.007,
+      wire: +(weldMExp * WIRE_KG_PER_WELD_M).toFixed(3),
       gas: +(weldMExp * GAS_L_PER_WELD_M).toFixed(2),
       cutDiscs: Math.ceil(totalCuts / 18),
       grindDiscs: Math.ceil(totalCuts / 55),
@@ -809,7 +814,7 @@ function recalc() {
   const consumables = {
     cuts: totalCuts,
     weldM: +weldM.toFixed(2),
-    wire: (totalCuts * 0.007).toFixed(3),
+    wire: +(weldM * WIRE_KG_PER_WELD_M).toFixed(3),
     gas: +(weldM * GAS_L_PER_WELD_M).toFixed(2),
     cutDiscs: Math.ceil(totalCuts / 18),
     grindDiscs: Math.ceil(totalCuts / 55),
@@ -1463,7 +1468,7 @@ function renderConsumables(c) {
     <tr><td>Перчатки нитриловые</td><td class="num">${c.gloves} пар</td><td class="num">${Math.round(glovesCost)} ₽</td></tr>
     <tr><td>Краги сварочные</td><td class="num">${c.kragi} пар</td><td class="num">${Math.round(kragiCost)} ₽</td></tr>
     <tr style="border-top:2px solid #e94560"><td><b>ИТОГО расходники</b></td><td></td><td class="num"><b>${totalCons.toLocaleString()} ₽</b></td></tr>
-    <tr><td colspan="3" class="sub">нормы: ~7 г проволоки/пил, диск на 18 резов, лепесток на 55 швов</td></tr>
+    <tr><td colspan="3" class="sub">нормы: проволока 0,0794 кг/м шва, газ 0,0992 л/м шва, диск на 18 резов, лепесток на 55 швов</td></tr>
   </table>`;
 }
 

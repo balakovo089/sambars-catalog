@@ -390,12 +390,18 @@ function cmData(m, kit, axles, qty) {
     const f = document.createElement('iframe');
     f.style.cssText = 'position:fixed;left:-9999px;top:0;width:500px;height:300px;border:0';
     f.onload = () => {
-      let data = null;
-      try { data = JSON.parse(f.contentDocument.querySelector('pre').textContent); } catch (e) { data = null; }
-      CM_CACHE[key] = data;
-      CM_LOADING[key] = false;
-      f.remove();
-      recalc();
+      // cutmap отдаёт JSON в <pre> чуть позже загрузки — читаем с повтором
+      let tries = 0;
+      const read = () => {
+        let data = null;
+        try { data = JSON.parse(f.contentDocument.querySelector('pre').textContent); } catch (e) { data = null; }
+        if (!data && tries++ < 25) { setTimeout(read, 150); return; }
+        CM_CACHE[key] = data;
+        CM_LOADING[key] = false;
+        f.remove();
+        recalc();
+      };
+      read();
     };
     f.onerror = () => { CM_CACHE[key] = null; CM_LOADING[key] = false; f.remove(); recalc(); };
     f.src = url;
@@ -489,11 +495,13 @@ function recalc(){
   // Consumables — из cutmap (единый источник, прямой экспорт)
   let cmMissing = false;
   const cmSum = { cuts: 0, wire: 0, gas: 0, cutDiscs: 0, grindDiscs: 0, gloves: 0, kragi: 0 };
+  let cmPrices = null;
   positions.forEach(pos => {
     const m = CATALOG[pos.catIdx];
     const cm = cmData(m, pos.kit, pos.axles, pos.qty);
     if (!cm) { cmMissing = true; return; }
     const cc = cm.consumables || {};
+    if (cc.prices) cmPrices = cc.prices;
     cmSum.cuts += +cc.cuts || 0;
     cmSum.wire += +cc.wire || 0;
     cmSum.gas += +cc.gas || 0;
@@ -508,7 +516,8 @@ function recalc(){
   const grindDiscs = cmSum.grindDiscs;
   const gloves = cmSum.gloves;
   const kragi = cmSum.kragi;
-  const consPrices = {wire:250,gas:60,cutDisc:13,grindDisc:44,gloves:25,kragi:420};
+  // цены расходников — из cutmap (единая база; своих цен в этом файле нет)
+  const consPrices = cmPrices || {wire:0,gas:0,cutDisc:0,grindDisc:0,gloves:0,kragi:0};
   const consCost = Math.round(wire*consPrices.wire + gas*consPrices.gas + cutDiscs*consPrices.cutDisc + grindDiscs*consPrices.grindDisc + gloves*consPrices.gloves + kragi*consPrices.kragi);
   document.getElementById('consTable').innerHTML = `${cmMissing ? '<div style="color:#e9a23b;font-size:12px;margin:6px 0">⏳ расходники подгружаются из cutmap…</div>' : ''}<table>
     <tr><th>Расходник</th><th class="num">Кол-во</th><th class="num">Цена</th><th class="num">Стоимость</th></tr>

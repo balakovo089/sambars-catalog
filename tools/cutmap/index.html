@@ -264,6 +264,8 @@ const EXPORT_MODE = urlParams.get('export') === '1';
 const WELD_CM_PER_CUT = 8;                        // см шва на один рез (по факту цеха)
 const GAS_KG_PER_WELD_M = 0.049;                  // кг CO₂ на 1 м шва (сталь 2 мм)
 const GAS_PER_CUT = (WELD_CM_PER_CUT / 100) * GAS_KG_PER_WELD_M;
+// цена расходника из справочника цен (единое место — ALL_MAT_PRICES)
+function matPrice(name) { try { return ALL_MAT_PRICES['Расходники'][name].price; } catch (e) { return 0; } }
 // ═══ AUTH (skip for batch mode) ═══
 (function(){if(BATCH_MODE||EXPORT_MODE)return;const a=localStorage.getItem('sambars_auth');if(!a||a!=='director'){window.location.href='../../portal.html';return;}document.getElementById('authBadge').textContent='👑 Руководитель';})();
 
@@ -561,7 +563,16 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
       cutDiscs: Math.ceil(totalCuts / 18),
       grindDiscs: Math.ceil(totalCuts / 55),
       gloves: Math.max(1, Math.ceil(totalCuts / 100)),
-      kragi: Math.max(1, Math.ceil(totalCuts / 200))
+      kragi: Math.max(1, Math.ceil(totalCuts / 200)),
+      // цены — из справочника cutmap, потребители (ИК) своих цен не держат
+      prices: {
+        wire: matPrice('Проволока св. 0.8мм'),
+        gas: matPrice('Газ (CO₂)'),
+        cutDisc: matPrice('Диск отрезной d125'),
+        grindDisc: matPrice('Шлифкруг 125мм'),
+        gloves: matPrice('Перчатки нитриловые'),
+        kragi: matPrice('Краги сварочные')
+      }
     },
     materials: mats
   };
@@ -1424,7 +1435,7 @@ function renderConsumables(c) {
   const el = document.getElementById('consumables');
   if (!el) return;
   // Prices from ALL_MAT_PRICES with fallbacks
-  var pWire = 250, pGas = 60, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
+  var pWire = 250, pGas = 43, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
   try { pWire = ALL_MAT_PRICES['Расходники']['Проволока св. 0.8мм'].price; } catch(e) {}
   try { pGas = ALL_MAT_PRICES['Расходники']['Газ (CO₂)'].price; } catch(e) {}
   try { pDisc = ALL_MAT_PRICES['Расходники']['Диск отрезной d125'].price; } catch(e) {}
@@ -2882,7 +2893,9 @@ if (BATCH_MODE) {
   state.kit = parseInt(urlParams.get('kit')) || 4;
   state.qty = parseInt(urlParams.get('qty')) || 1;
   state.model = `${state.brand} ${(state.W/1000).toFixed(2)}×${(state.L/1000).toFixed(1)}`;
-  recalc();
+  // Считаем после полной инициализации скрипта: справочник цен (ALL_MAT_PRICES)
+  // объявлен ниже по файлу, при синхронном вызове цены ещё не существуют.
+  setTimeout(recalc, 0);
 } else {
   init();
 }
@@ -3039,7 +3052,7 @@ const ALL_MAT_PRICES = {
     'Диск отрезной d125': {price:13, unit:'₽/шт'},
     'Шлифкруг 125мм': {price:44, unit:'₽/шт'},
     'Проволока св. 0.8мм': {price:250, unit:'₽/кг'},
-    'Газ (CO₂)': {price:60, unit:'₽/кг'},
+    'Газ (CO₂)': {price:43, unit:'₽/кг'},
     'Краги сварочные': {price:420, unit:'₽/пар'},
     'Перчатки нитриловые': {price:25, unit:'₽/пар'},
   },

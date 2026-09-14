@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Заказ ИК-4 — Сварка прицепов</title>
+<title>Заказ на сварку — подрядчик</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#0a0a1a;color:#e0e0e0;font-family:'Segoe UI',system-ui,sans-serif;padding:20px}
@@ -53,7 +53,21 @@ td.num.bold{font-weight:bold;color:#f0c040}
   <span id="authBadge" style="color:#888"></span>
 </div>
 
-<h1>🔩 Заказ на сварку — ИК-4</h1>
+<h1>🔩 Заказ на сварку — <span id="ctrTitle">ФКУ ИК-26</span></h1>
+
+<!-- ПОДРЯДЧИК И ДОГОВОР (заполняет менеджер; данные идут в бланк, Word, CSV и М-15) -->
+<div class="section">
+<h2>🏭 Подрядчик и договор</h2>
+<div class="row">
+  <label>Подрядчик</label><input type="text" id="ctrName" value="ФКУ ИК-26" style="width:330px" placeholder="напр. ФКУ ИК-26 УФСИН России по Самарской области">
+</div>
+<div class="row">
+  <label>Договор №</label><input type="text" id="ctrDoc" style="width:90px" placeholder="номер">
+  <label>от</label><input type="date" id="ctrDocDate">
+  <label style="margin-left:16px">Подписант подрядчика</label><input type="text" id="ctrSign" style="width:270px" placeholder="ФИО, должность — для бланка">
+</div>
+<div class="row"><span style="color:#888;font-size:12px">Подставляется автоматически в бланк ИК, Word, спецификацию (CSV) и накладную М-15. Заполняется один раз — сохраняется в браузере.</span></div>
+</div>
 
 <!-- META -->
 <div class="section">
@@ -146,7 +160,48 @@ td.num.bold{font-weight:bold;color:#f0c040}
 
 <script>
 // ═══ AUTH CHECK ═══
-(function(){const a=localStorage.getItem('sambars_auth');if(!a){window.location.href='portal.html';return;}document.getElementById('authBadge').textContent=a==='director'?'👑 Руководитель':'👤 ИК-4';})();
+(function(){const a=localStorage.getItem('sambars_auth');if(!a){window.location.href='portal.html';return;}document.getElementById('authBadge').textContent=a==='director'?'👑 Руководитель':'👤 Менеджер';})();
+// ═══ ПОДРЯДЧИК И ДОГОВОР ═══
+// Данные менеджера: сохраняются в браузере, подставляются во все документы.
+const IK_PARTY_STORE = 'sambars_ik_party';
+const IK_PARTY_DEFAULT = { name: 'ФКУ ИК-26', doc: '', docDate: '', sign: '' };
+const IK_MON = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+function ikParty() {
+  const g = (id) => { const e = document.getElementById(id); return e ? (e.value || '').trim() : ''; };
+  return { name: g('ctrName'), doc: g('ctrDoc'), docDate: g('ctrDocDate'), sign: g('ctrSign') };
+}
+function ikDocText(short) {
+  const p = ikParty();
+  const num = p.doc || '______';
+  if (short) {
+    if (!p.docDate) return '№ ' + num + ' от __________';
+    const q = p.docDate.split('-');
+    return '№ ' + num + ' от ' + q[2] + '.' + q[1] + '.' + q[0] + ' г.';
+  }
+  let dd = '__', mm = '_____________', yyyy = '____';
+  if (p.docDate) { const q = p.docDate.split('-'); yyyy = q[0]; dd = q[2]; mm = IK_MON[parseInt(q[1]) - 1] || ''; }
+  return '№ ' + num + ' от «' + dd + '» ' + mm + ' ' + yyyy + ' г.';
+}
+function ikSignRow() {
+  const sign = ikParty().sign;
+  return '<tr><td>__________________ О.А. Антуганов</td><td>' + (sign ? '__________________ ' + sign : '____________________________') + '</td></tr>';
+}
+function ikPartySave() {
+  try { localStorage.setItem(IK_PARTY_STORE, JSON.stringify(ikParty())); } catch (e) {}
+  const p = ikParty();
+  const t = document.getElementById('ctrTitle');
+  if (t) t.textContent = p.name || 'подрядчик';
+  document.title = 'Заказ на сварку — ' + (p.name || 'подрядчик');
+}
+(function ikPartyLoad() {
+  let p = Object.assign({}, IK_PARTY_DEFAULT);
+  try { const raw = localStorage.getItem(IK_PARTY_STORE); if (raw) p = Object.assign(p, JSON.parse(raw)); } catch (e) {}
+  const set = (id, v) => { const e = document.getElementById(id); if (e) { e.value = v || ''; } };
+  set('ctrName', p.name); set('ctrDoc', p.doc); set('ctrDocDate', p.docDate); set('ctrSign', p.sign);
+  ['ctrName', 'ctrDoc', 'ctrDocDate', 'ctrSign'].forEach(id => { const e = document.getElementById(id); if (e) e.onchange = ikPartySave; });
+  ikPartySave();
+})();
+
 // ═══ DATA (from cutmap) ═══
 const CATALOG = [
   {num:1,brand:"Барсук",model:"Барсук 1.25×2.0",w:1250,l:2000,tent:50,ax:[1]},
@@ -582,7 +637,7 @@ function exportCSV(){
   const pricePerMin = rate/60;
   let csv='\uFEFF';
   csv+=`СПЕЦИФИКАЦИЯ № ${num} от «${dd}» ${mm} ${yyyy} г.\n\n`;
-  csv+='1. Во исполнение договора подряда № 1 от 15.01.2026 г. Подрядчик обязуется выполнить следующие работы:\n\n';
+  csv+='1. Во исполнение договора подряда ' + ikDocText(true) + ' Подрядчик обязуется выполнить следующие работы:\n\n';
   csv+='№ п/п;Наименование услуги;Ед. изм.;Цена за ед., руб.;Кол-во;Общая сумма, руб.;Срок изготовления\n';
   let n=0, grandSum=0;
   d.zpPerModel.forEach(pm=>{
@@ -708,7 +763,7 @@ th{text-align:center;font-weight:bold}
 @media print{body{margin:10mm}}
 </style></head><body>
 <h1>Спецификация № ${num} от «${dd}» ${mm} ${yyyy} г.</h1>
-<p>1. Во исполнение договора подряда № 1 от «15» января 2026 г. Подрядчик обязуется выполнить следующие работы:</p>
+<p>1. Во исполнение договора подряда ${ikDocText(false)} Подрядчик обязуется выполнить следующие работы:</p>
 <table>
 <tr><th>№ п/п</th><th>Наименование услуги</th><th>Ед. изм.</th><th>Цена за ед., руб.</th><th>Кол-во</th><th>Общая сумма, руб.</th><th>Срок изготовления</th></tr>
 ${rows}
@@ -727,8 +782,8 @@ ${cons}
 </table>
 <p>5. Срок выполнения работ: ______ рабочих дней с момента передачи Подрядчику сырья и материалов.</p>
 <p>6. Условия оплаты: 100% оплата в течение 10 (десяти) рабочих дней.</p>
-<table class="sign"><tr><td>Заказчик:</td><td>Подрядчик:</td></tr>
-<tr><td>__________________ О.А. Антуганов</td><td>____________________________</td></tr>
+<table class="sign"><tr><td>Заказчик: ООО «САМБАРС»</td><td>Подрядчик: ${ikParty().name}</td></tr>
+${ikSignRow()}
 <tr><td>«_____» ____________ ${yyyy} г.</td><td>«_____» ____________ ${yyyy} г.</td></tr></table>
 </body></html>`;
 
@@ -762,7 +817,7 @@ function generateBlankWord(){
   const c=d.cons, cp=c.consPrices;
   const consList=[['Проволока сварочная 0.8 мм','кг',c.wire,'wire'],['Газ (пропан/CO2)','кг',c.gas,'gas'],['Диски отрезные 125 мм','шт',c.cutDiscs,'cutDisc'],['Диски лепестковые 125 мм','шт',c.grindDiscs,'grindDisc'],['Перчатки','пар',c.gloves,'gloves'],['Краги сварочные','пар',c.kragi,'kragi']];
   let cons=''; consList.forEach((x,i)=>{ const price=cp[x[3]], cost=Math.round(x[2]*price); cons+=`<tr><td>${i+1}</td><td>${x[0]}</td><td>${x[1]}</td><td class="num">${x[2]}</td><td class="num">${price}</td><td class="num">${cost}</td><td class="num">${(x[2]/totalQty).toFixed(3)}</td></tr>`; });
-  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="ProgId" content="Word.Document"><meta name="Generator" content="Microsoft Word"><style>@page{size:A4 landscape;margin:16mm}body{font-family:'Times New Roman',serif;font-size:10pt;color:#000}h1{text-align:center;font-size:13pt}p{margin:7px 0;text-align:justify}table{border-collapse:collapse;width:100%;margin:7px 0}th,td{border:1px solid #000;padding:4px 6px;vertical-align:top}th{text-align:center;font-weight:bold}.num{text-align:right}.mh{font-weight:bold;background:#eee}.total td{font-weight:bold;border-top:2px solid #000}.sign td{border:none;padding:7px 15px}</style></head><body><h1>Спецификация № ${num} от «${dd}» ${mm} ${yyyy} г.</h1><p>1. Во исполнение договора подряда № 1 от «15» января 2026 г. Подрядчик обязуется выполнить следующие работы:</p><table><tr><th>№ п/п</th><th>Наименование услуги</th><th>Ед. изм.</th><th>Цена за ед., руб.</th><th>Кол-во</th><th>Общая сумма, руб.</th><th>Срок изготовления</th></tr>${rows}<tr class="total"><td></td><td colspan="3" style="text-align:right">Итого:</td><td></td><td class="num">${grandSum}</td><td></td></tr></table><p>2. Требования к подлежащей выполнению работе: согласно чертежам.</p><p>3. Материалы по накладной М-15:</p><table><tr><th>№</th><th>Наименование</th><th>Ед.</th><th>Кол-во</th><th>Залоговая цена</th><th>Залоговая стоимость</th><th>Норма на 1 изделие</th></tr>${mat}</table><p>4. Расходные материалы по накладной М-15:</p><table><tr><th>№</th><th>Наименование</th><th>Ед.</th><th>Кол-во</th><th>Цена</th><th>Стоимость</th><th>Норма на 1 изделие</th></tr>${cons}</table><p>5. Срок выполнения работ: ______ рабочих дней с момента передачи сырья и материалов.</p><p>6. Условия оплаты: 100% оплата в течение 10 (десяти) рабочих дней.</p><table class="sign"><tr><td>Заказчик:</td><td>Подрядчик:</td></tr><tr><td>__________________ О.А. Антуганов</td><td>____________________________</td></tr></table></body></html>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="ProgId" content="Word.Document"><meta name="Generator" content="Microsoft Word"><style>@page{size:A4 landscape;margin:16mm}body{font-family:'Times New Roman',serif;font-size:10pt;color:#000}h1{text-align:center;font-size:13pt}p{margin:7px 0;text-align:justify}table{border-collapse:collapse;width:100%;margin:7px 0}th,td{border:1px solid #000;padding:4px 6px;vertical-align:top}th{text-align:center;font-weight:bold}.num{text-align:right}.mh{font-weight:bold;background:#eee}.total td{font-weight:bold;border-top:2px solid #000}.sign td{border:none;padding:7px 15px}</style></head><body><h1>Спецификация № ${num} от «${dd}» ${mm} ${yyyy} г.</h1><p>1. Во исполнение договора подряда ${ikDocText(false)} Подрядчик обязуется выполнить следующие работы:</p><table><tr><th>№ п/п</th><th>Наименование услуги</th><th>Ед. изм.</th><th>Цена за ед., руб.</th><th>Кол-во</th><th>Общая сумма, руб.</th><th>Срок изготовления</th></tr>${rows}<tr class="total"><td></td><td colspan="3" style="text-align:right">Итого:</td><td></td><td class="num">${grandSum}</td><td></td></tr></table><p>2. Требования к подлежащей выполнению работе: согласно чертежам.</p><p>3. Материалы по накладной М-15:</p><table><tr><th>№</th><th>Наименование</th><th>Ед.</th><th>Кол-во</th><th>Залоговая цена</th><th>Залоговая стоимость</th><th>Норма на 1 изделие</th></tr>${mat}</table><p>4. Расходные материалы по накладной М-15:</p><table><tr><th>№</th><th>Наименование</th><th>Ед.</th><th>Кол-во</th><th>Цена</th><th>Стоимость</th><th>Норма на 1 изделие</th></tr>${cons}</table><p>5. Срок выполнения работ: ______ рабочих дней с момента передачи сырья и материалов.</p><p>6. Условия оплаты: 100% оплата в течение 10 (десяти) рабочих дней.</p><table class="sign"><tr><td>Заказчик: ООО «САМБАРС»</td><td>Подрядчик: ${ikParty().name}</td></tr>${ikSignRow()}</table></body></html>`;
   const blob=new Blob(['\ufeff',html],{type:'application/msword'});
   const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`spec-ik4-${num}.doc`; a.click();
 }
@@ -816,10 +871,10 @@ th{text-align:center;font-weight:bold;font-size:7.5pt}
 </table>
 <table>
 <tr><td style="width:12%">Дата составления</td><td style="width:8%">${date}</td><td style="width:10%">Код вида операции</td><td style="width:5%"></td><td style="width:20%">Отправитель<br><span class="small">структурное подразделение, вид деятельности</span></td><td style="width:20%">Получатель<br><span class="small">структурное подразделение, вид деятельности</span></td><td style="width:25%">Ответственный за поставку<br><span class="small">структурное подразделение, вид деятельности, код исполнителя</span></td></tr>
-<tr><td colspan="4"></td><td>ООО «САМБАРС», цех 1</td><td>ФКУ ИК-4</td><td></td></tr>
+<tr><td colspan="4"></td><td>ООО «САМБАРС», цех 1</td><td>${ikParty().name}</td><td></td></tr>
 </table>
 <table>
-<tr><td style="width:12%">Основание</td><td style="width:38%">Договор подряда № 1 от 15.01.2026</td><td style="width:12%">Кому</td><td style="width:38%">ФКУ ИК-4</td></tr>
+<tr><td style="width:12%">Основание</td><td style="width:38%">Договор подряда ${ikDocText(true)}</td><td style="width:12%">Кому</td><td style="width:38%">${ikParty().name}</td></tr>
 </table>
 <table>
 <tr>

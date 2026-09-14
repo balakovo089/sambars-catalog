@@ -258,12 +258,11 @@ const TUBES = {
 const urlParams = new URLSearchParams(window.location.search);
 const BATCH_MODE = urlParams.get('batch') === '1';
 const EXPORT_MODE = urlParams.get('export') === '1';
-// Норма расхода газа CO₂ — от длины шва (суммарная длина деталей комплектации).
+// Норма расхода газа CO₂ — в ЛИТРАХ (как заправляем и оплачиваем баллон).
+// Считаем от длины шва (суммарная длина деталей комплектации).
 // Калибровка по факту цеха, база — комплект Самбарс 150×350, 2 оси, К4:
-//   длина шва базы ≈ 100,8 м; баллона 40 л (≈25 кг CO₂) хватает на 3–4 таких комплекта,
-//   т.е. ~10 л баллона на комплект ≈ 6,25 кг. Отсюда норма ≈ 0,062 кг/м.
-// (справочная таблица для стали 2 мм даёт 0,049 кг/м — справочник ниже факта цеха)
-const GAS_KG_PER_WELD_M = 0.062;
+//   длина шва базы ≈ 100,8 м, расход ~10 л из баллона на комплект → норма ≈ 0,0992 л/м.
+const GAS_L_PER_WELD_M = 0.0992;
 // цена расходника из справочника цен (единое место — ALL_MAT_PRICES)
 function matPrice(name) { try { return ALL_MAT_PRICES['Расходники'][name].price; } catch (e) { return 0; } }
 // ═══ AUTH (skip for batch mode) ═══
@@ -544,7 +543,7 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
   add('шлиф.круг 125мм', Math.ceil(totalCuts / 55), 'шт', 'Расходники');
   add('Сварочная проволока', parseFloat((totalCuts * 0.007).toFixed(3)), 'кг', 'Расходники');
   const weldMExp = pieces.reduce((s, g) => s + g.pieces.reduce((a, b) => a + b, 0), 0);
-  add('Газ (CO₂)', parseFloat((weldMExp * GAS_KG_PER_WELD_M).toFixed(3)), 'кг', 'Расходники');
+  add('Газ (CO₂)', parseFloat((weldMExp * GAS_L_PER_WELD_M).toFixed(2)), 'л', 'Расходники');
   add('Сварочные Перчатки (Краги)', Math.max(1, Math.ceil(totalCuts / 200)), 'пар', 'Расходники');
   add('Перчатки нитриловые ROXTOR', Math.max(1, Math.ceil(totalCuts / 100)), 'пар', 'Расходники');
 
@@ -561,7 +560,7 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
       cuts: totalCuts,
       weldM: +(weldMExp).toFixed(2),
       wire: totalCuts * 0.007,
-      gas: +(weldMExp * GAS_KG_PER_WELD_M).toFixed(3),
+      gas: +(weldMExp * GAS_L_PER_WELD_M).toFixed(2),
       cutDiscs: Math.ceil(totalCuts / 18),
       grindDiscs: Math.ceil(totalCuts / 55),
       gloves: Math.max(1, Math.ceil(totalCuts / 100)),
@@ -811,7 +810,7 @@ function recalc() {
     cuts: totalCuts,
     weldM: +weldM.toFixed(2),
     wire: (totalCuts * 0.007).toFixed(3),
-    gas: +(weldM * GAS_KG_PER_WELD_M).toFixed(3),
+    gas: +(weldM * GAS_L_PER_WELD_M).toFixed(2),
     cutDiscs: Math.ceil(totalCuts / 18),
     grindDiscs: Math.ceil(totalCuts / 55),
     gloves: Math.max(1, Math.ceil(totalCuts / 100)),
@@ -1440,7 +1439,7 @@ function renderConsumables(c) {
   const el = document.getElementById('consumables');
   if (!el) return;
   // Prices from ALL_MAT_PRICES with fallbacks
-  var pWire = 250, pGas = 43, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
+  var pWire = 250, pGas = 26.9, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
   try { pWire = ALL_MAT_PRICES['Расходники']['Проволока св. 0.8мм'].price; } catch(e) {}
   try { pGas = ALL_MAT_PRICES['Расходники']['Газ (CO₂)'].price; } catch(e) {}
   try { pDisc = ALL_MAT_PRICES['Расходники']['Диск отрезной d125'].price; } catch(e) {}
@@ -1458,7 +1457,7 @@ function renderConsumables(c) {
     <tr><th>Расходник</th><th class="num">Ко��-во</th><th class="num">Стоимость</th></tr>
     <tr><td>Резов (пилов)</td><td class="num">${c.cuts}</td><td></td></tr>
     <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td><td class="num">${Math.round(wireCost)} ₽</td></tr>
-    <tr><td>Газ (CO₂)</td><td class="num">${c.gas} кг</td><td class="num">${Math.round(gasCost)} ₽</td></tr>
+    <tr><td>Газ (CO₂)</td><td class="num">${c.gas} л</td><td class="num">${Math.round(gasCost)} ₽</td></tr>
     <tr><td>Диски отрезные 125</td><td class="num">${c.cutDiscs} шт</td><td class="num">${Math.round(discCost)} ₽</td></tr>
     <tr><td>Диски лепестковые</td><td class="num">${c.grindDiscs} шт</td><td class="num">${Math.round(grindCost)} ₽</td></tr>
     <tr><td>Перчатки нитриловые</td><td class="num">${c.gloves} пар</td><td class="num">${Math.round(glovesCost)} ₽</td></tr>
@@ -3057,7 +3056,7 @@ const ALL_MAT_PRICES = {
     'Диск отрезной d125': {price:13, unit:'₽/шт'},
     'Шлифкруг 125мм': {price:44, unit:'₽/шт'},
     'Проволока св. 0.8мм': {price:250, unit:'₽/кг'},
-    'Газ (CO₂)': {price:43, unit:'₽/кг'},
+    'Газ (CO₂)': {price:26.9, unit:'₽/л'},
     'Краги сварочные': {price:420, unit:'₽/пар'},
     'Перчатки нитриловые': {price:25, unit:'₽/пар'},
   },

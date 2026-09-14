@@ -258,9 +258,12 @@ const TUBES = {
 const urlParams = new URLSearchParams(window.location.search);
 const BATCH_MODE = urlParams.get('batch') === '1';
 const EXPORT_MODE = urlParams.get('export') === '1';
-// Норма расхода газа, кг на 1 рез. 0 = норма не задана (тогда строка газа не выводится).
-// Раньше газ ошибочно считался как проволока (та же норма 0.007 кг/рез).
-const GAS_PER_CUT = 0;
+// Норма расхода газа CO₂. Считаем от длины шва: на каждый рез ≈ 8 см шва,
+// справочная норма для стали 2 мм — 0,049 кг CO₂ на 1 м шва (проволока 0.8 мм).
+// Отсюда ≈ 4 г на рез. Прежняя норма (как у проволоки, 7 г/рез) была ошибочной.
+const WELD_CM_PER_CUT = 8;                        // см шва на один рез (по факту цеха)
+const GAS_KG_PER_WELD_M = 0.049;                  // кг CO₂ на 1 м шва (сталь 2 мм)
+const GAS_PER_CUT = (WELD_CM_PER_CUT / 100) * GAS_KG_PER_WELD_M;
 // ═══ AUTH (skip for batch mode) ═══
 (function(){if(BATCH_MODE||EXPORT_MODE)return;const a=localStorage.getItem('sambars_auth');if(!a||a!=='director'){window.location.href='../../portal.html';return;}document.getElementById('authBadge').textContent='👑 Руководитель';})();
 
@@ -538,7 +541,7 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
   add('диск отрезной d125 ', Math.ceil(totalCuts / 18), 'шт', 'Расходники');
   add('шлиф.круг 125мм', Math.ceil(totalCuts / 55), 'шт', 'Расходники');
   add('Сварочная проволока', parseFloat((totalCuts * 0.007).toFixed(3)), 'кг', 'Расходники');
-  add('Газ (пропан)', parseFloat((totalCuts * GAS_PER_CUT).toFixed(3)), 'кг', 'Расходники');
+  add('Газ (CO₂)', parseFloat((totalCuts * GAS_PER_CUT).toFixed(3)), 'кг', 'Расходники');
   add('Сварочные Перчатки (Краги)', Math.max(1, Math.ceil(totalCuts / 200)), 'пар', 'Расходники');
   add('Перчатки нитриловые ROXTOR', Math.max(1, Math.ceil(totalCuts / 100)), 'пар', 'Расходники');
 
@@ -1421,9 +1424,9 @@ function renderConsumables(c) {
   const el = document.getElementById('consumables');
   if (!el) return;
   // Prices from ALL_MAT_PRICES with fallbacks
-  var pWire = 250, pGas = 43, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
+  var pWire = 250, pGas = 60, pDisc = 13, pGrind = 44, pGloves = 25, pKragi = 420;
   try { pWire = ALL_MAT_PRICES['Расходники']['Проволока св. 0.8мм'].price; } catch(e) {}
-  try { pGas = ALL_MAT_PRICES['Расходники']['Газ (пропан)'].price; } catch(e) {}
+  try { pGas = ALL_MAT_PRICES['Расходники']['Газ (CO₂)'].price; } catch(e) {}
   try { pDisc = ALL_MAT_PRICES['Расходники']['Диск отрезной d125'].price; } catch(e) {}
   try { pGrind = ALL_MAT_PRICES['Расходники']['Шлифкруг 125мм'].price; } catch(e) {}
   try { pGloves = ALL_MAT_PRICES['Расходники']['Перчатки нитриловые'].price; } catch(e) {}
@@ -1439,7 +1442,7 @@ function renderConsumables(c) {
     <tr><th>Расходник</th><th class="num">Ко��-во</th><th class="num">Стоимость</th></tr>
     <tr><td>Резов (пилов)</td><td class="num">${c.cuts}</td><td></td></tr>
     <tr><td>Проволока св. 0.8 мм</td><td class="num">${c.wire} кг</td><td class="num">${Math.round(wireCost)} ₽</td></tr>
-    <tr><td>Газ (пропан)</td><td class="num">${c.gas} кг</td><td class="num">${Math.round(gasCost)} ₽</td></tr>
+    <tr><td>Газ (CO₂)</td><td class="num">${c.gas} кг</td><td class="num">${Math.round(gasCost)} ₽</td></tr>
     <tr><td>Диски отрезные 125</td><td class="num">${c.cutDiscs} шт</td><td class="num">${Math.round(discCost)} ₽</td></tr>
     <tr><td>Диски лепестковые</td><td class="num">${c.grindDiscs} шт</td><td class="num">${Math.round(grindCost)} ₽</td></tr>
     <tr><td>Перчатки нитриловые</td><td class="num">${c.gloves} пар</td><td class="num">${Math.round(glovesCost)} ₽</td></tr>
@@ -3036,7 +3039,7 @@ const ALL_MAT_PRICES = {
     'Диск отрезной d125': {price:13, unit:'₽/шт'},
     'Шлифкруг 125мм': {price:44, unit:'₽/шт'},
     'Проволока св. 0.8мм': {price:250, unit:'₽/кг'},
-    'Газ (пропан)': {price:43, unit:'₽/кг'},
+    'Газ (CO₂)': {price:60, unit:'₽/кг'},
     'Краги сварочные': {price:420, unit:'₽/пар'},
     'Перчатки нитриловые': {price:25, unit:'₽/пар'},
   },

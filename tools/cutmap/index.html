@@ -258,12 +258,12 @@ const TUBES = {
 const urlParams = new URLSearchParams(window.location.search);
 const BATCH_MODE = urlParams.get('batch') === '1';
 const EXPORT_MODE = urlParams.get('export') === '1';
-// Норма расхода газа CO₂. Считаем от длины шва: на каждый рез ≈ 8 см шва,
-// справочная норма для стали 2 мм — 0,049 кг CO₂ на 1 м шва (проволока 0.8 мм).
-// Отсюда ≈ 4 г на рез. Прежняя норма (как у проволоки, 7 г/рез) была ошибочной.
-const WELD_CM_PER_CUT = 8;                        // см шва на один рез (по факту цеха)
-const GAS_KG_PER_WELD_M = 0.049;                  // кг CO₂ на 1 м шва (сталь 2 мм)
-const GAS_PER_CUT = (WELD_CM_PER_CUT / 100) * GAS_KG_PER_WELD_M;
+// Норма расхода газа CO₂ — от длины шва (суммарная длина деталей комплектации).
+// Калибровка по факту цеха, база — комплект Самбарс 150×350, 2 оси, К4:
+//   длина шва базы ≈ 100,8 м; баллона 40 л (≈25 кг CO₂) хватает на 3–4 таких комплекта,
+//   т.е. ~10 л баллона на комплект ≈ 6,25 кг. Отсюда норма ≈ 0,062 кг/м.
+// (справочная таблица для стали 2 мм даёт 0,049 кг/м — справочник ниже факта цеха)
+const GAS_KG_PER_WELD_M = 0.062;
 // цена расходника из справочника цен (единое место — ALL_MAT_PRICES)
 function matPrice(name) { try { return ALL_MAT_PRICES['Расходники'][name].price; } catch (e) { return 0; } }
 // ═══ AUTH (skip for batch mode) ═══
@@ -543,7 +543,8 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
   add('диск отрезной d125 ', Math.ceil(totalCuts / 18), 'шт', 'Расходники');
   add('шлиф.круг 125мм', Math.ceil(totalCuts / 55), 'шт', 'Расходники');
   add('Сварочная проволока', parseFloat((totalCuts * 0.007).toFixed(3)), 'кг', 'Расходники');
-  add('Газ (CO₂)', parseFloat((totalCuts * GAS_PER_CUT).toFixed(3)), 'кг', 'Расходники');
+  const weldMExp = pieces.reduce((s, g) => s + g.pieces.reduce((a, b) => a + b, 0), 0);
+  add('Газ (CO₂)', parseFloat((weldMExp * GAS_KG_PER_WELD_M).toFixed(3)), 'кг', 'Расходники');
   add('Сварочные Перчатки (Краги)', Math.max(1, Math.ceil(totalCuts / 200)), 'пар', 'Расходники');
   add('Перчатки нитриловые ROXTOR', Math.max(1, Math.ceil(totalCuts / 100)), 'пар', 'Расходники');
 
@@ -558,8 +559,9 @@ function buildExportData(st, pieces, bp, floorSheets, sideSheets, floorSheetType
     cuts: totalCuts,
     consumables: {
       cuts: totalCuts,
+      weldM: +(weldMExp).toFixed(2),
       wire: totalCuts * 0.007,
-      gas: totalCuts * GAS_PER_CUT,
+      gas: +(weldMExp * GAS_KG_PER_WELD_M).toFixed(3),
       cutDiscs: Math.ceil(totalCuts / 18),
       grindDiscs: Math.ceil(totalCuts / 55),
       gloves: Math.max(1, Math.ceil(totalCuts / 100)),
@@ -803,10 +805,13 @@ function recalc() {
 
   // ═══ РАСХОДНИКИ (по комплектации) ═══
   const totalCuts = kitPieces.reduce((sum, g) => sum + g.pieces.length, 0);
+  // длина сварного шва ≈ суммарная длина деталей комплектации (деталь проваривается по длине)
+  const weldM = kitPieces.reduce((s, g) => s + g.pieces.reduce((a, b) => a + b, 0), 0);
   const consumables = {
     cuts: totalCuts,
+    weldM: +weldM.toFixed(2),
     wire: (totalCuts * 0.007).toFixed(3),
-    gas: (totalCuts * GAS_PER_CUT).toFixed(3),
+    gas: +(weldM * GAS_KG_PER_WELD_M).toFixed(3),
     cutDiscs: Math.ceil(totalCuts / 18),
     grindDiscs: Math.ceil(totalCuts / 55),
     gloves: Math.max(1, Math.ceil(totalCuts / 100)),

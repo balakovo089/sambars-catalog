@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Чертёж — Самбарс 1.5×3.0 — вид сверху (рама + дышло)</title>
+<style>
+  html,body{margin:0;padding:0;background:#fff}
+  #sheet svg{display:block;margin:0 auto}
+</style>
+</head>
+<body>
+<div id="sheet"></div>
+<script>
+// ══════════════════════════════════════════════════════════
+// ЧЕРТЁЖ ЛИСТ 1 — ВИД СВЕРХУ (ПЛАН): РАМА + ДЫШЛО
+// Модель: Самбарс 1.5×3.0, 1 ось. Геометрия в РЕАЛЬНЫХ мм.
+// Размерная линия — только дышло. Текст крупный, на белом фоне.
+// ══════════════════════════════════════════════════════════
+const state = { brand:'Самбарс', W:1500, L:3000, axles:1 };
+const bp = { frameProfile:'60×60×2', extraMM:70, centerBeam:true };
+const frameW = state.W + bp.extraMM;     // 1570
+const frameL = state.L + bp.extraMM;     // 3070
+
+const REAR=0, FRONT=frameL, MID=frameW/2;
+
+// Ось: центр +10см в зад (от переда).
+const axleFromFront = frameL/2 + 100;         // 1635
+const axleX = FRONT - axleFromFront;          // 1435
+const springOff = 335;
+const wheelR = 14*25.4/2;                      // R14 ≈ 178
+const wheelW = 60;
+
+// Дышло: центр.луч 1200, боковые 2000, узел в 1000 от рамы.
+const dbCenter=1200, dbJoint=1000, ATTACH_INSET=30;
+const ATTACH_T=ATTACH_INSET, ATTACH_B=frameW-ATTACH_INSET;
+const ATTACH_X=FRONT-220, HITCH_X=FRONT+dbCenter, JOINT_X=FRONT+dbJoint;
+
+// Поперечины 40×20×2 (логика cutmap), сегменты от переда, шаг ~600.
+const specialFrameL = frameL/2 + 550;   // аморт. балка +55см от переда
+const segments=[{start:0,end:specialFrameL},{start:specialFrameL,end:frameL}];
+const frontFrom=[];
+segments.forEach(seg=>{
+  const segLen=seg.end-seg.start;
+  if(segLen<200) return;
+  const n=Math.max(0,Math.round(segLen/600)-1);
+  if(n<=0) return;
+  const step=segLen/(n+1);
+  for(let i=1;i<=n;i++) frontFrom.push(seg.start+step*i);
+});
+const crossX=frontFrom.map(p=>FRONT-p);
+const amortX=FRONT-specialFrameL;
+
+// Кронштейны рессор (±335 от оси).
+const springX=[axleX-springOff, axleX+springOff];
+const springW=60, springH=18;
+
+// ══════════════════════════════════════════════════════════
+// SVG + МАСШТАБ (координаты масштаб, толщина/шрифт — константа)
+// ══════════════════════════════════════════════════════════
+const NS='http://www.w3.org/2000/svg';
+let svg, S_=null, T_={tx:0,ty:0};
+function px(x){ return T_.tx + (x - S_.minX)*S_.s; }
+function py(y){ return T_.ty + (y - S_.minY)*S_.s; }
+function S(name,attrs,parent){const e=document.createElementNS(NS,name);for(const k in attrs)e.setAttribute(k,attrs[k]);(parent||svg).appendChild(e);return e;}
+function line(x1,y1,x2,y2,c,w,dash){const a={x1:px(x1),y1:py(y1),x2:px(x2),y2:py(y2),stroke:c||'#000','stroke-width':w||0.6,'stroke-linecap':'square'};if(dash)a['stroke-dasharray']=dash;return S('line',a);}
+function axis(x1,y1,x2,y2){return line(x1,y1,x2,y2,'#000',0.3,'10 4 2 4');}
+// text: px_pos в мм, size в мм бумаги
+function text(x,y,str,size,anchor,weight){
+  const e=S('text',{x:px(x),y:py(y),'font-family':'DejaVu Sans, Arial, sans-serif','font-size':size||4,'text-anchor':anchor||'middle','font-weight':weight||'normal',fill:'#000'});
+  e.textContent=str; return e;
+}
+function rect(x,y,w,h,sw){return S('rect',{x:px(x),y:py(y),width:w*S_.s,height:h*S_.s,fill:'none',stroke:'#000','stroke-width':sw||0.5});}
+function circle(cx,cy,r,fill,sw){return S('circle',{cx:px(cx),cy:py(cy),r:r*S_.s,fill:fill||'none',stroke:'#000','stroke-width':sw||0.3});}
+// Размерная линия (для дышла) — выносные + засечки + текст над
+function dimH(x1,x2,y,label){
+  line(x1,y+1,x1,y+8,'#000',0.15);
+  line(x2,y+1,x2,y+8,'#000',0.15);
+  line(x1,y,x2,y,'#000',0.3);
+  S('path',{d:`M ${px(x1)} ${py(y)} l 1.3 1.3`,stroke:'#000','stroke-width':0.3});
+  S('path',{d:`M ${px(x1)} ${py(y)} l 1.3 -1.3`,stroke:'#000','stroke-width':0.3});
+  S('path',{d:`M ${px(x2)} ${py(y)} l -1.3 1.3`,stroke:'#000','stroke-width':0.3});
+  S('path',{d:`M ${px(x2)} ${py(y)} l -1.3 -1.3`,stroke:'#000','stroke-width':0.3});
+  text((x1+x2)/2,y-2.5,label,3.8);
+}
+
+function build(){
+  // ── РАМА ──
+  rect(REAR,0,frameL,frameW,0.8);
+  if(bp.centerBeam) line(REAR,MID,FRONT,MID,'#000',0.4);
+  axis(REAR-30,MID,FRONT+30,MID);            // продольная ось
+  axis(FRONT-frameL/2,-12,FRONT-frameL/2,frameW+12); // поперечная ось
+  // косынки
+  const gs=25;
+  [[REAR,0,1,1],[FRONT,0,-1,1],[REAR,frameW,1,-1],[FRONT,frameW,-1,-1]].forEach(([cx,cy,sx,sy])=>line(cx,cy,cx+sx*gs,cy+sy*gs,'#000',0.3));
+  // поперечины
+  crossX.forEach(x=>line(x,0,x,frameW,'#000',0.4));
+  line(amortX,0,amortX,frameW,'#000',0.7);   // аморт. балка
+
+  // ── КРОНШТЕЙНЫ РЕССОР (по 2 сверху и снизу, ±335 от оси) ──
+  springX.forEach(sx=>{
+    rect(sx-springW/2, 0, springW, springH, 0.5);
+    rect(sx-springW/2, frameW-springH, springW, springH, 0.5);
+  });
+
+  // ── ДЫШЛО ──
+  line(HITCH_X,MID,FRONT,MID,'#000',0.7);           // центральный луч
+  line(JOINT_X,MID,ATTACH_X,ATTACH_T,'#000',0.7);   // боковой верх
+  line(JOINT_X,MID,ATTACH_X,ATTACH_B,'#000',0.7);   // боковой низ
+  const topY=MID+(FRONT-JOINT_X)*(ATTACH_T-MID)/(ATTACH_X-JOINT_X);
+  const botY=MID+(FRONT-JOINT_X)*(ATTACH_B-MID)/(ATTACH_X-JOINT_X);
+  line(FRONT,topY,FRONT,botY,'#000',0.7);            // перемычка на перед. кромке
+  circle(HITCH_X,MID,8,'none',0.4);                  // сцепная
+  circle(JOINT_X,MID,5,'#fff',0.4);                  // узел
+
+  // ── ОСЬ + КОЛЁСА ──
+  axis(axleX,-12,axleX,frameW+12);
+  rect(axleX-wheelR,-wheelR-wheelW/2,wheelR*2,wheelW,0.4);
+  rect(axleX-wheelR,frameW+wheelR-wheelW/2,wheelR*2,wheelW,0.4);
+  text(axleX,frameW+40,`ось (центр+100)`,2.8,'middle');
+
+  // ── РАЗМЕРНАЯ ЛИНИЯ ДЫШЛА — на чистом поле, смещена ВВЕРХ от диагонали ──
+  const dimY = MID - 95;   // выше обоих боковых лучей и сцепной
+  dimH(FRONT, HITCH_X, dimY, `${dbCenter} мм`);
+
+  // ── ЗАД/ПЕРЕД — по краям, на белом, ВНЕ зоны дышла/рамы ──
+  text(REAR-38,MID,'ЗАД',4.6,'middle','bold');
+  // ПЕРЕД — на чистом нижнем поле справа, ниже дышла и сцепной
+  text(FRONT+dbCenter-180, MID+95,'ПЕРЕД',4.6,'middle','bold');
+}
+
+// ══════════════════════════════════════════════════════════
+// A4 альбом
+// ══════════════════════════════════════════════════════════
+function layout(){
+  const sheet=document.getElementById('sheet');
+  sheet.innerHTML='';
+  svg=S('svg',{width:'297mm',height:'210mm',viewBox:'0 0 297 210'},sheet);
+  S('rect',{x:0,y:0,width:297,height:210,fill:'#fff'},svg);
+
+  const pad=15;
+  const minX=REAR-pad-55, maxX=HITCH_X+pad+60;
+  const minY=-wheelR-wheelW/2-pad-45, maxY=frameW+wheelR+wheelW/2+pad+45;
+  const usableW=297-20, usableH=210-20;
+  S_={ s:Math.min(usableW/(maxX-minX),usableH/(maxY-minY)), minX, minY };
+  T_={ tx:(297-(maxX-minX)*S_.s)/2, ty:(210-(maxY-minY)*S_.s)/2 };
+
+  build();
+
+  // ── Пояснительный текст в свободных зонах (крупный, на белом) ──
+  const tx1=10, ty1=14;
+  const h1=`${state.brand} ${(state.W/1000).toFixed(1)}×${(state.L/1000).toFixed(1)} м — ВИД СВЕРХУ (план)`;
+  const h1e=S('text',{x:tx1,y:ty1,'font-family':'DejaVu Sans, Arial, sans-serif','font-size':'5','fill':'#000'},svg); h1e.textContent=h1;
+  const sub=`Рама ${frameW}×${frameL} мм · ${bp.frameProfile} · центр. балка + косынки`;
+  const sube=S('text',{x:tx1,y:ty1+7,'font-family':'DejaVu Sans, Arial, sans-serif','font-size':'3.8','fill':'#000'},svg); sube.textContent=sub;
+  const sub2=`Поперечины 40×20×2: ${crossX.length} шт · аморт. балка: 1 · ось центр+100 · рессоры ±${springOff} · кронштейны: ${springX.length*2} шт`;
+  const sub2e=S('text',{x:tx1,y:ty1+14,'font-family':'DejaVu Sans, Arial, sans-serif','font-size':'3.2','fill':'#000'},svg); sub2e.textContent=sub2;
+
+  const s=S('text',{x:148,y:206,'font-family':'DejaVu Sans, Arial, sans-serif','font-size':'3.2','text-anchor':'middle',fill:'#000'},svg);
+  s.textContent=`Масштаб ~1:${Math.round(1/S_.s)} · размеры в мм`;
+}
+layout();
+</script>
+</body>
+</html>
